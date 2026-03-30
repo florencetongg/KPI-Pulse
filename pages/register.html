@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register | KPI System</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body class="bg-gradient-primary"> <div class="container d-flex justify-content-center align-items-center min-vh-100 py-5">
+  <div class="card login-card border-0 shadow-lg p-4"> <div class="text-center mb-4">
+      <div class="brand-logo mb-2 mx-auto">K</div>
+      <h3 class="fw-bold text-dark">Create Account</h3>
+      <p class="text-muted small">Please fill in your details to register</p>
+    </div>
+
+    <div id="errorAlert" class="alert alert-danger py-2 small d-none" role="alert">
+      Please fix the errors below.
+    </div>
+
+    <form id="registerForm" novalidate>
+
+      <div class="mb-3">
+        <label for="fullName" class="form-label small fw-semibold text-secondary">Full Name</label>
+        <input type="text" class="form-control custom-input" id="fullName" placeholder="John Doe" required>
+        <div class="invalid-feedback">Full name is required.</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label small fw-semibold text-secondary">Email Address</label>
+        <input type="email" class="form-control custom-input" id="email" placeholder="name@company.com" required>
+        <div class="invalid-feedback">Please enter a valid email.</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label small fw-semibold text-secondary">Password</label>
+        <div class="input-group">
+          <input type="password" class="form-control custom-input border-end-0" id="password" placeholder="••••••••" required>
+          <span class="input-group-text bg-white border-start-0 toggle-password" data-target="password" style="cursor:pointer;">
+            <i class="bi bi-eye-slash-fill text-muted"></i>
+          </span>
+        </div>
+        <div class="form-text small" style="font-size: 0.7rem;">8+ chars, uppercase, number & symbol.</div>
+        <div class="invalid-feedback">Requirements not met.</div>
+      </div>
+
+      <div class="mb-4">
+        <label for="confirmPassword" class="form-label small fw-semibold text-secondary">Confirm Password</label>
+        <div class="input-group">
+          <input type="password" class="form-control custom-input border-end-0" id="confirmPassword" placeholder="••••••••" required>
+          <span class="input-group-text bg-white border-start-0 toggle-password" data-target="confirmPassword" style="cursor:pointer;">
+            <i class="bi bi-eye-slash-fill text-muted"></i>
+          </span>
+        </div>
+        <div class="invalid-feedback">Passwords must match.</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+        Create Account
+      </button>
+
+    </form>
+
+    <div class="text-center mt-4">
+      <p class="small text-muted">
+        Already have an account? 
+        <a href="login.html" class="text-decoration-none">Login here</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('registerForm');
+  const errorAlert = document.getElementById('errorAlert');
+  const passwordInput = document.getElementById('password');
+  const confirmPassword = document.getElementById('confirmPassword');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    let valid = true;
+    errorAlert.classList.add('d-none');
+
+    const fullName = document.getElementById('fullName');
+    if (!fullName.value.trim()) {
+      fullName.classList.add('is-invalid');
+      valid = false;
+    } else {
+      fullName.classList.remove('is-invalid');
+    }
+
+    const email = document.getElementById('email');
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email.value)) {
+      email.classList.add('is-invalid');
+      valid = false;
+    } else {
+      email.classList.remove('is-invalid');
+    }
+
+    const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+    if (!passwordPattern.test(passwordInput.value)) {
+      passwordInput.classList.add('is-invalid');
+      valid = false;
+    } else {
+      passwordInput.classList.remove('is-invalid');
+    }
+
+    if (confirmPassword.value !== passwordInput.value || !confirmPassword.value) {
+      confirmPassword.classList.add('is-invalid');
+      valid = false;
+    } else {
+      confirmPassword.classList.remove('is-invalid');
+    }
+
+    if (!valid) {
+      errorAlert.classList.remove('d-none');
+      return;
+    }
+
+    alert('Registration successful!');
+    form.reset();
+  });
+
+  // Toggle Password Logic (Original Logic)
+  document.querySelectorAll('.toggle-password').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.getAttribute('data-target'));
+      const icon = btn.querySelector('i');
+      const isPassword = target.type === 'password';
+      target.type = isPassword ? 'text' : 'password';
+      
+      icon.classList.toggle('bi-eye-fill', isPassword);
+      icon.classList.toggle('bi-eye-slash-fill', !isPassword);
+    });
+  });
+</script>
+
+</body>
+</html>

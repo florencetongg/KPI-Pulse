@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KPI Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div id="wrapper">
+  <div class="row g-0">
+    <!-- Sidebar -->
+    <!-- Use same sidebar HTML as dashboard -->
+    <nav class="col-md-2 d-none d-md-block bg-light min-vh-100">
+    <div id="sidebar-container"></div>
+    <div id="navbar-container"></div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="col-md-10 px-4 bg-light min-vh-100">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
+        <h1 class="h3 fw-bold">KPI Management</h1>
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#kpiModal">
+          + Add KPI
+        </button>
+      </div>
+
+      <!-- KPI Table -->
+      <div class="card shadow-sm p-3 mb-4">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Target</th>
+              <th>Staff</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Increase Sales</td>
+              <td>10% growth</td>
+              <td>John Doe</td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#kpiModal">Edit</button>
+                <button class="btn btn-sm btn-outline-danger">Delete</button>
+              </td>
+            </tr>
+            <!-- Add more rows dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- KPI Modal Form -->
+      <div class="modal fade" id="kpiModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content rounded-4">
+            <div class="modal-header">
+              <h5 class="modal-title">Add / Edit KPI</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div class="mb-3">
+                  <label for="kpiName" class="form-label">KPI Name</label>
+                  <input type="text" class="form-control custom-input" id="kpiName" placeholder="Enter KPI Name">
+                </div>
+                <div class="mb-3">
+                  <label for="kpiTarget" class="form-label">Target</label>
+                  <input type="text" class="form-control custom-input" id="kpiTarget" placeholder="Enter Target">
+                </div>
+                <div class="mb-3">
+                  <label for="kpiStaff" class="form-label">Staff</label>
+                  <input type="text" class="form-control custom-input" id="kpiStaff" placeholder="Assign Staff">
+                </div>
+                <div class="mb-3">
+                  <label for="kpiStatus" class="form-label">Status</label>
+                  <select class="form-select custom-input" id="kpiStatus">
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary-custom w-100">Save KPI</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/load-components.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+/* 1. VARIABLES & RESET */
+:root {
+  /* --- Brand & Greyscale --- */
+  --dark-navy: #191B28;
+  --bg-dark-1: #131523;
+  --bg-dark-2: #333752;
+  --text-muted: #5A607F;
+  --text-light: #7E84A3;
+  --border-light: #A1A7C4;
+  --ui-soft: #D7DBEC;
+  --bg-light-2: #E6E9F4;
+  --bg-light: #F4F7FE;
+
+  /* --- Primary Blue Scale --- */
+  --primary-blue: #1E5EFF; /* Base */
+  --primary-600: #1649cc;
+  --primary-500: #336DFF;
+  --primary-400: #4F81FF;
+  --primary-300: #608DFF;
+  --primary-200: #89ABFF;
+  --primary-100: #B6CBFF;
+  --primary-50: #D9E4FF;
+  --primary-soft: #ECF2FF;
+
+  /* --- Secondary Purple Scale --- */
+  --secondary-700: #6E0BD4;
+  --secondary-600: #8125DF;
+  --secondary-500: #9645E9;
+  --secondary-400: #A75EF1;
+  --secondary-300: #B97FF3;
+  --secondary-200: #D8B1FF;
+  --secondary-100: #E9D3FF;
+  --secondary-soft: #F4E9FE;
+
+  /* --- Success Green Scale --- */
+  --success-green: #06A561;
+  --success-600: #1FD286;
+  --success-500: #25E191;
+  --success-400: #48E9A5;
+  --success-300: #74EFB9;
+  --success-200: #95F6CC;
+  --success-100: #C4F8E2;
+  --success-soft: #DAF9EC;
+
+  /* --- Warning Yellow Scale --- */
+  --warning-orange: #F99600;
+  --warning-600: #FFC700;
+  --warning-500: #FFD613;
+  --warning-400: #FFE45F;
+  --warning-300: #FFE582;
+  --warning-200: #FFECA3;
+  --warning-100: #FFF4C9;
+  --warning-soft: #FFF9E1;
+
+  /* --- Danger Red Scale --- */
+  --danger-red: #F0142F;
+  --danger-600: #F12B43;
+  --danger-500: #F34359;
+  --danger-400: #F45A6D;
+  --danger-300: #F8919D;
+  --danger-200: #FAB3BC;
+  --danger-100: #FCD5D9;
+  --danger-soft: #FDE7EA;
+
+  /* --- Component Specifics --- */
+  --sidebar-text: rgba(255, 255, 255, 0.6);
+  --border-color: var(--ui-soft);
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-light);
+  color: #2D3748;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* 2. LAYOUT & SIDEBAR */
+#wrapper {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Sidebar full height */
+#sidebar-wrapper {
+  min-width: 260px;
+  max-width: 260px;
+  /* UPDATED: Changed from var(--dark-navy) to your login gradient */
+  background: linear-gradient(135deg, #1E5EFF 0%, #113a9e 100%);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  border-right: none; /* Removing border to keep the gradient clean */
+}
+
+/* Main content next to sidebar */
+#page-content-wrapper {
+  margin-left: 260px;  /* equal to sidebar width */
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.sidebar-heading {
+  padding: 2rem 1.5rem;
+  font-weight: 800;
+  color: white;
+  font-size: 1.25rem;
+  letter-spacing: 1px;
+}
+
+.list-group {
+  flex-grow: 1;
+}
+
+.list-group-item {
+  background: transparent !important;
+  border: none !important;
+  color: var(--sidebar-text) !important;
+  padding: 0.8rem 1.5rem !important;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.list-group-item i {
+  width: 18px;
+  height: 18px;
+}
+
+.list-group-item:hover {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.list-group-item.active {
+  background-color: var(--primary-blue) !important;
+  color: white !important;
+  border-radius: 10px;
+  margin: 0 12px;
+}
+
+/* 3. CARDS & UI COMPONENTS */
+.kpi-card, .card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  background: white;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+/* 4. BUTTONS & INPUTS */
+.btn-primary-custom {
+  background-color: var(--primary-blue);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-primary-custom:hover {
+  background-color: #1649cc;
+  box-shadow: 0 4px 12px rgba(30, 94, 255, 0.3);
+}
+
+.custom-input, .form-control {
+  border-radius: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  font-size: 0.95rem;
+}
+
+.custom-input:focus, .form-control:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(30, 94, 255, 0.1);
+  outline: none;
+}
+
+/* 5. TABLES & PROGRESS */
+.table {
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 0;
+}
+
+.table thead th {
+  background-color: #F8FAFC;
+  border-bottom: 1px solid var(--border-color);
+  color: #64748B;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 15px;
+}
+
+.table tbody td {
+  padding: 15px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.progress {
+  background-color: #E2E8F0;
+  border-radius: 10px;
+  height: 8px;
+}
+
+/* 6. LOGIN PAGE SPECIFIC */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #1E5EFF 0%, #113a9e 100%);
+  min-height: 100vh;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.brand-logo {
+  width: 50px;
+  height: 50px;
+  background: var(--primary-blue);
+  color: white;
+  font-size: 24px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(30, 94, 255, 0.4);
+}
+
+/* 7. BADGES & UTILITIES */
+.badge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.badge-active {
+  background-color: var(--primary-soft);
+  color: var(--primary-blue);
+}
+
+.badge-completed {
+  background-color: var(--success-soft);
+  color: var(--success-green);
+}
+
+.badge-pending {
+  background-color: var(--warning-soft);
+  color: var(--warning-orange);
+}
+
+.icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bg-primary-light { background-color: var(--primary-soft); }
+.bg-success-light { background-color: var(--success-soft); }
+.bg-warning-light { background-color: var(--warning-soft); }
+
+/* 8. RESPONSIVENESS */
+@media (max-width: 768px) {
+  #sidebar-wrapper {
+    margin-left: -260px;
+  }
+  #wrapper.toggled #sidebar-wrapper {
+    margin-left: 0;
+  }
+}
+
+/* Background */
+.register-bg {
+  background: linear-gradient(
+    135deg,
+    var(--primary-soft),
+    var(--secondary-soft)
+  );
+  font-family: 'Inter', sans-serif;
+}
+
+/* Card */
+.register-card {
+  width: 100%;
+  max-width: 460px;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+/* Logo */
+.brand-logo {
+  width: 60px;
+  height: 60px;
+  margin: auto;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue),
+    var(--secondary-500)
+  );
+  box-shadow: 0 8px 20px rgba(30, 94, 255, 0.3);
+}
+
+/* Typography */
+.title-text {
+  color: var(--dark-navy);
+}
+
+.subtitle-text {
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+.custom-label {
+  font-weight: 500;
+  color: var(--dark-navy);
+}
+
+/* Inputs */
+.custom-input {
+  border-radius: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.custom-input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 0.2rem rgba(30, 94, 255, 0.15);
+}
+
+.password-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Button */
+.register-btn {
+  background: var(--primary-blue);
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  color: white;
+}
+
+.register-btn:hover {
+  background: var(--primary-600);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(30, 94, 255, 0.25);
+}
+
+/* Link */
+.custom-link {
+  color: var(--primary-blue);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.custom-link:hover {
+  text-decoration: underline;
+}
+
+/* Alert */
+.custom-alert {
+  background-color: var(--danger-soft);
+  color: var(--danger-red);
+  border: 1px solid var(--danger-200);
+  border-radius: 12px;
+}
