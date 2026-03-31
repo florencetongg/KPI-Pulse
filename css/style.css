@@ -11,8 +11,11 @@
   --bg-light-2: #E6E9F4;
   --bg-light: #F4F7FE;
 
+  --white: #ffffff;
+  --black: #000000;
+
   /* --- Primary Blue Scale --- */
-  --primary-blue: #1E5EFF; /* Base */
+  --primary-blue: #1E5EFF;
   --primary-600: #1649cc;
   --primary-500: #336DFF;
   --primary-400: #4F81FF;
@@ -62,32 +65,45 @@
   --danger-100: #FCD5D9;
   --danger-soft: #FDE7EA;
 
-  /* --- Component Specifics --- */
-  --sidebar-text: rgba(255, 255, 255, 0.6);
-  --border-color: var(--ui-soft);
+  /* --- RGBA / UI TOKENS --- */
+  --rgba-white-60: rgba(255, 255, 255, 0.6);
+  --rgba-white-12: rgba(255, 255, 255, 0.12);
+  --rgba-white-18: rgba(255, 255, 255, 0.18);
+  --rgba-white-50: rgba(255,255,255,0.5);
+
+  --rgba-primary-10: rgba(30, 94, 255, 0.1);
+  --rgba-primary-15: rgba(30, 94, 255, 0.15);
+  --rgba-primary-25: rgba(30, 94, 255, 0.25);
+  --rgba-primary-30: rgba(30, 94, 255, 0.3);
+  --rgba-primary-40: rgba(30, 94, 255, 0.4);
+
+  --rgba-black-05: rgba(0, 0, 0, 0.05);
+
+  --rgba-danger-15: rgba(255, 0, 0, 0.15);
+
+  /* --- Extra UI --- */
+  --table-head-bg: #F8FAFC;
+  --table-row-border: #F1F5F9;
+  --table-head-text: #64748B;
+  --progress-bg: #E2E8F0;
+
+  --danger-text-soft: #ffb3b3;
+  --danger-text-hover: #ff4d4d;
 }
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-light);
-  color: #2D3748;
+  color: var(--dark-navy); 
   margin: 0;
   overflow-x: hidden;
 }
 
 /* 2. LAYOUT & SIDEBAR */
-/* ============================= */
-/* Wrapper Layout */
-/* ============================= */
-
 #wrapper {
   width: 100%;
   min-height: 100vh;
 }
-
-/* ============================= */
-/* Sidebar */
-/* ============================= */
 
 #sidebar-wrapper {
   min-width: 260px;
@@ -98,28 +114,24 @@ body {
   z-index: 1000;
   position: fixed;
 
-  /* Gradient background */
-  background: linear-gradient(135deg, #1E5EFF 0%, #113a9e 100%);
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-600) 100%);
   
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
-  overflow-x: hidden; /* Prevents children from sticking out */
+  overflow-x: hidden;
   box-sizing: border-box;
 }
 
-/* Collapsed sidebar */
 #sidebar-wrapper.collapsed {
   min-width: 80px;
   max-width: 80px;
 }
 
-/* Hide text when collapsed */
 #sidebar-wrapper.collapsed .list-group-item span {
   display: none;
 }
 
-/* Center icons when collapsed */
 #sidebar-wrapper.collapsed .list-group-item {
   justify-content: center;
   padding: 0.8rem 0 !important;
@@ -129,39 +141,28 @@ body {
   margin: 0 !important;
 }
 
-/* ============================= */
-/* Page Content */
-/* ============================= */
-
 #page-content-wrapper {
   padding: 2rem;
   min-height: 100vh;
-  background-color: #f8f9fa;
+  background-color: var(--bg-light);
   width: 100%;
   transition: margin-left 0.3s ease;
 }
 
-/* Shift content when sidebar collapses */
 #sidebar-wrapper.collapsed ~ #page-content-wrapper {
   margin-left: 80px;
 }
 
-/* ============================= */
 /* Sidebar Heading */
-/* ============================= */
 
 .sidebar-heading {
   padding: 2rem 1.5rem;
   font-weight: 800;
-  color: white;
+  color: var(--white);
   font-size: 1.25rem;
   letter-spacing: 1px;
   text-align: center;
 }
-
-/* ============================= */
-/* List Group */
-/* ============================= */
 
 .list-group {
   flex-grow: 1;
@@ -170,7 +171,7 @@ body {
 .list-group-item {
   background: transparent !important;
   border: none !important;
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: var(--rgba-white-60) !important;
   padding: 0.8rem 1.5rem !important;
   display: flex;
   align-items: center;
@@ -179,32 +180,29 @@ body {
   transition: all 0.2s ease;
   border-radius: 8px;
   margin: 4px 12px;
-  width: auto; /* Ensures it stays within the parent padding/margins */
+  width: auto;
   box-sizing: border-box;
 }
 
-/* Icons */
 .list-group-item i {
   font-size: 18px;
   transition: transform 0.2s ease;
 }
 
-/* Hover effect */
 .list-group-item:hover {
-  color: white !important;
-  background: rgba(255, 255, 255, 0.12) !important;
+  color: var(--white) !important;
+  background: var(--rgba-white-12) !important;
 }
 
 .list-group-item:hover i {
   transform: scale(1.1);
 }
 
-/* Active item */
 .list-group-item.active {
   position: relative;
-  background: rgba(255, 255, 255, 0.18) !important;
-  color: white !important;
-  border-left: 4px solid #ffffff; /* Adds a visible white vertical line */
+  background: var(--rgba-white-18) !important;
+  color: var(--white) !important;
+  border-left: 4px solid var(--white);
   font-weight: 700;
 }
 
@@ -214,13 +212,12 @@ body {
   left: 0;
   top: 0;
   height: 100%;
-  width: 4px; /* thickness of the bar */
-  background-color: #ffffff; /* active bar color */
-  border-radius: 0 4px 4px 0; /* rounded corners on right side */
+  width: 4px;
+  background-color: var(--white);
+  border-radius: 0 4px 4px 0;
   transition: all 0.3s ease;
 }
 
-/* Optional: hover effect also shows a thin left bar */
 .list-group-item:hover::before {
   content: '';
   position: absolute;
@@ -228,27 +225,26 @@ body {
   top: 0;
   height: 100%;
   width: 4px;
-  background-color: rgba(255,255,255,0.5);
+  background-color: var(--rgba-white-50);
   border-radius: 0 4px 4px 0;
   transition: all 0.3s ease;
 }
 
-/* Logout special color */
 .list-group-item.text-danger {
-  color: #ffb3b3 !important;
+  color: var(--danger-text-soft) !important;
 }
 
 .list-group-item.text-danger:hover {
-  background: rgba(255, 0, 0, 0.15) !important;
-  color: #ff4d4d !important;
+  background: var(--rgba-danger-15) !important;
+  color: var(--danger-text-hover) !important;
 }
 
 /* 3. CARDS & UI COMPONENTS */
 .kpi-card, .card {
   border: none;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  background: white;
+  box-shadow: 0 4px 20px var(--rgba-black-05);
+  background: var(--white);
   transition: transform 0.2s ease;
 }
 
@@ -259,7 +255,7 @@ body {
 /* 4. BUTTONS & INPUTS */
 .btn-primary-custom {
   background-color: var(--primary-blue);
-  color: white;
+  color: var(--white);
   border: none;
   padding: 10px 20px;
   border-radius: 10px;
@@ -268,34 +264,34 @@ body {
 }
 
 .btn-primary-custom:hover {
-  background-color: #1649cc;
-  box-shadow: 0 4px 12px rgba(30, 94, 255, 0.3);
+  background-color: var(--primary-600);
+  box-shadow: 0 4px 12px var(--rgba-primary-30);
 }
 
 .custom-input, .form-control {
   border-radius: 10px;
   padding: 12px 16px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-light);
   font-size: 0.95rem;
 }
 
 .custom-input:focus, .form-control:focus {
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(30, 94, 255, 0.1);
+  box-shadow: 0 0 0 3px var(--rgba-primary-10);
   outline: none;
 }
 
 /* 5. TABLES & PROGRESS */
 .table {
-  background: white;
+  background: var(--white);
   border-radius: 12px;
   margin-bottom: 0;
 }
 
 .table thead th {
-  background-color: #F8FAFC;
-  border-bottom: 1px solid var(--border-color);
-  color: #64748B;
+  background-color: var(--table-head-bg);
+  border-bottom: 1px solid var(--border-light);
+  color: var(--table-head-text);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -304,18 +300,18 @@ body {
 
 .table tbody td {
   padding: 15px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--table-row-border);
 }
 
 .progress {
-  background-color: #E2E8F0;
+  background-color: var(--progress-bg);
   border-radius: 10px;
   height: 8px;
 }
 
 /* 6. LOGIN PAGE SPECIFIC */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, #1E5EFF 0%, #113a9e 100%);
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-600) 100%);
   min-height: 100vh;
 }
 
@@ -328,14 +324,14 @@ body {
   width: 50px;
   height: 50px;
   background: var(--primary-blue);
-  color: white;
+  color: var(--white);
   font-size: 24px;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(30, 94, 255, 0.4);
+  box-shadow: 0 4px 15px var(--rgba-primary-40);
 }
 
 /* 7. BADGES & UTILITIES */
@@ -399,7 +395,7 @@ body {
   width: 100%;
   max-width: 460px;
   border-radius: 20px;
-  background: #ffffff;
+  background: var(--white);
 }
 
 /* Logo */
@@ -413,13 +409,13 @@ body {
   justify-content: center;
   font-weight: 700;
   font-size: 20px;
-  color: white;
+  color: var(--white);
   background: linear-gradient(
     135deg,
     var(--primary-blue),
     var(--secondary-500)
   );
-  box-shadow: 0 8px 20px rgba(30, 94, 255, 0.3);
+  box-shadow: 0 8px 20px var(--rgba-primary-30);
 }
 
 /* Typography */
@@ -441,13 +437,13 @@ body {
 .custom-input {
   border-radius: 12px;
   padding: 10px 14px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-light);
   transition: all 0.2s ease;
 }
 
 .custom-input:focus {
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 0.2rem rgba(30, 94, 255, 0.15);
+  box-shadow: 0 0 0 0.2rem var(--rgba-primary-15);
 }
 
 .password-hint {
@@ -463,13 +459,13 @@ body {
   padding: 12px;
   font-weight: 600;
   transition: all 0.2s ease;
-  color: white;
+  color: var(--white);
 }
 
 .register-btn:hover {
   background: var(--primary-600);
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(30, 94, 255, 0.25);
+  box-shadow: 0 8px 18px var(--rgba-primary-25);
 }
 
 /* Link */
@@ -489,4 +485,19 @@ body {
   color: var(--danger-red);
   border: 1px solid var(--danger-200);
   border-radius: 12px;
+}
+
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.breadcrumb a {
+  color: var(--primary-blue);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
 }

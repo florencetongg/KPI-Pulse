@@ -37,3 +37,35 @@ document.addEventListener("DOMContentLoaded", function () {
   loadComponent("navbar-container", "../components/navbar.html");
 
 });
+
+function generateBreadcrumb() {
+  const container = document.getElementById('breadcrumb-container');
+  if (!container) return;
+
+  const path = window.location.pathname.split("/").pop() || 'dashboard.html';
+  
+  // Define breadcrumb labels for each page
+  const labels = {
+    'dashboard.html': 'Dashboard',
+    'kpi-form.html': 'KPI Form',
+    'kpi-verify.html': 'KPI Verify',
+    'manager-kpi.html': 'Manager KPI',
+    'staff-kpi.html': 'Staff KPI',
+    'profile.html': 'Profile',
+    'settings.html': 'Settings',
+    'login.html': 'Login'
+  };
+
+  // For simple 2-level breadcrumb: Home / Page
+  container.innerHTML = `
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="dashboard.html">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">${labels[path] || 'Page'}</li>
+      </ol>
+    </nav>
+  `;
+}
+
+// Run after DOM loads
+document.addEventListener("DOMContentLoaded", generateBreadcrumb);
