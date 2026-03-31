@@ -76,35 +76,79 @@ body {
 }
 
 /* 2. LAYOUT & SIDEBAR */
+/* ============================= */
+/* Wrapper Layout */
+/* ============================= */
+
 #wrapper {
   width: 100%;
   min-height: 100vh;
 }
 
-/* Sidebar full height */
+/* ============================= */
+/* Sidebar */
+/* ============================= */
+
 #sidebar-wrapper {
   min-width: 260px;
   max-width: 260px;
-  /* UPDATED: Changed from var(--dark-navy) to your login gradient */
-  background: linear-gradient(135deg, #1E5EFF 0%, #113a9e 100%);
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s;
   height: 100vh;
-  position: fixed;
   top: 0;
   left: 0;
   z-index: 1000;
-  border-right: none; /* Removing border to keep the gradient clean */
+  position: fixed;
+
+  /* Gradient background */
+  background: linear-gradient(135deg, #1E5EFF 0%, #113a9e 100%);
+  
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  overflow-x: hidden; /* Prevents children from sticking out */
+  box-sizing: border-box;
 }
 
-/* Main content next to sidebar */
+/* Collapsed sidebar */
+#sidebar-wrapper.collapsed {
+  min-width: 80px;
+  max-width: 80px;
+}
+
+/* Hide text when collapsed */
+#sidebar-wrapper.collapsed .list-group-item span {
+  display: none;
+}
+
+/* Center icons when collapsed */
+#sidebar-wrapper.collapsed .list-group-item {
+  justify-content: center;
+  padding: 0.8rem 0 !important;
+}
+
+#sidebar-wrapper.collapsed .list-group-item i {
+  margin: 0 !important;
+}
+
+/* ============================= */
+/* Page Content */
+/* ============================= */
+
 #page-content-wrapper {
-  margin-left: 260px;  /* equal to sidebar width */
   padding: 2rem;
   min-height: 100vh;
   background-color: #f8f9fa;
+  width: 100%;
+  transition: margin-left 0.3s ease;
 }
+
+/* Shift content when sidebar collapses */
+#sidebar-wrapper.collapsed ~ #page-content-wrapper {
+  margin-left: 80px;
+}
+
+/* ============================= */
+/* Sidebar Heading */
+/* ============================= */
 
 .sidebar-heading {
   padding: 2rem 1.5rem;
@@ -112,7 +156,12 @@ body {
   color: white;
   font-size: 1.25rem;
   letter-spacing: 1px;
+  text-align: center;
 }
+
+/* ============================= */
+/* List Group */
+/* ============================= */
 
 .list-group {
   flex-grow: 1;
@@ -121,29 +170,77 @@ body {
 .list-group-item {
   background: transparent !important;
   border: none !important;
-  color: var(--sidebar-text) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
   padding: 0.8rem 1.5rem !important;
   display: flex;
   align-items: center;
+  gap: 12px;
   font-weight: 500;
   transition: all 0.2s ease;
+  border-radius: 8px;
+  margin: 4px 12px;
+  width: auto; /* Ensures it stays within the parent padding/margins */
+  box-sizing: border-box;
 }
 
+/* Icons */
 .list-group-item i {
-  width: 18px;
-  height: 18px;
+  font-size: 18px;
+  transition: transform 0.2s ease;
 }
 
+/* Hover effect */
 .list-group-item:hover {
   color: white !important;
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
 }
 
+.list-group-item:hover i {
+  transform: scale(1.1);
+}
+
+/* Active item */
 .list-group-item.active {
-  background-color: var(--primary-blue) !important;
+  position: relative;
+  background: rgba(255, 255, 255, 0.18) !important;
   color: white !important;
-  border-radius: 10px;
-  margin: 0 12px;
+  border-left: 4px solid #ffffff; /* Adds a visible white vertical line */
+  font-weight: 700;
+}
+
+.list-group-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px; /* thickness of the bar */
+  background-color: #ffffff; /* active bar color */
+  border-radius: 0 4px 4px 0; /* rounded corners on right side */
+  transition: all 0.3s ease;
+}
+
+/* Optional: hover effect also shows a thin left bar */
+.list-group-item:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: rgba(255,255,255,0.5);
+  border-radius: 0 4px 4px 0;
+  transition: all 0.3s ease;
+}
+
+/* Logout special color */
+.list-group-item.text-danger {
+  color: #ffb3b3 !important;
+}
+
+.list-group-item.text-danger:hover {
+  background: rgba(255, 0, 0, 0.15) !important;
+  color: #ff4d4d !important;
 }
 
 /* 3. CARDS & UI COMPONENTS */
