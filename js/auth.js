@@ -13,7 +13,7 @@ const AuthManager = {
   /** Registers a new user */
   register(userData) {
     const users = this._getAllUsers();
-    
+
     // Check if email already exists
     if (users.find(u => u.email === userData.email)) {
       return { success: false, message: 'Email already registered.' };
@@ -65,12 +65,12 @@ const AuthManager = {
   checkAuth() {
     const user = this.getCurrentUser();
     const isLoginPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html');
-    
+
     if (!user && !isLoginPage) {
       window.location.href = 'login.html';
       return false;
     }
-    
+
     if (user && isLoginPage) {
       window.location.href = 'dashboard.html';
       return true;
