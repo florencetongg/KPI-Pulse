@@ -104,144 +104,145 @@
       <main class="col-md-10 px-0 bg-light min-vh-100">
         <div id="navbar-container"></div>
         <div class="px-4">
-        <div id="breadcrumb-container" class="mb-3"></div>
+          <div id="breadcrumb-container" class="mb-3"></div>
 
-        <!-- Header -->
-        <div
-          class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
-          <div>
-            <h1 class="h3 fw-bold mb-1">Update Progress</h1>
-            <p class="text-muted small mb-0">Set your current progress and upload supporting evidence</p>
+          <!-- Header -->
+          <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
+            <div>
+              <h1 class="h3 fw-bold mb-1">Update Progress</h1>
+              <p class="text-muted small mb-0">Set your current progress and upload supporting evidence</p>
+            </div>
+            <a href="staff-kpi.html" class="btn btn-sm btn-outline-secondary">
+              <i data-lucide="arrow-left" style="width:14px;height:14px;" class="me-1"></i>Back to KPIs
+            </a>
           </div>
-          <a href="staff-kpi.html" class="btn btn-sm btn-outline-secondary">
-            <i data-lucide="arrow-left" style="width:14px;height:14px;" class="me-1"></i>Back to KPIs
-          </a>
-        </div>
 
-        <div class="row g-4">
-          <!-- LEFT: Progress Update Form -->
-          <div class="col-lg-7">
-            <div class="card border-0 shadow-sm p-4 mb-4 animate-fade-in">
-              <!-- KPI Selector -->
-              <div class="mb-4">
-                <label class="form-label text-muted small fw-bold">Select KPI</label>
-                <select class="form-select border-light-subtle shadow-none" id="kpi-selector">
-                  <option selected disabled>Choose a KPI to update…</option>
-                </select>
-              </div>
+          <div class="row g-4">
+            <!-- LEFT: Progress Update Form -->
+            <div class="col-lg-7">
+              <div class="card border-0 shadow-sm p-4 mb-4 animate-fade-in">
+                <!-- KPI Selector -->
+                <div class="mb-4">
+                  <label class="form-label text-muted small fw-bold">Select KPI</label>
+                  <select class="form-select border-light-subtle shadow-none" id="kpi-selector">
+                    <option selected disabled>Choose a KPI to update…</option>
+                  </select>
+                </div>
 
-              <!-- KPI Info Strip -->
-              <div class="row g-3 mb-4" id="kpi-info-strip">
-                <div class="col-6 col-md-3">
-                  <div class="kpi-info-label">KPI Name</div>
-                  <div class="kpi-info-value" id="progress-kpi-name">—</div>
-                </div>
-                <div class="col-6 col-md-3">
-                  <div class="kpi-info-label">Category</div>
-                  <div class="kpi-info-value" id="progress-kpi-category">—</div>
-                </div>
-                <div class="col-6 col-md-3">
-                  <div class="kpi-info-label">Target</div>
-                  <div class="kpi-info-value" id="progress-kpi-target">—</div>
-                </div>
-                <div class="col-6 col-md-3">
-                  <div class="kpi-info-label">Deadline</div>
-                  <div class="kpi-info-value" id="progress-kpi-deadline">—</div>
-                </div>
-              </div>
-
-              <hr class="my-3">
-
-              <!-- Progress Control -->
-              <div class="row align-items-center mb-4">
-                <div class="col-md-4">
-                  <div class="progress-ring-wrapper" id="progress-ring-container">
-                    <!-- SVG ring rendered by JS -->
+                <!-- KPI Info Strip -->
+                <div class="row g-3 mb-4" id="kpi-info-strip">
+                  <div class="col-6 col-md-3">
+                    <div class="kpi-info-label">KPI Name</div>
+                    <div class="kpi-info-value" id="progress-kpi-name">—</div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="kpi-info-label">Category</div>
+                    <div class="kpi-info-value" id="progress-kpi-category">—</div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="kpi-info-label">Target</div>
+                    <div class="kpi-info-value" id="progress-kpi-target">—</div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="kpi-info-label">Deadline</div>
+                    <div class="kpi-info-value" id="progress-kpi-deadline">—</div>
                   </div>
                 </div>
-                <div class="col-md-8">
-                  <label class="form-label fw-bold mb-2">
-                    Current Progress: <span class="text-primary" id="progress-value">0%</span>
-                  </label>
-                  <input type="range" class="range-slider w-100 mb-3" min="0" max="100" value="0"
-                    id="progress-slider">
-                  <div class="d-flex align-items-center gap-3">
-                    <div class="input-group" style="max-width:160px;">
-                      <input type="number" class="form-control border-light-subtle shadow-none text-center fw-bold"
-                        min="0" max="100" value="0" id="progress-input">
-                      <span class="input-group-text bg-light border-light-subtle">%</span>
+
+                <hr class="my-3">
+
+                <!-- Progress Control -->
+                <div class="row align-items-center mb-4">
+                  <div class="col-md-4">
+                    <div class="progress-ring-wrapper" id="progress-ring-container">
+                      <!-- SVG ring rendered by JS -->
                     </div>
-                    <div id="progress-kpi-status"></div>
                   </div>
+                  <div class="col-md-8">
+                    <label class="form-label fw-bold mb-2">
+                      Current Progress: <span class="text-primary" id="progress-value">0%</span>
+                    </label>
+                    <input type="range" class="range-slider w-100 mb-3" min="0" max="100" value="0"
+                      id="progress-slider">
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="input-group" style="max-width:160px;">
+                        <input type="number" class="form-control border-light-subtle shadow-none text-center fw-bold"
+                          min="0" max="100" value="0" id="progress-input">
+                        <span class="input-group-text bg-light border-light-subtle">%</span>
+                      </div>
+                      <div id="progress-kpi-status"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-4">
+                  <label class="form-label text-muted small fw-bold">Update Notes</label>
+                  <textarea class="form-control border-light-subtle shadow-none" rows="3"
+                    placeholder="Describe what you've accomplished…" id="progress-notes"></textarea>
+                </div>
+
+                <!-- Submit -->
+                <button type="button"
+                  class="btn btn-primary w-100 fw-medium d-flex align-items-center justify-content-center py-2"
+                  id="btn-submit-progress">
+                  <i data-lucide="save" style="width:18px;height:18px;" class="me-2"></i>Save Progress
+                </button>
+              </div>
+            </div>
+
+            <!-- RIGHT: Evidence Upload & History -->
+            <div class="col-lg-5">
+              <!-- Evidence Upload -->
+              <div class="card border-0 shadow-sm p-4 mb-4 animate-fade-in" style="animation-delay:.1s;">
+                <h5 class="fw-bold mb-3">
+                  <i data-lucide="upload-cloud" style="width:20px;height:20px;" class="me-2 text-primary"></i>Upload
+                  Evidence
+                </h5>
+                <div class="upload-area" id="evidence-drop-zone">
+                  <i data-lucide="upload-cloud" class="text-primary mb-2" style="width:40px;height:40px;"></i>
+                  <p class="fw-medium mb-1">Drag & drop your files here</p>
+                  <p class="small text-muted mb-0">or <span class="text-primary fw-medium">click to browse</span></p>
+                  <p class="small text-muted mt-2 mb-0">PDF, JPG, PNG, DOCX, XLSX — Max 10MB</p>
+                  <input type="file" class="d-none" id="evidence-file-input"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xlsx">
+                </div>
+                <div id="evidence-file-preview" class="mt-3"></div>
+                <button type="button"
+                  class="btn btn-outline-primary w-100 fw-medium mt-3 d-flex align-items-center justify-content-center"
+                  id="btn-upload-evidence">
+                  <i data-lucide="paperclip" style="width:16px;height:16px;" class="me-2"></i>Attach Evidence
+                </button>
+              </div>
+
+              <!-- Existing Evidence -->
+              <div class="card border-0 shadow-sm p-4 mb-4 animate-fade-in" style="animation-delay:.2s;">
+                <h5 class="fw-bold mb-3">
+                  <i data-lucide="folder-open" style="width:20px;height:20px;" class="me-2 text-primary"></i>Uploaded
+                  Evidence
+                </h5>
+                <div id="evidence-list">
+                  <p class="small text-muted text-center py-3">Select a KPI to view evidence</p>
                 </div>
               </div>
 
-              <!-- Notes -->
-              <div class="mb-4">
-                <label class="form-label text-muted small fw-bold">Update Notes</label>
-                <textarea class="form-control border-light-subtle shadow-none" rows="3"
-                  placeholder="Describe what you've accomplished…" id="progress-notes"></textarea>
-              </div>
-
-              <!-- Submit -->
-              <button type="button" class="btn btn-primary w-100 fw-medium d-flex align-items-center justify-content-center py-2"
-                id="btn-submit-progress">
-                <i data-lucide="save" style="width:18px;height:18px;" class="me-2"></i>Save Progress
-              </button>
-            </div>
-          </div>
-
-          <!-- RIGHT: Evidence Upload & History -->
-          <div class="col-lg-5">
-            <!-- Evidence Upload -->
-            <div class="card border-0 shadow-sm p-4 mb-4 animate-fade-in" style="animation-delay:.1s;">
-              <h5 class="fw-bold mb-3">
-                <i data-lucide="upload-cloud" style="width:20px;height:20px;" class="me-2 text-primary"></i>Upload
-                Evidence
-              </h5>
-              <div class="upload-area" id="evidence-drop-zone">
-                <i data-lucide="upload-cloud" class="text-primary mb-2" style="width:40px;height:40px;"></i>
-                <p class="fw-medium mb-1">Drag & drop your files here</p>
-                <p class="small text-muted mb-0">or <span class="text-primary fw-medium">click to browse</span></p>
-                <p class="small text-muted mt-2 mb-0">PDF, JPG, PNG, DOCX, XLSX — Max 10MB</p>
-                <input type="file" class="d-none" id="evidence-file-input"
-                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xlsx">
-              </div>
-              <div id="evidence-file-preview" class="mt-3"></div>
-              <button type="button"
-                class="btn btn-outline-primary w-100 fw-medium mt-3 d-flex align-items-center justify-content-center"
-                id="btn-upload-evidence">
-                <i data-lucide="paperclip" style="width:16px;height:16px;" class="me-2"></i>Attach Evidence
-              </button>
-            </div>
-
-            <!-- Existing Evidence -->
-            <div class="card border-0 shadow-sm p-4 mb-4 animate-fade-in" style="animation-delay:.2s;">
-              <h5 class="fw-bold mb-3">
-                <i data-lucide="folder-open" style="width:20px;height:20px;" class="me-2 text-primary"></i>Uploaded
-                Evidence
-              </h5>
-              <div id="evidence-list">
-                <p class="small text-muted text-center py-3">Select a KPI to view evidence</p>
-              </div>
-            </div>
-
-            <!-- Progress History -->
-            <div class="card border-0 shadow-sm p-4 animate-fade-in" style="animation-delay:.3s;">
-              <h5 class="fw-bold mb-3">
-                <i data-lucide="history" style="width:20px;height:20px;" class="me-2 text-primary"></i>Progress
-                History
-              </h5>
-              <div id="progress-history">
-                <p class="small text-muted text-center py-3">Select a KPI to view history</p>
+              <!-- Progress History -->
+              <div class="card border-0 shadow-sm p-4 animate-fade-in" style="animation-delay:.3s;">
+                <h5 class="fw-bold mb-3">
+                  <i data-lucide="history" style="width:20px;height:20px;" class="me-2 text-primary"></i>Progress
+                  History
+                </h5>
+                <div id="progress-history">
+                  <p class="small text-muted text-center py-3">Select a KPI to view history</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        </div>
-      </div>
-      </main>
     </div>
+    </main>
+  </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -258,9 +259,9 @@
       const select = document.getElementById('kpi-selector');
       if (!select) return;
 
-      select.innerHTML = '<option value="" disabled selected>Select a KPI to update</option>' + 
+      select.innerHTML = '<option value="" disabled selected>Select a KPI to update</option>' +
         myKPIs.map(k => `<option value="${k.id}" ${k.id === currentKpiId ? 'selected' : ''}>${k.title}</option>`).join('');
-      
+
       if (currentKpiId) loadKPI(currentKpiId);
     }
 
@@ -273,7 +274,7 @@
       document.getElementById('kpi-category-display').textContent = kpi.category;
       document.getElementById('kpi-target-display').textContent = kpi.target;
       document.getElementById('kpi-deadline-display').textContent = kpi.dueDate;
-      
+
       const config = statusConfig(kpi.status);
       document.getElementById('status-badge-container').innerHTML = `<span class="badge bg-${config.colour} bg-opacity-10 text-${config.colour} rounded-pill px-3">${config.label}</span>`;
 
@@ -307,22 +308,22 @@
     }
 
     function renderEvidence(kpi) {
-       const container = document.getElementById('evidence-list');
-       if (!container) return;
-       if (!kpi.evidence.length) {
-         container.innerHTML = '<p class="small text-muted text-center py-3">No evidence uploaded yet.</p>';
-         return;
-       }
-       container.innerHTML = kpi.evidence.map(e => `
+      const container = document.getElementById('evidence-list');
+      if (!container) return;
+      if (!kpi.evidence.length) {
+        container.innerHTML = '<p class="small text-muted text-center py-3">No evidence uploaded yet.</p>';
+        return;
+      }
+      container.innerHTML = kpi.evidence.map(e => `
          <div class="d-flex align-items-center gap-3 p-2 bg-light rounded mb-2">
             <i data-lucide="file-text" style="width:18px;height:18px;" class="text-primary"></i>
             <div class="flex-grow-1 overflow-hidden">
                <div class="small fw-bold text-truncate">${e.name}</div>
-               <div class="text-muted" style="font-size:0.65rem;">${e.date} • ${(e.size/1024).toFixed(1)}KB</div>
+               <div class="text-muted" style="font-size:0.65rem;">${e.date} • ${(e.size / 1024).toFixed(1)}KB</div>
             </div>
             <i data-lucide="external-link" style="width:14px;height:14px;" class="text-muted"></i>
          </div>`).join('');
-       lucide.createIcons();
+      lucide.createIcons();
     }
 
     // Slider/Input Sync
@@ -356,7 +357,7 @@
       if (!currentKpiId) return showToast('Please select a KPI first', 'warning');
       const input = document.getElementById('evidence-file-input');
       if (!input.files.length) return showToast('Select a file first', 'warning');
-      
+
       const file = input.files[0];
       KPIStore.addEvidence(currentKpiId, { name: file.name, size: file.size });
       showToast('Evidence attached!');
