@@ -16,16 +16,12 @@
 
 <div class="container d-flex justify-content-center align-items-center vh-100">
   <div class="card login-card border-0 shadow-lg p-4">
-    <div class="text-center mb-4">
-      <div class="brand-logo mb-2 mx-auto">K</div>
-      <h3 class="fw-bold text-dark">Welcome Back</h3>
-      <p class="text-muted small">Please enter your details to sign in</p>
-    </div>
+    <div id="errorAlert" class="alert alert-danger py-2 small d-none" role="alert"></div>
 
-    <form>
+    <form id="loginForm">
       <div class="mb-3">
         <label class="form-label small fw-semibold text-secondary">Email Address</label>
-        <input type="email" class="form-control custom-input" placeholder="name@company.com" required>
+        <input type="email" class="form-control custom-input" id="loginEmail" placeholder="name@company.com" required>
       </div>
       
       <div class="mb-3">
@@ -56,17 +52,35 @@
   </div>
 </div>
 
+<script src="../js/auth.js"></script>
 <script>
-  // Toggle Password Visibility Logic (Your original function)
+  const loginForm = document.getElementById('loginForm');
+  const errorAlert = document.getElementById('errorAlert');
+
+  loginForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    errorAlert.classList.add('d-none');
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    const result = AuthManager.login(email, password);
+
+    if (result.success) {
+      window.location.href = 'dashboard.html';
+    } else {
+      errorAlert.textContent = result.message;
+      errorAlert.classList.remove('d-none');
+    }
+  });
+
+  // Toggle Password Visibility Logic
   const togglePassword = document.querySelector('#togglePassword');
   const passwordInput = document.querySelector('#loginPassword');
 
   togglePassword.addEventListener('click', function () {
-    // Toggle the type attribute
     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
     passwordInput.setAttribute('type', type);
-    
-    // Toggle the icon
     const icon = this.querySelector('i');
     icon.classList.toggle('bi-eye-fill');
     icon.classList.toggle('bi-eye-slash-fill');

@@ -31,6 +31,31 @@
       </div>
 
       <div class="mb-3">
+        <label for="department" class="form-label small fw-semibold text-secondary">Department</label>
+        <select class="form-select custom-input" id="department" required>
+          <option value="" selected disabled>Select Department</option>
+          <option value="Executive">Executive</option>
+          <option value="Sales">Sales</option>
+          <option value="Marketing">Marketing</option>
+          <option value="IT">IT</option>
+          <option value="Finance">Finance</option>
+          <option value="HR">HR</option>
+          <option value="Operations">Operations</option>
+        </select>
+        <div class="invalid-feedback">Please select a department.</div>
+      </div>
+
+      <div class="mb-3">
+        <label for="role" class="form-label small fw-semibold text-secondary">Account Role</label>
+        <select class="form-select custom-input" id="role" required>
+          <option value="" selected disabled>Select Role</option>
+          <option value="manager">Manager (Admin Access)</option>
+          <option value="staff">Staff (Personal Access)</option>
+        </select>
+        <div class="invalid-feedback">Please select a role.</div>
+      </div>
+
+      <div class="mb-3">
         <label for="email" class="form-label small fw-semibold text-secondary">Email Address</label>
         <input type="email" class="form-control custom-input" id="email" placeholder="name@company.com" required>
         <div class="invalid-feedback">Please enter a valid email.</div>
@@ -44,7 +69,7 @@
             <i class="bi bi-eye-slash-fill text-muted"></i>
           </span>
         </div>
-        <div class="form-text small" style="font-size: 0.7rem;">8+ chars, uppercase, number & symbol.</div>
+        <div class="form-text small" style="font-size: 0.7rem;">Min 8 characters required.</div>
         <div class="invalid-feedback">Requirements not met.</div>
       </div>
 
@@ -75,6 +100,7 @@
   </div>
 </div>
 
+<script src="../js/auth.js"></script>
 <script>
   const form = document.getElementById('registerForm');
   const errorAlert = document.getElementById('errorAlert');
@@ -85,37 +111,34 @@
     e.preventDefault();
     let valid = true;
     errorAlert.classList.add('d-none');
+    errorAlert.textContent = 'Please fix the errors below.';
 
-    const fullName = document.getElementById('fullName');
-    if (!fullName.value.trim()) {
-      fullName.classList.add('is-invalid');
-      valid = false;
-    } else {
-      fullName.classList.remove('is-invalid');
-    }
+    // Extract values
+    const fullName = document.getElementById('fullName').value.trim();
+    const department = document.getElementById('department').value;
+    const role = document.getElementById('role').value;
+    const email = document.getElementById('email').value.trim();
+    const password = passwordInput.value;
+    const confirm = confirmPassword.value;
 
-    const email = document.getElementById('email');
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email.value)) {
-      email.classList.add('is-invalid');
-      valid = false;
-    } else {
-      email.classList.remove('is-invalid');
-    }
+    // Basic validation display
+    form.querySelectorAll('input, select').forEach(el => {
+      if (el.required && !el.value) {
+        el.classList.add('is-invalid');
+        valid = false;
+      } else {
+        el.classList.remove('is-invalid');
+      }
+    });
 
-    const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
-    if (!passwordPattern.test(passwordInput.value)) {
+    if (password.length < 8) {
       passwordInput.classList.add('is-invalid');
       valid = false;
-    } else {
-      passwordInput.classList.remove('is-invalid');
     }
 
-    if (confirmPassword.value !== passwordInput.value || !confirmPassword.value) {
+    if (password !== confirm) {
       confirmPassword.classList.add('is-invalid');
       valid = false;
-    } else {
-      confirmPassword.classList.remove('is-invalid');
     }
 
     if (!valid) {
@@ -123,11 +146,25 @@
       return;
     }
 
-    alert('Registration successful!');
-    form.reset();
+    // Register via AuthManager
+    const result = AuthManager.register({
+      name: fullName,
+      department: department,
+      role: role,
+      email: email,
+      password: password
+    });
+
+    if (result.success) {
+      alert('Registration successful! Redirecting to login...');
+      window.location.href = 'login.html';
+    } else {
+      errorAlert.textContent = result.message;
+      errorAlert.classList.remove('d-none');
+    }
   });
 
-  // Toggle Password Logic (Original Logic)
+  // Toggle Password Logic
   document.querySelectorAll('.toggle-password').forEach(btn => {
     btn.addEventListener('click', () => {
       const target = document.getElementById(btn.getAttribute('data-target'));

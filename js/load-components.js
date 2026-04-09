@@ -17,24 +17,79 @@ function loadComponent(id, filePath, callback = null) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+  // 1. Session Guard
+  const user = AuthManager.getCurrentUser();
+  const isAuthPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html') || window.location.pathname.includes('index.html');
+  
+  if (!user && !isAuthPage) {
+    window.location.href = 'login.html';
+    return;
+  }
 
-  // Load sidebar and highlight active link
+  // 2. Load sidebar and highlight active link
   loadComponent("sidebar-container", "../components/sidebar.html", function() {
     const sidebarItems = document.querySelectorAll('#sidebar-wrapper .list-group-item');
     let currentPage = window.location.pathname.split("/").pop();
-    if (currentPage === '') currentPage = 'dashboard.html'; // default page
+    if (currentPage === '') currentPage = 'dashboard.html';
 
     sidebarItems.forEach(item => {
-      if (item.getAttribute('href') === currentPage) {
+      const href = item.getAttribute('href');
+      if (href === currentPage) {
         item.classList.add('active');
-      } else {
-        item.classList.remove('active');
       }
+
+      // Role-based visibility for sidebar
+      if (user && user.role !== 'manager') {
+        const adminLinks = ['kpi-form.html', 'kpi-verify.html', 'manager-kpi.html'];
+        if (adminLinks.includes(href)) {
+          item.classList.add('d-none');
+        }
+      }
+    });
+
+    // Logout wiring
+    document.querySelectorAll('[href="login.html"]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        AuthManager.logout();
+      });
     });
   });
 
-  // Load navbar normally (no callback needed)
-  loadComponent("navbar-container", "../components/navbar.html");
+  // 3. Load top navbar and highlight active link
+  loadComponent("navbar-container", "../components/navbar.html", function() {
+    const navLinks = document.querySelectorAll('.top-nav-link');
+    let currentPage = window.location.pathname.split("/").pop();
+    if (currentPage === '') currentPage = 'dashboard.html';
+
+    navLinks.forEach(link => {
+      const page = link.getAttribute('data-page');
+      if (page === currentPage) {
+        link.classList.add('active');
+      }
+
+      // Role-based visibility for top nav
+      if (user && user.role !== 'manager') {
+        const adminPages = ['kpi-form.html', 'kpi-verify.html'];
+        if (adminPages.includes(page)) {
+          link.classList.add('d-none');
+        }
+      }
+    });
+
+    // Populate User Info
+    if (user) {
+      const nameEl = document.getElementById('top-nav-user-name');
+      const avatarEl = document.getElementById('top-nav-avatar');
+      const ddName = document.getElementById('user-dropdown-name');
+      const ddDept = document.getElementById('user-dropdown-dept');
+      
+      if (nameEl) nameEl.textContent = user.name;
+      if (avatarEl) avatarEl.textContent = user.avatar;
+      if (ddName) ddName.textContent = user.name;
+      if (ddDept) ddDept.textContent = user.department;
+    }
+  });
 
 });
 
@@ -44,19 +99,18 @@ function generateBreadcrumb() {
 
   const path = window.location.pathname.split("/").pop() || 'dashboard.html';
   
-  // Define breadcrumb labels for each page
   const labels = {
     'dashboard.html': 'Dashboard',
-    'kpi-form.html': 'KPI Form',
+    'kpi-form.html': 'KPI Management',
     'kpi-verify.html': 'KPI Verify',
     'manager-kpi.html': 'Manager KPI',
-    'staff-kpi.html': 'Staff KPI',
+    'staff-kpi.html': 'My KPIs',
     'profile.html': 'Profile',
     'settings.html': 'Settings',
-    'login.html': 'Login'
+    'login.html': 'Login',
+    'kpi-progress.html': 'Update Progress'
   };
 
-  // For simple 2-level breadcrumb: Home / Page
   container.innerHTML = `
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
@@ -67,5 +121,4 @@ function generateBreadcrumb() {
   `;
 }
 
-// Run after DOM loads
 document.addEventListener("DOMContentLoaded", generateBreadcrumb);

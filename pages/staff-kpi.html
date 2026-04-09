@@ -1,71 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Staff KPI | KPI Pro</title>
+  <title>Assigned KPIs | KPI Pro</title>
+  <meta name="description" content="View and manage your assigned KPIs — track progress, status, and deadlines at a glance.">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
+
 <body>
 
-<div id="wrapper">
-  <div class="row g-0">
-    <!-- Sidebar -->
-    <nav class="col-md-2 d-none d-md-block sidebar shadow-sm">
-    <div id="sidebar-container"></div>
-    <div id="navbar-container"></div>
-    </nav>
+  <div id="wrapper">
+    <div class="row g-0">
+      <!-- Sidebar -->
+      <nav class="col-md-2 d-none d-md-block sidebar shadow-sm">
+        <div id="sidebar-container"></div>
+      </nav>
 
-    <!-- Main Content -->
-    <main class="col-md-10 px-4 bg-light min-vh-100">
-      <div id="breadcrumb-container" class="mb-3"></div>
-      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
-        <h1 class="h3 fw-bold">Assigned KPIs</h1>
-      </div>
+      <!-- Main Content -->
+      <main class="col-md-10 px-0 bg-light min-vh-100">
+        <div id="navbar-container"></div>
+        <div class="px-4">
+        <div id="breadcrumb-container" class="mb-3"></div>
 
-      <div class="row g-4">
-        <!-- KPI Card Example -->
-        <div class="col-md-4">
-          <div class="card kpi-card shadow-sm h-100 p-3">
-            <h5>Increase Sales Revenue</h5>
-            <p class="text-muted mb-1">Target: RM 50,000</p>
-            <p class="text-muted mb-2">Due Date: 30-Apr-2026</p>
-            <span class="badge badge-pending">Pending</span>
+        <!-- Header -->
+        <div
+          class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
+          <div>
+            <h1 class="h3 fw-bold mb-1">Assigned KPIs</h1>
+            <p class="text-muted small mb-0">View and manage your assigned Key Performance Indicators</p>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <!-- Filter Buttons -->
+            <div class="btn-group" id="status-filter">
+              <button class="btn btn-sm btn-outline-secondary active" data-filter="all">All</button>
+              <button class="btn btn-sm btn-outline-success" data-filter="completed">Completed</button>
+              <button class="btn btn-sm btn-outline-primary" data-filter="on-track">On Track</button>
+              <button class="btn btn-sm btn-outline-warning" data-filter="at-risk">At Risk</button>
+              <button class="btn btn-sm btn-outline-danger" data-filter="delayed">Delayed</button>
+            </div>
           </div>
         </div>
 
-        <div class="col-md-4">
-          <div class="card kpi-card shadow-sm h-100 p-3">
-            <h5>Reduce Customer Complaints</h5>
-            <p class="text-muted mb-1">Target: 5% Reduction</p>
-            <p class="text-muted mb-2">Due Date: 15-May-2026</p>
-            <span class="badge badge-active">In Progress</span>
-          </div>
+        <!-- Summary Strip -->
+        <div class="row g-3 mb-4" id="kpi-summary-strip">
+          <!-- Rendered by JS -->
         </div>
 
-        <div class="col-md-4">
-          <div class="card kpi-card shadow-sm h-100 p-3">
-            <h5>Complete Training Modules</h5>
-            <p class="text-muted mb-1">Target: 100% Completion</p>
-            <p class="text-muted mb-2">Due Date: 10-Jun-2026</p>
-            <span class="badge badge-completed">Completed</span>
+        <!-- KPI Cards Grid -->
+        <div id="kpi-list-container">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading…</span>
+            </div>
           </div>
         </div>
-      </div>
-    </main>
+        </div>
+      </main>
+    </div>
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="../js/load-components.js"></script>
-<script>
-  lucide.createIcons();
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/kpi-staff.js"></script>
+  <script src="../js/load-components.js"></script>
+
+  <script>
+    lucide.createIcons();
+    let currentFilter = 'all';
+
+    function renderSummaryStrip() {
+      const myKPIs = KPIStore.getMyKPIs();
+      const s = KPIStore.getSummary(myKPIs);
+      const strip = document.getElementById('kpi-summary-strip');
+      if (!strip) return;
+
+      const items = [
+        { label: 'Total', val: s.total, col: 'primary' },
+        { label: 'Completed', val: s.completed, col: 'success' },
+        { label: 'On Track', val: s.onTrack, col: 'info' },
+        { label: 'At Risk', val: s.atRisk, col: 'warning' },
+        { label: 'Delayed', val: s.delayed, col: 'danger' }
+      ];
+
+      strip.innerHTML = items.map(i => `
+        <div class="col text-center border-end last-child-no-border">
+          <div class="text-muted small fw-medium mb-1">${i.label}</div>
+          <h4 class="fw-bold mb-0 text-${i.col}">${i.val}</h4>
+        </div>`).join('');
+    }
+
+    function renderKPIList() {
+      const myKPIs = KPIStore.getMyKPIs();
+      const container = document.getElementById('kpi-list-container');
+      if (!container) return;
+
+      const filtered = currentFilter === 'all' 
+        ? myKPIs 
+        : myKPIs.filter(k => k.status === currentFilter);
+
+      if (!filtered.length) {
+        container.innerHTML = `
+          <div class="col-12 text-center py-5">
+            <div class="p-5 bg-white rounded-4 shadow-sm border-0">
+              <i data-lucide="info" class="text-muted mb-3" style="width:48px;height:48px;"></i>
+              <h5 class="fw-bold">No KPIs Found</h5>
+              <p class="text-muted">You don't have any KPIs matching the current filter.</p>
+            </div>
+          </div>`;
+        lucide.createIcons();
+        return;
+      }
+
+      container.className = "row g-4";
+      container.innerHTML = filtered.map(k => {
+        const config = statusConfig(k.status);
+        const days = daysUntil(k.dueDate);
+        const barCol = progressColour(k.progress);
+        return `
+          <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm kpi-card overflow-hidden">
+               <div class="status-accent bg-${config.colour}" style="height:4px;width:100%;"></div>
+               <div class="card-body p-4">
+                  <div class="d-flex justify-content-between mb-3 text-uppercase fw-bold" style="font-size:0.7rem; letter-spacing:0.5px;">
+                     <span class="text-${config.colour}">${config.label}</span>
+                     <span class="text-muted">${days > 0 ? days + 'd left' : 'Overdue'}</span>
+                  </div>
+                  <h5 class="fw-bold mb-1">${k.title}</h5>
+                  <p class="text-muted small mb-4">${k.category}</p>
+                  
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                     <span class="small fw-bold">${k.progress}%</span>
+                     <span class="small text-muted">Target: ${k.target}</span>
+                  </div>
+                  <div class="progress mb-4" style="height: 8px; background-color: #f0f0f0; border-radius:10px;">
+                     <div class="progress-bar" style="width: ${k.progress}%; background: ${barCol}; border-radius: 10px; transition: width 1s ease;"></div>
+                  </div>
+                  
+                  <div class="d-flex gap-2">
+                     <a href="kpi-progress.html?id=${k.id}" class="btn btn-primary flex-grow-1 py-1 px-2 d-flex align-items-center justify-content-center gap-2 small">
+                        <i data-lucide="arrow-up-right" style="width:14px;height:14px;"></i> Update
+                     </a>
+                     <button class="btn btn-light border p-1" onclick="toggleHistory('${k.id}')">
+                        <i data-lucide="history" style="width:16px;height:16px;"></i>
+                     </button>
+                  </div>
+                  <div id="history-${k.id}" class="mt-3 p-2 bg-light rounded d-none" style="font-size:0.75rem;">
+                     <div class="fw-bold mb-1 text-muted">Recent Progress</div>
+                     ${k.history.slice(-3).reverse().map(h => `
+                       <div class="d-flex justify-content-between border-bottom border-white py-1">
+                         <span>${h.date}</span>
+                         <span class="fw-bold">${h.value}%</span>
+                       </div>`).join('')}
+                  </div>
+               </div>
+            </div>
+          </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    window.toggleHistory = function(id) {
+       const el = document.getElementById('history-' + id);
+       el.classList.toggle('d-none');
+    };
+
+    // Filter Logic
+    document.querySelectorAll('#status-filter .btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#status-filter .btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderKPIList();
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSummaryStrip();
+      renderKPIList();
+    });
+
+    KPIEvents.on('kpis:changed', () => {
+      renderSummaryStrip();
+      renderKPIList();
+    });
+  </script>
 
 </body>
+
 </html>

@@ -1,0 +1,114 @@
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/kpi-staff.js"></script>
+  <script src="../js/load-components.js"></script>
+
+  <script>
+    lucide.createIcons();
+    let currentFilter = 'all';
+
+    function renderSummaryStrip() {
+      const myKPIs = KPIStore.getMyKPIs();
+      const s = KPIStore.getSummary(myKPIs);
+      const strip = document.getElementById('kpi-summary-strip');
+      if (!strip) return;
+
+      const items = [
+        { label: 'Total', val: s.total, col: 'primary' },
+        { label: 'Completed', val: s.completed, col: 'success' },
+        { label: 'On Track', val: s.onTrack, col: 'info' },
+        { label: 'At Risk', val: s.atRisk, col: 'warning' },
+        { label: 'Delayed', val: s.delayed, col: 'danger' }
+      ];
+
+      strip.innerHTML = items.map(i => `
+        <div class="col text-center border-end last-child-no-border">
+          <div class="text-muted small fw-medium mb-1">${i.label}</div>
+          <h4 class="fw-bold mb-0 text-${i.col}">${i.val}</h4>
+        </div>`).join('');
+    }
+
+    function renderKPIList() {
+      const myKPIs = KPIStore.getMyKPIs();
+      const container = document.getElementById('kpi-list-container');
+      if (!container) return;
+
+      const filtered = currentFilter === 'all' 
+        ? myKPIs 
+        : myKPIs.filter(k => k.status === currentFilter);
+
+      if (!filtered.length) {
+        container.className = "row g-4";
+        container.innerHTML = `
+          <div class="col-12 text-center py-5">
+            <div class="p-5 bg-white rounded-4 shadow-sm border-0">
+              <i data-lucide="info" class="text-muted mb-3" style="width:48px;height:48px;"></i>
+              <h5 class="fw-bold">No KPIs Found</h5>
+              <p class="text-muted">You don't have any KPIs matching the current filter.</p>
+            </div>
+          </div>`;
+        lucide.createIcons();
+        return;
+      }
+
+      container.className = "row g-4";
+      container.innerHTML = filtered.map(k => {
+        const config = statusConfig(k.status);
+        const days = daysUntil(k.dueDate);
+        return `
+          <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm kpi-card overflow-hidden">
+               <div class="status-accent bg-${config.colour}" style="height:4px;width:100%;"></div>
+               <div class="card-body p-4">
+                  <div class="d-flex justify-content-between mb-3">
+                     <span class="badge bg-${config.colour} bg-opacity-10 text-${config.colour} rounded-pill px-3">${config.label}</span>
+                     <small class="text-muted">Due in ${days}d</small>
+                  </div>
+                  <h5 class="fw-bold mb-1">${k.title}</h5>
+                  <p class="text-muted small mb-4">${k.category}</p>
+                  
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                     <span class="small fw-bold">${k.progress}%</span>
+                     <span class="small text-muted">Target: ${k.target}</span>
+                  </div>
+                  <div class="progress mb-4" style="height: 8px;">
+                     <div class="progress-bar" style="width: ${k.progress}%; background: ${progressColour(k.progress)}; border-radius: 4px;"></div>
+                  </div>
+                  
+                  <div class="d-flex gap-2">
+                     <a href="kpi-progress.html?id=${k.id}" class="btn btn-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                        <i data-lucide="arrow-up-right" style="width:16px;height:16px;"></i> Update
+                     </a>
+                     <button class="btn btn-light border px-3">
+                        <i data-lucide="history" style="width:18px;height:18px;"></i>
+                     </button>
+                  </div>
+               </div>
+            </div>
+          </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // Filter Logic
+    document.querySelectorAll('.btn-group-sm button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-group-sm button').forEach(b => b.classList.replace('btn-primary', 'btn-outline-secondary'));
+        btn.classList.replace('btn-outline-secondary', 'btn-primary');
+        currentFilter = btn.textContent.toLowerCase().replace(' ', '-');
+        renderKPIList();
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderSummaryStrip();
+      renderKPIList();
+    });
+
+    KPIEvents.on('kpis:changed', () => {
+      renderSummaryStrip();
+      renderKPIList();
+    });
+  </script>
+</body>
+</html>
