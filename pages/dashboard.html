@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KPI Dashboard | KPI Pro</title>
-  <meta name="description" content="KPI Pro Dashboard — Monitor team KPI performance and track personal progress in real-time.">
+  <meta name="description"
+    content="KPI Pro Dashboard — Monitor team KPI performance and track personal progress in real-time.">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -25,47 +26,47 @@
       <main class="col-md-10 px-0 bg-light min-vh-100">
         <div id="navbar-container"></div>
         <div class="px-4">
-        <div id="breadcrumb-container" class="mb-3"></div>
+          <div id="breadcrumb-container" class="mb-3"></div>
 
-        <!-- Header with Role Toggle -->
-        <div
-          class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
-          <div>
-            <h1 class="h3 fw-bold mb-1" id="dashboard-title">Dashboard</h1>
-            <p class="text-muted small mb-0" id="dashboard-subtitle">Overview of your KPI performance</p>
-          </div>
-          <div class="d-flex align-items-center gap-3">
-            <!-- Role Toggle Switch -->
-            <div class="role-toggle" id="role-toggle">
-              <button class="role-toggle-btn active" data-role="staff" id="btn-staff-view">
-                <i data-lucide="user" style="width:15px;height:15px;" class="me-1"></i>Staff
-              </button>
-              <button class="role-toggle-btn" data-role="manager" id="btn-manager-view">
-                <i data-lucide="briefcase" style="width:15px;height:15px;" class="me-1"></i>Manager
-              </button>
+          <!-- Header with Role Toggle -->
+          <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
+            <div>
+              <h1 class="h3 fw-bold mb-1" id="dashboard-title">Dashboard</h1>
+              <p class="text-muted small mb-0" id="dashboard-subtitle">Overview of your KPI performance</p>
             </div>
-            <div class="btn-toolbar mb-0">
-              <button type="button" class="btn btn-sm btn-outline-primary me-2" id="btn-export">
-                <i data-lucide="download" style="width:14px;height:14px;" class="me-1"></i>Export
-              </button>
-              <a href="kpi-progress.html" class="btn btn-sm btn-primary">
-                <i data-lucide="plus" style="width:14px;height:14px;" class="me-1"></i>Update KPI
-              </a>
+            <div class="d-flex align-items-center gap-3">
+              <!-- Role Toggle Switch -->
+              <div class="role-toggle" id="role-toggle">
+                <button class="role-toggle-btn active" data-role="staff" id="btn-staff-view">
+                  <i data-lucide="user" style="width:15px;height:15px;" class="me-1"></i>Staff
+                </button>
+                <button class="role-toggle-btn" data-role="manager" id="btn-manager-view">
+                  <i data-lucide="briefcase" style="width:15px;height:15px;" class="me-1"></i>Manager
+                </button>
+              </div>
+              <div class="btn-toolbar mb-0">
+                <button type="button" class="btn btn-sm btn-outline-primary me-2" id="btn-export">
+                  <i data-lucide="download" style="width:14px;height:14px;" class="me-1"></i>Export
+                </button>
+                <a href="kpi-progress.html" class="btn btn-sm btn-primary">
+                  <i data-lucide="plus" style="width:14px;height:14px;" class="me-1"></i>Update KPI
+                </a>
+              </div>
             </div>
           </div>
+
+          <!-- Dynamic Dashboard Content -->
+          <div id="dashboard-content">
+            <!-- Content will be rendered by kpi-staff.js -->
+            <div class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+
         </div>
-
-        <!-- Dynamic Dashboard Content -->
-        <div id="dashboard-content">
-          <!-- Content will be rendered by kpi-staff.js -->
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
       </main>
     </div>
   </div>
@@ -122,13 +123,13 @@
 
     // Handle real-time updates
     KPIEvents.on('kpis:changed', () => {
-        const user = AuthManager.getCurrentUser();
-        const activeBtn = document.querySelector('.role-toggle-btn.active');
-        const role = activeBtn ? (activeBtn.id.includes('manager') ? 'manager' : 'staff') : user.role;
-        
-        if (role === 'manager') renderManagerDashboard('dashboard-content');
-        else renderStaffDashboard('dashboard-content');
-        lucide.createIcons();
+      const user = AuthManager.getCurrentUser();
+      const activeBtn = document.querySelector('.role-toggle-btn.active');
+      const role = activeBtn ? (activeBtn.id.includes('manager') ? 'manager' : 'staff') : user.role;
+
+      if (role === 'manager') renderManagerDashboard('dashboard-content');
+      else renderStaffDashboard('dashboard-content');
+      lucide.createIcons();
     });
 
     // Export button placeholder
