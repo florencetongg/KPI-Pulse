@@ -89,6 +89,52 @@ document.addEventListener("DOMContentLoaded", function () {
       if (ddName) ddName.textContent = user.name;
       if (ddDept) ddDept.textContent = user.department;
     }
+
+    // Notification Logic
+    const btnNotif = document.getElementById('btn-notifications');
+    if (btnNotif) {
+      btnNotif.addEventListener('click', () => {
+        const badge = btnNotif.querySelector('.top-nav-badge');
+        if(badge) badge.classList.add('d-none');
+        if(typeof showToast === 'function') {
+          if(!document.querySelector('.toast-notifs-shown')) {
+             showToast('System: Q4 Goals have been published.', 'info');
+             setTimeout(() => showToast('Manager left a comment on your KPI.', 'primary'), 1000);
+             document.body.classList.add('toast-notifs-shown');
+          } else {
+             showToast('No new notifications.', 'info');
+          }
+        }
+      });
+    }
+
+    // Global Top Search Logic
+    const topSearch = document.getElementById('top-nav-search');
+    if (topSearch) {
+      topSearch.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const q = e.target.value.trim();
+          if(!q) return;
+
+          const isDash = window.location.pathname.includes('dashboard.html') || window.location.pathname.endsWith('/');
+          if(isDash && typeof renderStaffDashboard === 'function') {
+            const role = user.role;
+            if(role === 'manager') {
+              const el = document.getElementById('mgr-search-input');
+              if(el) el.value = q;
+              renderManagerDashboard('dashboard-content', q);
+            } else {
+              const el = document.getElementById('staff-search-input');
+              if(el) el.value = q;
+              renderStaffDashboard('dashboard-content', q);
+            }
+          } else {
+            if(typeof showToast === 'function') showToast(`Searching for "${q}" across the organization.`, 'info');
+          }
+        }
+      });
+    }
   });
 
 });

@@ -58,12 +58,193 @@
 
           <!-- Dynamic Dashboard Content -->
           <div id="dashboard-content">
-            <!-- Content will be rendered by kpi-staff.js -->
-            <div class="text-center py-5">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+            
+            <!-- Staff Dashboard View -->
+            <div id="staff-dashboard-view" class="d-none animate-fade-in">
+              <div class="mb-4">
+                <h4 class="fw-bold">Welcome, <span id="staff-welcome-name"></span> 👋</h4>
+              </div>
+              <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                  <div class="card stat-card border-0 shadow-sm h-100 p-3">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <p class="text-muted mb-1 fw-medium small">My KPIs</p>
+                        <h2 class="fw-bold mb-0 text-primary" id="staff-stat-total">0</h2>
+                      </div>
+                      <div class="icon-box bg-primary-light">
+                        <i data-lucide="target" class="text-primary" style="width:22px; height:22px;"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Add other stat cards similar to this pattern -->
+                <div class="col-md-3">
+                  <div class="card stat-card border-0 shadow-sm h-100 p-3">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <p class="text-muted mb-1 fw-medium small">Completed</p>
+                        <h2 class="fw-bold mb-0 text-success" id="staff-stat-completed">0</h2>
+                      </div>
+                      <div class="icon-box bg-success-light">
+                        <i data-lucide="check-circle" class="text-success" style="width:22px; height:22px;"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card stat-card border-0 shadow-sm h-100 p-3">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <p class="text-muted mb-1 fw-medium small">Avg Progress</p>
+                        <h2 class="fw-bold mb-0 text-secondary" id="staff-stat-progress">0%</h2>
+                      </div>
+                      <div class="icon-box" style="background:var(--rgba-primary-10);">
+                        <i data-lucide="trending-up" class="text-secondary" style="width:22px; height:22px;"></i>
+                      </div>
+                    </div>
+                    <div class="mt-3">
+                      <div class="progress" style="height:6px;">
+                        <div class="progress-bar bg-secondary" id="staff-stat-progress-bar" style="width:0%;"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card stat-card border-0 shadow-sm h-100 p-3">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <p class="text-muted mb-1 fw-medium small">At Risk</p>
+                        <h2 class="fw-bold mb-0 text-warning" id="staff-stat-risk">0</h2>
+                      </div>
+                      <div class="icon-box bg-warning-light">
+                        <i data-lucide="alert-triangle" class="text-warning" style="width:22px; height:22px;"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Staff KPI Table -->
+              <div class="card border-0 shadow-sm p-4">
+                <div class="d-flex justify-content-between mb-3">
+                  <h5 class="fw-bold mb-0">My Recent KPIs</h5>
+                  <div class="input-group" style="width:250px;">
+                    <span class="input-group-text bg-transparent border-end-0"><i data-lucide="search" style="width:14px;height:14px;"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-0" id="staff-search-input" placeholder="Search KPIs...">
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="table align-middle">
+                    <thead class="table-light">
+                      <tr>
+                        <th>KPI</th>
+                        <th>Target</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="staff-dashboard-kpi-list">
+                      <!-- Populated by JS -->
+                    </tbody>
+                  </table>
+                </div>
+                <div id="staff-empty-state" class="text-center py-5 d-none">
+                  <i data-lucide="inbox" style="width:48px;height:48px;" class="text-muted mb-3"></i>
+                  <p class="text-muted">No KPIs assigned to you yet.</p>
+                </div>
               </div>
             </div>
+
+            <!-- Manager Dashboard View -->
+            <div id="manager-dashboard-view" class="d-none animate-fade-in">
+              <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                  <div class="card stat-card border-0 shadow-sm h-100 p-3">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <p class="text-muted mb-1 fw-medium small">Total Team KPIs</p>
+                        <h2 class="fw-bold mb-0 text-primary" id="mgr-stat-total">0</h2>
+                      </div>
+                      <div class="icon-box bg-primary-light">
+                        <i data-lucide="users" class="text-primary" style="width:22px; height:22px;"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card stat-card border-0 shadow-sm h-100 p-3">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <p class="text-muted mb-1 fw-medium small">Team Completion</p>
+                        <h2 class="fw-bold mb-0 text-success" id="mgr-stat-completed">0</h2>
+                      </div>
+                      <div class="icon-box bg-success-light">
+                        <i data-lucide="check-circle" class="text-success" style="width:22px; height:22px;"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card stat-card border-0 shadow-sm h-100 p-3">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <p class="text-muted mb-1 fw-medium small">Team Avg Progress</p>
+                        <h2 class="fw-bold mb-0 text-secondary" id="mgr-stat-progress">0%</h2>
+                      </div>
+                      <div class="icon-box" style="background:var(--rgba-primary-10);">
+                        <i data-lucide="trending-up" class="text-secondary" style="width:22px; height:22px;"></i>
+                      </div>
+                    </div>
+                    <div class="mt-3">
+                      <div class="progress" style="height:6px;">
+                        <div class="progress-bar bg-secondary" id="mgr-stat-progress-bar" style="width:0%;"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card stat-card border-0 shadow-sm h-100 p-3">
+                    <div class="d-flex justify-content-between">
+                      <div>
+                        <p class="text-muted mb-1 fw-medium small">Delayed Items</p>
+                        <h2 class="fw-bold mb-0 text-danger" id="mgr-stat-delayed">0</h2>
+                      </div>
+                      <div class="icon-box" style="background:var(--rgba-danger-10);">
+                        <i data-lucide="alert-circle" class="text-danger" style="width:22px; height:22px;"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card border-0 shadow-sm p-4">
+                <div class="d-flex justify-content-between mb-3">
+                  <h5 class="fw-bold mb-0">Team Performance Summary</h5>
+                  <div class="input-group" style="width:250px;">
+                    <span class="input-group-text bg-transparent border-end-0"><i data-lucide="search" style="width:14px;height:14px;"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-0" id="mgr-search-input" placeholder="Search team members...">
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="table align-middle">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Staff</th>
+                        <th>Active KPIs</th>
+                        <th>Avg Progress</th>
+                        <th>Health</th>
+                      </tr>
+                    </thead>
+                    <tbody id="manager-dashboard-team-list">
+                      <!-- Populated by JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
           </div>
 
         </div>
@@ -132,9 +313,33 @@
       lucide.createIcons();
     });
 
-    // Export button placeholder
+    // Export CSV logic
     document.getElementById('btn-export').addEventListener('click', () => {
-      showToast('Export feature coming soon!', 'info');
+      const allKPIs = KPIStore.getAllKPIs();
+      if(!allKPIs.length) return showToast('No data to export', 'warning');
+      const csv = ['ID,Title,Category,AssignedTo,Target,Progress,Status,DueDate'];
+      allKPIs.forEach(k => {
+        csv.push(`${k.id},"${k.title}","${k.category}",${k.assignedTo},"${k.target}",${k.progress},${k.status},${k.dueDate}`);
+      });
+      const blob = new Blob([csv.join('\\n')], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kpis_export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      showToast('Export successful!', 'success');
+    });
+
+    // Search logic
+    document.getElementById('staff-search-input')?.addEventListener('input', (e) => {
+      renderStaffDashboard('dashboard-content', e.target.value);
+    });
+
+    document.getElementById('mgr-search-input')?.addEventListener('input', (e) => {
+      renderManagerDashboard('dashboard-content', e.target.value);
     });
   </script>
 </body>

@@ -74,6 +74,7 @@
 
   <script>
     lucide.createIcons();
+    const filterGroup = document.getElementById('status-filter');
     let currentFilter = 'all';
 
     function renderSummaryStrip() {
@@ -90,55 +91,47 @@
         { label: 'Delayed', val: s.delayed, col: 'danger' }
       ];
 
-      <span class="h4 fw-bold mb-0" style="color:${item.colour};">${item.value}</span>
-            </div >
-        <div class="small text-muted mt-1">${item.label}</div>
-          </div >
-        </div > `).join('');
-
-      lucide.createIcons();
+      strip.innerHTML = items.map(i => `
+        <div class="col text-center border-end last-child-no-border">
+          <div class="text-muted small fw-medium mb-1">${i.label}</div>
+          <h4 class="fw-bold mb-0 text-${i.col}">${i.val}</h4>
+        </div>`).join('');
     }
 
-    // ── Filter logic ─────────────────────────────────
-    const filterGroup = document.getElementById('status-filter');
-    let currentFilter = 'all';
+    function renderStatusBadge(status) {
+      const config = statusConfig(status);
+      return `<span class="badge bg-${config.colour} bg-opacity-10 text-${config.colour} px-2 py-1 rounded-pill"><i data-lucide="${config.icon}" style="width:12px;height:12px;" class="me-1"></i>${config.label}</span>`;
+    }
 
-    function applyFilter(filter) {
-      currentFilter = filter;
+    window.toggleKPIDetail = function (id) {
+      const el = document.getElementById('history-' + id);
+      if (el) el.classList.toggle('d-none');
+    };
 
-      // Update active button
-      filterGroup.querySelectorAll('.btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.filter === filter);
-      });
-
-      // If "all", render normally
-      if (filter === 'all') {
-        renderStaffKPIList('kpi-list-container', KPIStore.currentUserId);
-        return;
-      }
-
-      // Filter and render
+    function renderKPIList() {
       const container = document.getElementById('kpi-list-container');
-      const filtered  = KPIStore.getMyKPIs().filter(k => k.status === filter);
+      if (!container) return;
+
+      const myKPIs = KPIStore.getMyKPIs();
+      const filtered = currentFilter === 'all' ? myKPIs : myKPIs.filter(k => k.status === currentFilter);
 
       if (!filtered.length) {
         container.innerHTML = `
-        < div class="text-center py-5" >
+          <div class="text-center py-5">
             <i data-lucide="inbox" style="width:48px;height:48px;" class="text-muted mb-3"></i>
-            <p class="fw-medium text-muted">No KPIs with status "${statusConfig(filter).label}"</p>
-          </div > `;
+            <p class="fw-medium text-muted">No KPIs with status "${currentFilter === 'all' ? 'All' : statusConfig(currentFilter).label}"</p>
+          </div>`;
         lucide.createIcons();
         return;
       }
 
-      // Build filtered cards using same visual style
       const cards = filtered.map((k, i) => {
         const days = daysUntil(k.dueDate);
         const barCol = progressColour(k.progress);
         return `
-        < div class="col-md-6 col-xl-4 animate-fade-in" style = "animation-delay:${i * 0.08}s;" >
-          <div class="card border-0 shadow-sm h-100 kpi-detail-card position-relative overflow-hidden">
-            <div class="kpi-card-accent" style="background:${barCol};"></div>
+        <div class="col-md-6 col-xl-4 animate-fade-in" style="animation-delay:${i * 0.08}s;">
+          <div class="card border-0 shadow-sm h-100 kpi-detail-card position-relative overflow-hidden" style="border-radius:12px;">
+            <div class="kpi-card-accent" style="position:absolute;top:0;left:0;width:100%;height:4px;background:${barCol};"></div>
             <div class="card-body p-4">
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
@@ -157,45 +150,59 @@
                 </div>
               </div>
               <div class="d-flex justify-content-between align-items-center small text-muted mb-3">
-                <span><i data-lucide="target" style="width:14px;height:14px;" class="me-1"></i>${k.target}</span>
-                <span><i data-lucide="calendar" style="width:14px;height:14px;" class="me-1"></i>${days > 0 ? days + 'd left' : '<span class="text-danger fw-bold">Overdue</span>'}</span>
+                <span class="d-flex align-items-center"><i data-lucide="target" style="width:14px;height:14px;" class="me-1"></i>${k.target}</span>
+                <span class="d-flex align-items-center"><i data-lucide="calendar" style="width:14px;height:14px;" class="me-1"></i>${days > 0 ? days + 'd left' : '<span class="text-danger fw-bold">Overdue</span>'}</span>
               </div>
               <div class="d-flex gap-2">
-                <a href="kpi-progress.html?id=${k.id}" class="btn btn-sm btn-primary flex-grow-1 fw-medium">
+                <a href="kpi-progress.html?id=${k.id}" class="btn btn-sm btn-primary flex-grow-1 fw-medium d-flex align-items-center justify-content-center">
                   <i data-lucide="arrow-up-circle" style="width:14px;height:14px;" class="me-1"></i>Update
                 </a>
-                <button class="btn btn-sm btn-outline-secondary" onclick="toggleKPIDetail('${k.id}')" title="History">
+                <button class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center d-inline-block" onclick="toggleKPIDetail('${k.id}')" title="History">
                   <i data-lucide="history" style="width:14px;height:14px;"></i>
                 </button>
               </div>
               <div class="kpi-history-panel mt-3 d-none" id="history-${k.id}">
                 <hr class="my-2">
-                  <p class="small fw-bold text-muted mb-2">History</p>
-                  ${k.history.map(h => `
-                    <div class="d-flex justify-content-between small py-1 border-bottom border-light">
-                      <span class="text-muted">${h.date}</span>
-                      <span class="fw-medium">${h.value}%</span>
-                      <span class="text-muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.note}</span>
-                    </div>`).join('')}
+                <p class="small fw-bold text-muted mb-2">History</p>
+                ${k.history.map(h => `
+                  <div class="d-flex justify-content-between small py-1 border-bottom border-light">
+                    <span class="text-muted">${h.date}</span>
+                    <span class="fw-medium">${h.value}%</span>
+                  </div>`).join('')}
               </div>
             </div>
           </div>
-          </div > `;
+        </div>`;
       }).join('');
 
-      container.innerHTML = `< div class="row g-4" > ${ cards }</div >`;
+      container.innerHTML = `<div class="row g-4">${cards}</div>`;
       lucide.createIcons();
     }
 
-    filterGroup.addEventListener('click', e => {
-      const btn = e.target.closest('.btn');
-      if (btn) applyFilter(btn.dataset.filter);
-    });
+    function applyFilter(filter) {
+      currentFilter = filter;
+      filterGroup.querySelectorAll('.btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+      });
+      renderKPIList();
+    }
+
+    if (filterGroup) {
+      filterGroup.addEventListener('click', e => {
+        const btn = e.target.closest('.btn');
+        if (btn) applyFilter(btn.dataset.filter);
+      });
+    }
 
     // ── Initial render ───────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
       renderSummaryStrip();
-      renderStaffKPIList('kpi-list-container', KPIStore.currentUserId);
+      renderKPIList();
+    });
+
+    KPIEvents.on('kpis:changed', () => {
+      renderSummaryStrip();
+      renderKPIList();
     });
   </script>
 

@@ -314,15 +314,22 @@
         container.innerHTML = '<p class="small text-muted text-center py-3">No evidence uploaded yet.</p>';
         return;
       }
-      container.innerHTML = kpi.evidence.map(e => `
-         <div class="d-flex align-items-center gap-3 p-2 bg-light rounded mb-2">
-            <i data-lucide="file-text" style="width:18px;height:18px;" class="text-primary"></i>
+      container.innerHTML = kpi.evidence.map(e => {
+        const isImage = e.type && e.type.startsWith('image/');
+        const iconOrThumb = isImage && e.data 
+          ? `<img src="${e.data}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;" alt="thumbnail">`
+          : `<i data-lucide="file-text" style="width:24px;height:24px;" class="text-primary"></i>`;
+        
+        return `
+         <div class="d-flex align-items-center gap-3 p-2 bg-light rounded mb-2 border border-light">
+            ${iconOrThumb}
             <div class="flex-grow-1 overflow-hidden">
-               <div class="small fw-bold text-truncate">${e.name}</div>
+               <div class="fw-bold small text-truncate" title="${e.name}">${e.name}</div>
                <div class="text-muted" style="font-size:0.65rem;">${e.date} • ${(e.size / 1024).toFixed(1)}KB</div>
             </div>
-            <i data-lucide="external-link" style="width:14px;height:14px;" class="text-muted"></i>
-         </div>`).join('');
+            <i data-lucide="external-link" style="width:14px;height:14px;" class="text-muted" style="cursor:pointer;"></i>
+         </div>`;
+      }).join('');
       lucide.createIcons();
     }
 
@@ -353,16 +360,85 @@
     });
 
     // Upload Evidence
-    document.getElementById('btn-upload-evidence')?.addEventListener('click', () => {
-      if (!currentKpiId) return showToast('Please select a KPI first', 'warning');
-      const input = document.getElementById('evidence-file-input');
-      if (!input.files.length) return showToast('Select a file first', 'warning');
+    const dropZone = document.getElementById('evidence-drop-zone');
+    const fileInput = document.getElementById('evidence-file-input');
+    const filePreview = document.getElementById('evidence-file-preview');
+    let currentFileData = null; // Store base64 data
 
-      const file = input.files[0];
-      KPIStore.addEvidence(currentKpiId, { name: file.name, size: file.size });
-      showToast('Evidence attached!');
+    // ── Drag & Drop Handlers ───────────────────────
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--primary-blue)';
+      dropZone.style.background = 'var(--rgba-primary-10)';
+    });
+    dropZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--border-light)';
+      dropZone.style.background = 'transparent';
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'var(--border-light)';
+      dropZone.style.background = 'transparent';
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        handleFileSelection();
+      }
+    });
+
+    fileInput.addEventListener('change', handleFileSelection);
+
+    function handleFileSelection() {
+      if (!fileInput.files.length) return;
+      const file = fileInput.files[0];
+      
+      // Basic size validation (e.g., 5MB limit for base64 storage)
+      if (file.size > 5 * 1024 * 1024) {
+        return showToast('File too large. Max size is 5MB.', 'danger');
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentFileData = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          data: e.target.result // Base64 string
+        };
+        
+        // Render Preview
+        const isImage = file.type.startsWith('image/');
+        filePreview.innerHTML = `
+          <div class="d-flex align-items-center gap-3 p-2 border rounded border-primary bg-light animate-fade-in shadow-sm">
+            ${isImage 
+              ? `<img src="${e.target.result}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;">`
+              : `<i data-lucide="file-text" style="width:24px;height:24px;" class="text-primary"></i>`
+            }
+            <div class="flex-grow-1 overflow-hidden">
+               <div class="fw-bold small text-truncate" title="${file.name}">${file.name}</div>
+               <div class="text-muted" style="font-size:0.7rem;">${(file.size / 1024).toFixed(1)} KB</div>
+            </div>
+            <button class="btn btn-sm btn-light text-danger" onclick="document.getElementById('evidence-file-input').value=''; document.getElementById('evidence-file-preview').innerHTML=''; currentFileData=null;"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
+          </div>
+        `;
+        lucide.createIcons();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    document.getElementById('btn-upload-evidence').addEventListener('click', () => {
+      if (!currentKpiId) return showToast('Please select a KPI first', 'warning');
+      if (!currentFileData) return showToast('Select or drag a file first', 'warning');
+
+      KPIStore.addEvidence(currentKpiId, currentFileData);
+      showToast('Evidence attached successfully!');
+      
+      // Reset
+      fileInput.value = '';
+      filePreview.innerHTML = '';
+      currentFileData = null;
       loadKPI(currentKpiId);
-      input.value = '';
     });
 
     document.addEventListener('DOMContentLoaded', populateSelector);

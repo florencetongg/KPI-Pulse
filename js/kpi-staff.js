@@ -113,6 +113,8 @@ const KPIStore = {
     kpis[index].evidence.push({
       name: fileData.name,
       size: fileData.size,
+      type: fileData.type,
+      data: fileData.data,
       date: new Date().toISOString().split('T')[0]
     });
 
@@ -198,130 +200,118 @@ function showToast(message, type = 'success') {
 
 // --- Specific Page Renderers ---
 
-function renderStatCard({ title, value, icon, colour, progress }) {
-  const pBar = progress !== undefined ? `
-    <div class="mt-3">
-      <div class="progress" style="height:6px;">
-        <div class="progress-bar" style="width:${progress}%; background:${progressColour(progress)};"></div>
-      </div>
-    </div>` : '';
-
-  return `
-    <div class="card stat-card border-0 shadow-sm h-100 p-3">
-      <div class="d-flex justify-content-between">
-        <div>
-          <p class="text-muted mb-1 fw-medium small">${title}</p>
-          <h2 class="fw-bold mb-0" style="color:${colour};">${value}</h2>
-        </div>
-        <div class="icon-box" style="background:${colour}15;">
-          <i data-lucide="${icon}" style="color:${colour}; width:22px; height:22px;"></i>
-        </div>
-      </div>
-      ${pBar}
-    </div>`;
-}
-
-function renderProgressRing(pct, size = 48) {
-  const r = (size - 6) / 2;
-  const c = 2 * Math.PI * r;
-  const offset = c - (pct / 100) * c;
-  const col = progressColour(pct);
-  return `
-    <svg width="${size}" height="${size}">
-      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#eee" stroke-width="5"/>
-      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${col}" stroke-width="5"
-        stroke-dasharray="${c}" stroke-dashoffset="${offset}"
-        stroke-linecap="round" transform="rotate(-90 ${size/2} ${size/2})" style="transition:all 1s ease;"/>
-      <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" style="font-size:11px;font-weight:700;">${pct}%</text>
-    </svg>`;
-}
-
 // Dashboard Views
-function renderStaffDashboard(id) {
+function renderStaffDashboard(id, searchQuery = '') {
   const user = AuthManager.getCurrentUser();
-  const myKPIs = KPIStore.getMyKPIs();
-  const summary = KPIStore.getSummary(myKPIs);
-  const container = document.getElementById(id);
-  if (!container) return;
+  let myKPIs = KPIStore.getMyKPIs();
+  const summary = KPIStore.getSummary(myKPIs); // Stats based on all
+  
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    myKPIs = myKPIs.filter(k => k.title.toLowerCase().includes(q) || k.category.toLowerCase().includes(q));
+  }
+  
+  const staffView = document.getElementById('staff-dashboard-view');
+  const mgrView = document.getElementById('manager-dashboard-view');
+  if(staffView && mgrView) {
+    staffView.classList.remove('d-none');
+    mgrView.classList.add('d-none');
+  }
 
-  let html = `
-    <div class="mb-4">
-      <h4 class="fw-bold">Welcome, ${user.name} 👋</h4>
-    </div>
-    <div class="row g-4 mb-4">
-      <div class="col-md-3">${renderStatCard({ title: 'My KPIs', value: summary.total, icon: 'target', colour: 'var(--primary-blue)' })}</div>
-      <div class="col-md-3">${renderStatCard({ title: 'Completed', value: summary.completed, icon: 'check-circle', colour: 'var(--success-green)' })}</div>
-      <div class="col-md-3">${renderStatCard({ title: 'Avg Progress', value: summary.avgProgress + '%', icon: 'trending-up', colour: 'var(--secondary-500)', progress: summary.avgProgress })}</div>
-      <div class="col-md-3">${renderStatCard({ title: 'At Risk', value: summary.atRisk, icon: 'alert-triangle', colour: 'var(--warning-orange)' })}</div>
-    </div>`;
+  // Populate names and stats
+  const nameEl = document.getElementById('staff-welcome-name');
+  if (nameEl && user) nameEl.textContent = user.name;
+  
+  const els = {
+    total: document.getElementById('staff-stat-total'),
+    completed: document.getElementById('staff-stat-completed'),
+    progress: document.getElementById('staff-stat-progress'),
+    progressBar: document.getElementById('staff-stat-progress-bar'),
+    risk: document.getElementById('staff-stat-risk')
+  };
+
+  if(els.total) els.total.textContent = summary.total;
+  if(els.completed) els.completed.textContent = summary.completed;
+  if(els.progress) els.progress.textContent = summary.avgProgress + '%';
+  if(els.progressBar) els.progressBar.style.width = summary.avgProgress + '%';
+  if(els.risk) els.risk.textContent = summary.atRisk;
+
+  // Render Table List
+  const listContainer = document.getElementById('staff-dashboard-kpi-list');
+  const emptyState = document.getElementById('staff-empty-state');
+  if(!listContainer) return;
 
   if (!myKPIs.length) {
-    html += `<div class="card p-5 text-center text-muted shadow-sm border-0">No KPIs assigned to you yet.</div>`;
+    listContainer.innerHTML = '';
+    if(emptyState) emptyState.classList.remove('d-none');
   } else {
-    const rows = myKPIs.map(k => `
+    if(emptyState) emptyState.classList.add('d-none');
+    listContainer.innerHTML = myKPIs.map(k => `
       <tr class="align-middle">
         <td><div class="fw-bold">${k.title}</div><small class="text-muted">${k.category}</small></td>
         <td>${k.target}</td>
         <td>
           <div class="d-flex align-items-center gap-2">
-            <div class="progress flex-grow-1" style="height:8px;"><div class="progress-bar" style="width:${k.progress}%; background:${progressColour(k.progress)};"></div></div>
+            <div class="progress flex-grow-1" style="height:8px;"><div class="progress-bar rounded-pill" style="width:${k.progress}%; background:${progressColour(k.progress)}; transition:width 1s ease;"></div></div>
             <span class="small fw-bold">${k.progress}%</span>
           </div>
         </td>
-        <td><span class="badge bg-${statusConfig(k.status).colour} bg-opacity-10 text-${statusConfig(k.status).colour}">${statusConfig(k.status).label}</span></td>
-        <td class="text-end"><a href="kpi-progress.html?id=${k.id}" class="btn btn-sm btn-light border">Update</a></td>
+        <td><span class="badge bg-${statusConfig(k.status).colour} bg-opacity-10 text-${statusConfig(k.status).colour} px-3 rounded-pill">${statusConfig(k.status).label}</span></td>
+        <td class="text-end"><a href="kpi-progress.html?id=${k.id}" class="btn btn-sm btn-outline-primary fw-medium">Update</a></td>
       </tr>`).join('');
-
-    html += `
-      <div class="card border-0 shadow-sm p-4">
-        <h5>My Recent KPIs</h5>
-        <div class="table-responsive"><table class="table"><thead><tr><th>KPI</th><th>Target</th><th>Progress</th><th>Status</th><th class="text-end">Action</th></tr></thead><tbody>${rows}</tbody></table></div>
-      </div>`;
   }
-  container.innerHTML = html;
-  if (window.lucide) lucide.createIcons();
 }
 
-function renderManagerDashboard(id) {
+function renderManagerDashboard(id, searchQuery = '') {
   const allKPIs = KPIStore.getAllKPIs();
   const summary = KPIStore.getSummary(allKPIs);
-  const container = document.getElementById(id);
-  if (!container) return;
+  
+  const staffView = document.getElementById('staff-dashboard-view');
+  const mgrView = document.getElementById('manager-dashboard-view');
+  if(staffView && mgrView) {
+    staffView.classList.add('d-none');
+    mgrView.classList.remove('d-none');
+  }
 
-  let html = `
-    <div class="row g-4 mb-4">
-      <div class="col-md-3">${renderStatCard({ title: 'Total Team KPIs', value: summary.total, icon: 'users', colour: 'var(--primary-blue)' })}</div>
-      <div class="col-md-3">${renderStatCard({ title: 'Team Completion', value: summary.completed, icon: 'check-circle', colour: 'var(--success-green)' })}</div>
-      <div class="col-md-3">${renderStatCard({ title: 'Team Avg', value: summary.avgProgress + '%', icon: 'trending-up', colour: 'var(--secondary-500)', progress: summary.avgProgress })}</div>
-      <div class="col-md-3">${renderStatCard({ title: 'Delayed Items', value: summary.delayed, icon: 'alert-circle', colour: 'var(--danger-red)' })}</div>
-    </div>`;
+  const els = {
+    total: document.getElementById('mgr-stat-total'),
+    completed: document.getElementById('mgr-stat-completed'),
+    progress: document.getElementById('mgr-stat-progress'),
+    progressBar: document.getElementById('mgr-stat-progress-bar'),
+    delayed: document.getElementById('mgr-stat-delayed')
+  };
 
-  const staff = AuthManager._getAllUsers().filter(u => u.role === 'staff');
-  const staffRows = staff.map(s => {
+  if(els.total) els.total.textContent = summary.total;
+  if(els.completed) els.completed.textContent = summary.completed;
+  if(els.progress) els.progress.textContent = summary.avgProgress + '%';
+  if(els.progressBar) els.progressBar.style.width = summary.avgProgress + '%';
+  if(els.delayed) els.delayed.textContent = summary.delayed;
+
+  // Staff Table
+  const listContainer = document.getElementById('manager-dashboard-team-list');
+  if(!listContainer) return;
+
+  let staff = AuthManager._getAllUsers().filter(u => u.role === 'staff');
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    staff = staff.filter(s => s.name.toLowerCase().includes(q) || (s.department && s.department.toLowerCase().includes(q)));
+  }
+  listContainer.innerHTML = staff.map(s => {
     const sKPIs = KPIStore.getKPIsForUser(s.id);
     const sSummary = KPIStore.getSummary(sKPIs);
     return `
       <tr class="align-middle">
-        <td><div class="fw-bold">${s.name}</div><small>${s.department}</small></td>
+        <td><div class="fw-bold">${s.name}</div><small class="text-muted">${s.department}</small></td>
         <td>${sKPIs.length}</td>
         <td>
           <div class="d-flex align-items-center gap-2">
-            <div class="progress flex-grow-1" style="height:8px;"><div class="progress-bar" style="width:${sSummary.avgProgress}%; background:${progressColour(sSummary.avgProgress)};"></div></div>
+            <div class="progress flex-grow-1" style="height:8px;"><div class="progress-bar rounded-pill" style="width:${sSummary.avgProgress}%; background:${progressColour(sSummary.avgProgress)}; transition:width 1s ease;"></div></div>
             <span class="small fw-bold">${sSummary.avgProgress}%</span>
           </div>
         </td>
-        <td><span class="badge bg-${sSummary.delayed ? 'danger' : 'success'} bg-opacity-10 text-${sSummary.delayed ? 'danger' : 'success'}">${sSummary.delayed ? 'Behind' : 'Excellent'}</span></td>
+        <td><span class="badge bg-${sSummary.delayed ? 'danger' : 'success'} bg-opacity-10 text-${sSummary.delayed ? 'danger' : 'success'} px-3 rounded-pill">${sSummary.delayed ? 'Behind' : 'Excellent'}</span></td>
       </tr>`;
   }).join('');
-
-  html += `
-    <div class="card border-0 shadow-sm p-4">
-      <h5>Team Performance Summary</h5>
-      <div class="table-responsive"><table class="table"><thead><tr><th>Staff</th><th>KPIs</th><th>Avg Progress</th><th>Health</th></tr></thead><tbody>${staffRows}</tbody></table></div>
-    </div>`;
-
-  container.innerHTML = html;
-  if (window.lucide) lucide.createIcons();
 }
 
 // Inject styles once
