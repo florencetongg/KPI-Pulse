@@ -700,6 +700,33 @@ body {
 @media (max-width: 576px) {
   .top-navbar {
     overflow-x: auto;
-    gap: 8px;
   }
 }
+
+/* Animations & Form Features */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-up {
+  animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Password Strength Indicator */
+.pwd-strength-meter {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-light-2);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.pwd-strength-bar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+.pwd-weak { background: var(--danger-red); width: 33%; }
+.pwd-medium { background: var(--warning-orange); width: 66%; }
+.pwd-strong { background: var(--success-green); width: 100%; }
+

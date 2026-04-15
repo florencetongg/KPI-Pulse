@@ -247,72 +247,22 @@ function renderStaffDashboard(id, searchQuery = '') {
   } else {
     if(emptyState) emptyState.classList.add('d-none');
     listContainer.innerHTML = myKPIs.map(k => `
-      <tr class="align-middle">
-        <td><div class="fw-bold">${k.title}</div><small class="text-muted">${k.category}</small></td>
-        <td>${k.target}</td>
+      <tr class="align-middle" style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+        <td class="ps-3 py-3"><div class="fw-bold ">${k.title}</div><small style="color:var(--text-muted);">${k.category}</small></td>
+        <td><span class="text-muted fw-medium">${k.target}</span></td>
         <td>
           <div class="d-flex align-items-center gap-2">
-            <div class="progress flex-grow-1" style="height:8px;"><div class="progress-bar rounded-pill" style="width:${k.progress}%; background:${progressColour(k.progress)}; transition:width 1s ease;"></div></div>
-            <span class="small fw-bold">${k.progress}%</span>
+            <div class="progress flex-grow-1" style="height:8px; background: rgba(0,0,0,0.1);"><div class="progress-bar bg-primary rounded-pill" style="width:${k.progress}%; background:${progressColour(k.progress)} !important; transition:width 1s ease;"></div></div>
+            <span class="small fw-bold text-muted">${k.progress}%</span>
           </div>
         </td>
-        <td><span class="badge bg-${statusConfig(k.status).colour} bg-opacity-10 text-${statusConfig(k.status).colour} px-3 rounded-pill">${statusConfig(k.status).label}</span></td>
-        <td class="text-end"><a href="kpi-progress.html?id=${k.id}" class="btn btn-sm btn-outline-primary fw-medium">Update</a></td>
+        <td><span class="badge bg-${statusConfig(k.status).colour} bg-opacity-25 text-${statusConfig(k.status).colour} px-3 border border-${statusConfig(k.status).colour}">${statusConfig(k.status).label}</span></td>
+        <td class="text-end pe-3"><a href="kpi-progress.html?id=${k.id}" class="btn border    btn-sm">Update</a></td>
       </tr>`).join('');
   }
 }
 
-function renderManagerDashboard(id, searchQuery = '') {
-  const allKPIs = KPIStore.getAllKPIs();
-  const summary = KPIStore.getSummary(allKPIs);
-  
-  const staffView = document.getElementById('staff-dashboard-view');
-  const mgrView = document.getElementById('manager-dashboard-view');
-  if(staffView && mgrView) {
-    staffView.classList.add('d-none');
-    mgrView.classList.remove('d-none');
-  }
-
-  const els = {
-    total: document.getElementById('mgr-stat-total'),
-    completed: document.getElementById('mgr-stat-completed'),
-    progress: document.getElementById('mgr-stat-progress'),
-    progressBar: document.getElementById('mgr-stat-progress-bar'),
-    delayed: document.getElementById('mgr-stat-delayed')
-  };
-
-  if(els.total) els.total.textContent = summary.total;
-  if(els.completed) els.completed.textContent = summary.completed;
-  if(els.progress) els.progress.textContent = summary.avgProgress + '%';
-  if(els.progressBar) els.progressBar.style.width = summary.avgProgress + '%';
-  if(els.delayed) els.delayed.textContent = summary.delayed;
-
-  // Staff Table
-  const listContainer = document.getElementById('manager-dashboard-team-list');
-  if(!listContainer) return;
-
-  let staff = AuthManager._getAllUsers().filter(u => u.role === 'staff');
-  if (searchQuery) {
-    const q = searchQuery.toLowerCase();
-    staff = staff.filter(s => s.name.toLowerCase().includes(q) || (s.department && s.department.toLowerCase().includes(q)));
-  }
-  listContainer.innerHTML = staff.map(s => {
-    const sKPIs = KPIStore.getKPIsForUser(s.id);
-    const sSummary = KPIStore.getSummary(sKPIs);
-    return `
-      <tr class="align-middle">
-        <td><div class="fw-bold">${s.name}</div><small class="text-muted">${s.department}</small></td>
-        <td>${sKPIs.length}</td>
-        <td>
-          <div class="d-flex align-items-center gap-2">
-            <div class="progress flex-grow-1" style="height:8px;"><div class="progress-bar rounded-pill" style="width:${sSummary.avgProgress}%; background:${progressColour(sSummary.avgProgress)}; transition:width 1s ease;"></div></div>
-            <span class="small fw-bold">${sSummary.avgProgress}%</span>
-          </div>
-        </td>
-        <td><span class="badge bg-${sSummary.delayed ? 'danger' : 'success'} bg-opacity-10 text-${sSummary.delayed ? 'danger' : 'success'} px-3 rounded-pill">${sSummary.delayed ? 'Behind' : 'Excellent'}</span></td>
-      </tr>`;
-  }).join('');
-}
+// Manager logic moved to kpi-manager.js
 
 // Inject styles once
 (function injectStyles() {

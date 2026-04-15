@@ -4,184 +4,833 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register | KPI System</title>
+  <title>Register | KPI Pro</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="../css/style.css">
+    :root {
+      --navy: #0f172a;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-light: #eef2ff;
+      --primary-mid: #a5b4fc;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --border: #e2e8f0;
+      --border-focus: #a5b4fc;
+      --muted: #64748b;
+      --surface: #ffffff;
+      --bg: #f8f9fb;
+      --radius: 12px;
+      --radius-lg: 18px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--navy);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--navy);
+      letter-spacing: -0.5px;
+      text-decoration: none;
+    }
+
+    .logo span {
+      color: var(--primary);
+    }
+
+    .nav-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all .18s;
+    }
+
+    .nav-back:hover {
+      background: #f1f5f9;
+      color: var(--navy);
+    }
+
+    .nav-back svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ── LAYOUT ── */
+    .page-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: calc(100vh - 64px);
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      background: var(--navy);
+      padding: 60px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      left: -80px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(79, 70, 229, .35) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      bottom: -100px;
+      right: -60px;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(79, 70, 229, .2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .left-tagline {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.6rem, 2.5vw, 2.4rem);
+      color: #fff;
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .left-tagline em {
+      color: var(--primary-mid);
+      font-style: normal;
+    }
+
+    .left-sub {
+      font-size: .95rem;
+      color: #94a3b8;
+      line-height: 1.7;
+      margin-bottom: 48px;
+      position: relative;
+      z-index: 1;
+      max-width: 340px;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .feat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .feat-icon svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2.2;
+    }
+
+    .feat-text strong {
+      display: block;
+      font-size: .9rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 2px;
+    }
+
+    .feat-text span {
+      font-size: .8rem;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    .left-divider {
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, .08);
+      margin: 40px 0 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .trust-note {
+      font-size: .78rem;
+      color: #475569;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .trust-note svg {
+      width: 13px;
+      height: 13px;
+      stroke: #475569;
+    }
+
+    /* ── RIGHT PANEL (FORM) ── */
+    .right-panel {
+      background: var(--bg);
+      padding: 60px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .form-header {
+      margin-bottom: 32px;
+    }
+
+    .form-header .step-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 50px;
+      letter-spacing: .5px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+
+    .form-header h2 {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.75rem;
+      color: var(--navy);
+      letter-spacing: -.5px;
+      margin-bottom: 6px;
+    }
+
+    .form-header p {
+      font-size: .875rem;
+      color: var(--muted);
+    }
+
+    /* Error alert */
+    .error-alert {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      border-radius: 9px;
+      padding: 10px 14px;
+      font-size: .82rem;
+      margin-bottom: 20px;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .error-alert.show {
+      display: flex;
+    }
+
+    .error-alert svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    /* Form grid */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+
+    .form-control,
+    .form-select {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px;
+      font-size: .875rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--navy);
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color .18s, box-shadow .18s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, .1);
+    }
+
+    .form-control::placeholder {
+      color: #cbd5e1;
+    }
+
+    .form-control.error {
+      border-color: var(--danger);
+    }
+
+    /* Select wrapper */
+    .select-wrap {
+      position: relative;
+    }
+
+    .select-wrap::after {
+      content: '';
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid var(--muted);
+      pointer-events: none;
+    }
+
+    /* Password group */
+    .pwd-wrap {
+      position: relative;
+    }
+
+    .pwd-wrap .form-control {
+      padding-right: 44px;
+    }
+
+    .pwd-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      transition: color .15s;
+    }
+
+    .pwd-toggle:hover {
+      color: var(--navy);
+    }
+
+    .pwd-toggle svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Strength bar */
+    .strength-wrap {
+      margin-top: 8px;
+    }
+
+    .strength-track {
+      height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .strength-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 99px;
+      transition: width .3s ease, background .3s ease;
+    }
+
+    .strength-label {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+    }
+
+    .strength-label span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    #strengthText {
+      font-weight: 600;
+    }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      height: 48px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, .3);
+    }
+
+    .btn-submit:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, .38);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .btn-submit svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .signin-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: .83rem;
+      color: var(--muted);
+    }
+
+    .signin-link a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .signin-link a:hover {
+      text-decoration: underline;
+    }
+
+    /* Terms note */
+    .terms-note {
+      font-size: .75rem;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 14px;
+      line-height: 1.5;
+    }
+
+    .terms-note a {
+      color: var(--muted);
+      text-decoration: underline;
+    }
+
+    /* Page load animation */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .right-panel {
+      animation: fadeUp .45s ease both;
+    }
+
+    .left-panel {
+      animation: fadeUp .35s ease both;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .page-body {
+        grid-template-columns: 1fr;
+      }
+
+      .left-panel {
+        display: none;
+      }
+
+      .right-panel {
+        padding: 40px 24px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 
-<body class="bg-gradient-primary">
-  <div class="container d-flex justify-content-center align-items-center min-vh-100 py-5">
-    <div class="card login-card border-0 shadow-lg p-4">
-      <div class="text-center mb-4">
-        <div class="brand-logo mb-2 mx-auto">K</div>
-        <h3 class="fw-bold text-dark">Create Account</h3>
-        <p class="text-muted small">Please fill in your details to register</p>
+<body>
+
+  <!-- NAVBAR -->
+  <nav>
+    <a href="/index.html" class="logo">KPI<span>Pro</span></a>
+    <a href="/index.html" class="nav-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 5l-7 7 7 7" />
+      </svg>
+      Back to home
+    </a>
+  </nav>
+
+  <div class="page-body">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+      <div class="left-tagline">
+        Start tracking<br>what <em>actually</em><br>matters.
+      </div>
+      <p class="left-sub">
+        Join thousands of high-performing teams using KPI Pro to align goals, monitor progress, and drive real results.
+      </p>
+
+      <ul class="feature-list">
+        <li>
+          <div class="feat-icon" style="background:rgba(79,70,229,.2)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#a5b4fc">
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="4" />
+            </svg>
+          </div>
+          <div class="feat-text">
+            <strong>Goal alignment across teams</strong>
+            <span>Connect individual KPIs to company-wide OKRs instantly.</span>
+          </div>
+        </li>
+        <li>
+          <div class="feat-icon" style="background:rgba(22,163,74,.15)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+          </div>
+          <div class="feat-text">
+            <strong>Real-time analytics dashboard</strong>
+            <span>Live charts, automated reports, zero manual effort.</span>
+          </div>
+        </li>
+        <li>
+          <div class="feat-icon" style="background:rgba(217,119,6,.15)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <div class="feat-text">
+            <strong>Manager approval workflows</strong>
+            <span>Built-in verification engine ensures data integrity.</span>
+          </div>
+        </li>
+      </ul>
+
+      <hr class="left-divider">
+      <p class="trust-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        Your data is encrypted and never shared.
+      </p>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      <div class="form-header">
+        <div class="step-badge">
+          <svg width="8" height="8" viewBox="0 0 8 8">
+            <circle cx="4" cy="4" r="4" fill="#4f46e5" />
+          </svg>
+          Free — no credit card required
+        </div>
+        <h2>Create your account</h2>
+        <p>Set up your workspace in under a minute.</p>
       </div>
 
-      <div id="errorAlert" class="alert alert-danger py-2 small d-none" role="alert">
-        Please fix the errors below.
+      <!-- Error alert -->
+      <div class="error-alert" id="errorAlert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <span id="errorText"></span>
       </div>
 
       <form id="registerForm" novalidate>
 
-        <div class="mb-3">
-          <label for="fullName" class="form-label small fw-semibold text-secondary">Full Name</label>
-          <input type="text" class="form-control custom-input" id="fullName" placeholder="John Doe" required>
-          <div class="invalid-feedback">Full name is required.</div>
+        <!-- Name -->
+        <div class="form-group">
+          <label for="regName">Full name</label>
+          <input type="text" class="form-control" id="regName" placeholder="Jane Smith" required autocomplete="name">
         </div>
 
-        <div class="mb-3">
-          <label for="department" class="form-label small fw-semibold text-secondary">Department</label>
-          <select class="form-select custom-input" id="department" required>
-            <option value="" selected disabled>Select Department</option>
-            <option value="Executive">Executive</option>
-            <option value="Sales">Sales</option>
-            <option value="Marketing">Marketing</option>
-            <option value="IT">IT</option>
-            <option value="Finance">Finance</option>
-            <option value="HR">HR</option>
-            <option value="Operations">Operations</option>
-          </select>
-          <div class="invalid-feedback">Please select a department.</div>
+        <!-- Email -->
+        <div class="form-group">
+          <label for="regEmail">Work email</label>
+          <input type="email" class="form-control" id="regEmail" placeholder="jane@company.com" required
+            autocomplete="email">
         </div>
 
-        <div class="mb-3">
-          <label for="role" class="form-label small fw-semibold text-secondary">Account Role</label>
-          <select class="form-select custom-input" id="role" required>
-            <option value="" selected disabled>Select Role</option>
-            <option value="manager">Manager (Admin Access)</option>
-            <option value="staff">Staff (Personal Access)</option>
-          </select>
-          <div class="invalid-feedback">Please select a role.</div>
-        </div>
-
-        <div class="mb-3">
-          <label for="email" class="form-label small fw-semibold text-secondary">Email Address</label>
-          <input type="email" class="form-control custom-input" id="email" placeholder="name@company.com" required>
-          <div class="invalid-feedback">Please enter a valid email.</div>
-        </div>
-
-        <div class="mb-3">
-          <label for="password" class="form-label small fw-semibold text-secondary">Password</label>
-          <div class="input-group">
-            <input type="password" class="form-control custom-input border-end-0" id="password" placeholder="••••••••"
-              required>
-            <span class="input-group-text bg-white border-start-0 toggle-password" data-target="password"
-              style="cursor:pointer;">
-              <i class="bi bi-eye-slash-fill text-muted"></i>
-            </span>
+        <!-- Department + Role -->
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0">
+            <label for="regDept">Department</label>
+            <div class="select-wrap">
+              <select class="form-select" id="regDept" required>
+                <option value="" disabled selected>Select dept.</option>
+                <option value="Research and Development (R&D)">Research and Development (R&D)</option>
+                <option value="Marketing">Marketing</option>
+                <option value="IT">IT</option>
+                <option value="Sales">Sales</option>
+                <option value="Human Resources (HR)">Human Resources (HR)</option>
+                <option value="Finance">Finance</option>
+                <option value="Operations">Operations</option>
+              </select>
+            </div>
           </div>
-          <div class="form-text small" style="font-size: 0.7rem;">Min 8 characters required.</div>
-          <div class="invalid-feedback">Requirements not met.</div>
-        </div>
-
-        <div class="mb-4">
-          <label for="confirmPassword" class="form-label small fw-semibold text-secondary">Confirm Password</label>
-          <div class="input-group">
-            <input type="password" class="form-control custom-input border-end-0" id="confirmPassword"
-              placeholder="••••••••" required>
-            <span class="input-group-text bg-white border-start-0 toggle-password" data-target="confirmPassword"
-              style="cursor:pointer;">
-              <i class="bi bi-eye-slash-fill text-muted"></i>
-            </span>
+          <div class="form-group" style="margin-bottom:0">
+            <label for="regRole">Role</label>
+            <div class="select-wrap">
+              <select class="form-select" id="regRole" required>
+                <option value="staff">Staff</option>
+                <option value="manager">Manager</option>
+              </select>
+            </div>
           </div>
-          <div class="invalid-feedback">Passwords must match.</div>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
-          Create Account
+        <!-- Password -->
+        <div class="form-group" style="margin-top:16px">
+          <label for="regPassword">Password</label>
+          <div class="pwd-wrap">
+            <input type="password" class="form-control" id="regPassword" placeholder="Min. 8 characters" required
+              autocomplete="new-password">
+            <button type="button" class="pwd-toggle" id="togglePwd" aria-label="Toggle password visibility">
+              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+          <div class="strength-wrap">
+            <div class="strength-track">
+              <div class="strength-fill" id="strengthFill"></div>
+            </div>
+            <div class="strength-label">
+              <span>Use 8+ characters with numbers</span>
+              <span id="strengthText"></span>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          Create account
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
         </button>
-
       </form>
 
-      <div class="text-center mt-4">
-        <p class="small text-muted">
-          Already have an account?
-          <a href="login.html" class="text-decoration-none">Login here</a>
-        </p>
-      </div>
-
+      <p class="signin-link">
+        Already have an account? <a href="/pages/login.html">Sign in</a>
+      </p>
+      <p class="terms-note">
+        By signing up you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+      </p>
     </div>
-  </div>
 
-  <script src="../js/auth.js"></script>
+  </div><!-- end .page-body -->
+
   <script>
+    /* ── PASSWORD STRENGTH ── */
+    const pwdInput = document.getElementById('regPassword');
+    const strengthFill = document.getElementById('strengthFill');
+    const strengthText = document.getElementById('strengthText');
+
+    function getStrength(val) {
+      let score = 0;
+      if (val.length >= 8) score++;
+      if (val.length >= 12) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+      return score;
+    }
+
+    pwdInput.addEventListener('input', function () {
+      const val = this.value;
+      if (!val) {
+        strengthFill.style.width = '0%';
+        strengthText.textContent = '';
+        return;
+      }
+      const score = getStrength(val);
+      const levels = [
+        { w: '20%', color: '#ef4444', label: 'Weak', labelColor: '#ef4444' },
+        { w: '40%', color: '#f97316', label: 'Fair', labelColor: '#f97316' },
+        { w: '60%', color: '#eab308', label: 'Good', labelColor: '#ca8a04' },
+        { w: '80%', color: '#22c55e', label: 'Strong', labelColor: '#16a34a' },
+        { w: '100%', color: '#16a34a', label: 'Very strong', labelColor: '#15803d' },
+      ];
+      const lvl = levels[Math.min(score - 1, 4)] || levels[0];
+      strengthFill.style.width = lvl.w;
+      strengthFill.style.background = lvl.color;
+      strengthText.textContent = lvl.label;
+      strengthText.style.color = lvl.labelColor;
+    });
+
+    /* ── TOGGLE PASSWORD VISIBILITY ── */
+    const togglePwd = document.getElementById('togglePwd');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const eyeOpen = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+    const eyeClosed = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+
+    togglePwd.addEventListener('click', function () {
+      const isPassword = pwdInput.getAttribute('type') === 'password';
+      pwdInput.setAttribute('type', isPassword ? 'text' : 'password');
+      eyeIcon.innerHTML = isPassword ? eyeClosed : eyeOpen;
+    });
+
+    /* ── FORM SUBMISSION ── */
     const form = document.getElementById('registerForm');
     const errorAlert = document.getElementById('errorAlert');
-    const passwordInput = document.getElementById('password');
-    const confirmPassword = document.getElementById('confirmPassword');
+    const errorText = document.getElementById('errorText');
+
+    function showError(msg) {
+      errorText.textContent = msg;
+      errorAlert.classList.add('show');
+      errorAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    function hideError() {
+      errorAlert.classList.remove('show');
+    }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      let valid = true;
-      errorAlert.classList.add('d-none');
-      errorAlert.textContent = 'Please fix the errors below.';
+      hideError();
 
-      // Extract values
-      const fullName = document.getElementById('fullName').value.trim();
-      const department = document.getElementById('department').value;
-      const role = document.getElementById('role').value;
-      const email = document.getElementById('email').value.trim();
-      const password = passwordInput.value;
-      const confirm = confirmPassword.value;
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const dept = document.getElementById('regDept').value;
+      const role = document.getElementById('regRole').value;
+      const password = pwdInput.value;
 
-      // Basic validation display
-      form.querySelectorAll('input, select').forEach(el => {
-        if (el.required && !el.value) {
-          el.classList.add('is-invalid');
-          valid = false;
+      /* Basic client-side validation */
+      if (!name) return showError('Please enter your full name.');
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        return showError('Please enter a valid email address.');
+      if (!dept) return showError('Please select your department.');
+      if (password.length < 8)
+        return showError('Password must be at least 8 characters.');
+
+      const data = { name, email, department: dept, role, password };
+
+      /* If AuthManager is available (from auth.js) use it, otherwise fallback */
+      if (typeof AuthManager !== 'undefined') {
+        const result = AuthManager.register(data);
+        if (result.success) {
+          AuthManager.login(email, password);
+          window.location.href = role === 'manager' ? 'manager-kpi.html' : 'staff-kpi.html';
         } else {
-          el.classList.remove('is-invalid');
+          showError(result.message);
         }
-      });
-
-      if (password.length < 8) {
-        passwordInput.classList.add('is-invalid');
-        valid = false;
-      }
-
-      if (password !== confirm) {
-        confirmPassword.classList.add('is-invalid');
-        valid = false;
-      }
-
-      if (!valid) {
-        errorAlert.classList.remove('d-none');
-        return;
-      }
-
-      // Register via AuthManager
-      const result = AuthManager.register({
-        name: fullName,
-        department: department,
-        role: role,
-        email: email,
-        password: password
-      });
-
-      if (result.success) {
-        alert('Registration successful! Redirecting to login...');
-        window.location.href = 'login.html';
       } else {
-        errorAlert.textContent = result.message;
-        errorAlert.classList.remove('d-none');
+        /* Demo fallback: store in localStorage and redirect */
+        const users = JSON.parse(localStorage.getItem('kpipro_users') || '[]');
+        if (users.find(u => u.email === email)) {
+          return showError('An account with this email already exists.');
+        }
+        users.push(data);
+        localStorage.setItem('kpipro_users', JSON.stringify(users));
+        localStorage.setItem('kpipro_current_user', JSON.stringify(data));
+        window.location.href = role === 'manager' ? 'manager-kpi.html' : 'staff-kpi.html';
       }
-    });
-
-    // Toggle Password Logic
-    document.querySelectorAll('.toggle-password').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const target = document.getElementById(btn.getAttribute('data-target'));
-        const icon = btn.querySelector('i');
-        const isPassword = target.type === 'password';
-        target.type = isPassword ? 'text' : 'password';
-
-        icon.classList.toggle('bi-eye-fill', isPassword);
-        icon.classList.toggle('bi-eye-slash-fill', !isPassword);
-      });
     });
   </script>
 

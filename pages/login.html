@@ -4,65 +4,234 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | KPI System</title>
+  <title>Login | KPI Pro</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500&display=swap"
+    rel="stylesheet">
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --navy: #0f172a;
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --border: #e2e8f0;
+      --muted: #64748b;
+      --radius: 14px;
+    }
 
-  <link rel="stylesheet" href="../css/style.css">
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f8f9fb;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* NAVBAR (same as index) */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .logo {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--navy);
+      text-decoration: none;
+    }
+
+    .logo span {
+      color: var(--primary);
+    }
+
+    /* LOGIN CONTAINER */
+    .login-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .login-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .login-card h2 {
+      font-family: 'Sora', sans-serif;
+      text-align: center;
+      margin-bottom: 8px;
+      color: var(--navy);
+    }
+
+    .login-card p {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+
+    /* INPUT */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-light);
+    }
+
+    /* PASSWORD TOGGLE */
+    .password-wrap {
+      display: flex;
+    }
+
+    .password-wrap input {
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+    }
+
+    .toggle-btn {
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-left: none;
+      background: #fff;
+      cursor: pointer;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* BUTTON */
+    .btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      background: #4338ca;
+    }
+
+    /* ERROR */
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .extra {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .extra a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
 </head>
 
-<body class="bg-gradient-primary">
+<body>
 
-  <div class="container d-flex justify-content-center align-items-center vh-100">
-    <div class="card login-card border-0 shadow-lg p-4">
-      <div id="errorAlert" class="alert alert-danger py-2 small d-none" role="alert"></div>
+  <!-- NAVBAR -->
+  <nav>
+    <a href="/" class="logo">KPI<span>Pro</span></a>
+  </nav>
+
+  <!-- LOGIN -->
+  <div class="login-wrapper">
+    <div class="login-card">
+
+      <h2>Welcome back</h2>
+      <p>Sign in to your KPI dashboard</p>
+
+      <div id="errorAlert" class="error"></div>
 
       <form id="loginForm">
-        <div class="mb-3">
-          <label class="form-label small fw-semibold text-secondary">Email Address</label>
-          <input type="email" class="form-control custom-input" id="loginEmail" placeholder="name@company.com" required>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="loginEmail" placeholder="name@company.com" required>
         </div>
 
-        <div class="mb-3">
-          <div class="d-flex justify-content-between">
-            <label class="form-label small fw-semibold text-secondary">Password</label>
-            <a href="reset-password.html" class="small text-decoration-none">Forgot?</a>
-          </div>
-
-          <div class="input-group">
-            <input type="password" class="form-control custom-input" id="loginPassword" placeholder="••••••••" required>
-            <span class="input-group-text bg-white border-start-0" id="togglePassword" style="cursor:pointer;">
-              <i class="bi bi-eye-slash-fill text-muted"></i>
-            </span>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="password-wrap">
+            <input type="password" id="loginPassword" placeholder="••••••••" required>
+            <button type="button" class="toggle-btn" id="togglePassword">Show</button>
           </div>
         </div>
 
-        <div class="mb-4 form-check">
-          <input type="checkbox" class="form-check-input" id="rememberMe">
-          <label class="form-check-label small text-muted" for="rememberMe">Keep me logged in</label>
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">Sign In</button>
+        <button type="submit" class="btn">Sign In</button>
       </form>
 
-      <div class="text-center mt-4">
-        <p class="small text-muted">Don't have an account? <a href="register.html" class="text-decoration-none">Sign
-            Up</a></p>
+      <div class="extra">
+        Don't have an account?
+        <a href="/pages/register.html">Sign up</a>
       </div>
+
     </div>
   </div>
 
-  <script src="../js/auth.js"></script>
+  <!-- SCRIPT -->
+  <script src="/js/auth.js"></script>
   <script>
     const loginForm = document.getElementById('loginForm');
     const errorAlert = document.getElementById('errorAlert');
 
     loginForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      errorAlert.classList.add('d-none');
+      errorAlert.style.display = "none";
 
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
@@ -70,23 +239,29 @@
       const result = AuthManager.login(email, password);
 
       if (result.success) {
-        window.location.href = 'dashboard.html';
+        if (result.user.role === 'manager') {
+          window.location.href = 'manager-kpi.html';
+        } else {
+          window.location.href = 'staff-kpi.html';
+        }
       } else {
         errorAlert.textContent = result.message;
-        errorAlert.classList.remove('d-none');
+        errorAlert.style.display = "block";
       }
     });
 
-    // Toggle Password Visibility Logic
-    const togglePassword = document.querySelector('#togglePassword');
-    const passwordInput = document.querySelector('#loginPassword');
+    // Toggle password
+    const toggle = document.getElementById('togglePassword');
+    const password = document.getElementById('loginPassword');
 
-    togglePassword.addEventListener('click', function () {
-      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-      passwordInput.setAttribute('type', type);
-      const icon = this.querySelector('i');
-      icon.classList.toggle('bi-eye-fill');
-      icon.classList.toggle('bi-eye-slash-fill');
+    toggle.addEventListener('click', () => {
+      if (password.type === "password") {
+        password.type = "text";
+        toggle.textContent = "Hide";
+      } else {
+        password.type = "password";
+        toggle.textContent = "Show";
+      }
     });
   </script>
 

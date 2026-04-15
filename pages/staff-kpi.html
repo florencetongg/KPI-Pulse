@@ -4,208 +4,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Assigned KPIs | KPI Pro</title>
-  <meta name="description"
-    content="View and manage your assigned KPIs — track progress, status, and deadlines at a glance.">
+  <title>Staff KPIs | KPI Pulse</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 
-<body>
+<body class="bg-light">
 
-  <div id="wrapper">
-    <div class="row g-0">
-      <!-- Sidebar -->
-      <nav class="col-md-2 d-none d-md-block sidebar shadow-sm">
-        <div id="sidebar-container"></div>
-      </nav>
+  <div id="wrapper" class="d-flex">
+    <div id="sidebar-container" style="z-index: 1040;"></div>
 
-      <!-- Main Content -->
-      <main class="col-md-10 px-0 bg-light min-vh-100">
-        <div id="navbar-container"></div>
-        <div class="px-4">
-          <div id="breadcrumb-container" class="mb-3"></div>
+    <div id="page-content-wrapper" class="flex-grow-1" style="background: transparent;">
+      <div id="navbar-container" class="mb-4"></div>
 
-          <!-- Header -->
-          <div
-            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
-            <div>
-              <h1 class="h3 fw-bold mb-1">Assigned KPIs</h1>
-              <p class="text-muted small mb-0">View and manage your assigned Key Performance Indicators</p>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <!-- Filter Buttons -->
-              <div class="btn-group" id="status-filter">
-                <button class="btn btn-sm btn-outline-secondary active" data-filter="all">All</button>
-                <button class="btn btn-sm btn-outline-success" data-filter="completed">Completed</button>
-                <button class="btn btn-sm btn-outline-primary" data-filter="on-track">On Track</button>
-                <button class="btn btn-sm btn-outline-warning" data-filter="at-risk">At Risk</button>
-                <button class="btn btn-sm btn-outline-danger" data-filter="delayed">Delayed</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Summary Strip -->
-          <div class="row g-3 mb-4" id="kpi-summary-strip">
-            <!-- Rendered by JS -->
-          </div>
-
-          <!-- KPI Cards Grid -->
-          <div id="kpi-list-container">
-            <div class="text-center py-5">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading…</span>
-              </div>
-            </div>
+      <div class="container-fluid px-4 fade-in-up">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+          <div>
+            <h1 class="h3 fw-bold mb-1">Assigned KPIs</h1>
+            <p class="text-muted small mb-0">List of your personal active tracking goals.</p>
           </div>
         </div>
-      </main>
+
+        <!-- KPI List -->
+        <div class="card border-0 shadow-sm p-4 border-0 mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0">My Action Items</h5>
+            <div class="d-flex gap-2">
+              <!-- Mock KPI filtering by Status -->
+              <select class="form-select custom-input form-select-sm" id="staff-status-filter" style="width:150px;">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="on-track">On Track</option>
+                <option value="delayed">Delayed</option>
+              </select>
+              <input type="text" id="staff-search-input" class="form-control custom-input form-control-sm"
+                style="width:200px;" placeholder="Search my KPIs...">
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover table-borderless align-middle mb-0">
+              <thead style="border-bottom: 2px solid #dee2e6;">
+                <tr>
+                  <th class="ps-3 text-uppercase text-muted small py-3" style="background: transparent;">KPI Name</th>
+                  <th class="text-uppercase text-muted small py-3" style="background: transparent;">Target</th>
+                  <th class="text-uppercase text-muted small py-3" style="background: transparent; width: 250px;">
+                    Progress</th>
+                  <th class="text-uppercase text-muted small py-3" style="background: transparent;">Status</th>
+                  <th class="text-end pe-3 text-uppercase text-muted small py-3" style="background: transparent;">Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="staff-dashboard-kpi-list">
+                <!-- Rendered via JS -->
+                <tr>
+                  <td colspan="5" class="text-center py-5" id="staff-empty-state">
+                    <i data-lucide="inbox" class="text-muted mb-2 d-block mx-auto" style="width:48px; height:48px;"></i>
+                    <h6 class="fw-bold text-dark">No Data Available</h6>
+                    <p class="text-muted small">You have not been assigned any KPIs yet.</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/auth.js"></script>
-  <script src="../js/kpi-staff.js"></script>
-  <script src="../js/load-components.js"></script>
-
+  <script src="/js/auth.js"></script>
+  <script src="/js/main.js"></script>
+  <script src="/js/kpi-staff.js"></script>
   <script>
     lucide.createIcons();
-    const filterGroup = document.getElementById('status-filter');
-    let currentFilter = 'all';
-
-    function renderSummaryStrip() {
-      const myKPIs = KPIStore.getMyKPIs();
-      const s = KPIStore.getSummary(myKPIs);
-      const strip = document.getElementById('kpi-summary-strip');
-      if (!strip) return;
-
-      const items = [
-        { label: 'Total', val: s.total, col: 'primary' },
-        { label: 'Completed', val: s.completed, col: 'success' },
-        { label: 'On Track', val: s.onTrack, col: 'info' },
-        { label: 'At Risk', val: s.atRisk, col: 'warning' },
-        { label: 'Delayed', val: s.delayed, col: 'danger' }
-      ];
-
-      strip.innerHTML = items.map(i => `
-        <div class="col text-center border-end last-child-no-border">
-          <div class="text-muted small fw-medium mb-1">${i.label}</div>
-          <h4 class="fw-bold mb-0 text-${i.col}">${i.val}</h4>
-        </div>`).join('');
-    }
-
-    function renderStatusBadge(status) {
-      const config = statusConfig(status);
-      return `<span class="badge bg-${config.colour} bg-opacity-10 text-${config.colour} px-2 py-1 rounded-pill"><i data-lucide="${config.icon}" style="width:12px;height:12px;" class="me-1"></i>${config.label}</span>`;
-    }
-
-    window.toggleKPIDetail = function (id) {
-      const el = document.getElementById('history-' + id);
-      if (el) el.classList.toggle('d-none');
-    };
-
-    function renderKPIList() {
-      const container = document.getElementById('kpi-list-container');
-      if (!container) return;
-
-      const myKPIs = KPIStore.getMyKPIs();
-      const filtered = currentFilter === 'all' ? myKPIs : myKPIs.filter(k => k.status === currentFilter);
-
-      if (!filtered.length) {
-        container.innerHTML = `
-          <div class="text-center py-5">
-            <i data-lucide="inbox" style="width:48px;height:48px;" class="text-muted mb-3"></i>
-            <p class="fw-medium text-muted">No KPIs with status "${currentFilter === 'all' ? 'All' : statusConfig(currentFilter).label}"</p>
-          </div>`;
-        lucide.createIcons();
-        return;
-      }
-
-      const cards = filtered.map((k, i) => {
-        const days = daysUntil(k.dueDate);
-        const barCol = progressColour(k.progress);
-        return `
-        <div class="col-md-6 col-xl-4 animate-fade-in" style="animation-delay:${i * 0.08}s;">
-          <div class="card border-0 shadow-sm h-100 kpi-detail-card position-relative overflow-hidden" style="border-radius:12px;">
-            <div class="kpi-card-accent" style="position:absolute;top:0;left:0;width:100%;height:4px;background:${barCol};"></div>
-            <div class="card-body p-4">
-              <div class="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                  <h6 class="fw-bold mb-1">${k.title}</h6>
-                  <span class="small text-muted">${k.category}</span>
-                </div>
-                ${renderStatusBadge(k.status)}
-              </div>
-              <div class="mb-3">
-                <div class="d-flex justify-content-between mb-1">
-                  <span class="small text-muted">Progress</span>
-                  <span class="small fw-bold" style="color:${barCol};">${k.progress}%</span>
-                </div>
-                <div class="progress" style="height:8px;">
-                  <div class="progress-bar rounded-pill" style="width:${k.progress}%;background:${barCol};transition:width 1.2s cubic-bezier(.4,0,.2,1);"></div>
-                </div>
-              </div>
-              <div class="d-flex justify-content-between align-items-center small text-muted mb-3">
-                <span class="d-flex align-items-center"><i data-lucide="target" style="width:14px;height:14px;" class="me-1"></i>${k.target}</span>
-                <span class="d-flex align-items-center"><i data-lucide="calendar" style="width:14px;height:14px;" class="me-1"></i>${days > 0 ? days + 'd left' : '<span class="text-danger fw-bold">Overdue</span>'}</span>
-              </div>
-              <div class="d-flex gap-2">
-                <a href="kpi-progress.html?id=${k.id}" class="btn btn-sm btn-primary flex-grow-1 fw-medium d-flex align-items-center justify-content-center">
-                  <i data-lucide="arrow-up-circle" style="width:14px;height:14px;" class="me-1"></i>Update
-                </a>
-                <button class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center d-inline-block" onclick="toggleKPIDetail('${k.id}')" title="History">
-                  <i data-lucide="history" style="width:14px;height:14px;"></i>
-                </button>
-              </div>
-              <div class="kpi-history-panel mt-3 d-none" id="history-${k.id}">
-                <hr class="my-2">
-                <p class="small fw-bold text-muted mb-2">History</p>
-                ${k.history.map(h => `
-                  <div class="d-flex justify-content-between small py-1 border-bottom border-light">
-                    <span class="text-muted">${h.date}</span>
-                    <span class="fw-medium">${h.value}%</span>
-                  </div>`).join('')}
-              </div>
-            </div>
-          </div>
-        </div>`;
-      }).join('');
-
-      container.innerHTML = `<div class="row g-4">${cards}</div>`;
-      lucide.createIcons();
-    }
-
-    function applyFilter(filter) {
-      currentFilter = filter;
-      filterGroup.querySelectorAll('.btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.filter === filter);
-      });
-      renderKPIList();
-    }
-
-    if (filterGroup) {
-      filterGroup.addEventListener('click', e => {
-        const btn = e.target.closest('.btn');
-        if (btn) applyFilter(btn.dataset.filter);
-      });
-    }
-
-    // ── Initial render ───────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
-      renderSummaryStrip();
-      renderKPIList();
+      if (typeof renderStaffDashboard === 'function') {
+        renderStaffDashboard();
+      }
     });
 
-    KPIEvents.on('kpis:changed', () => {
-      renderSummaryStrip();
-      renderKPIList();
+    // Mock filtering behavior trigger
+    document.getElementById('staff-status-filter').addEventListener('change', () => {
+      // Triggering a re-render or mock filter. In production this would filter the array.
     });
   </script>
-
 </body>
 
 </html>

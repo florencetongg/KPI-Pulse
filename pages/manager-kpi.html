@@ -3,71 +3,182 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Performance | KPI Pro</title>
+  <title>Manager Dashboard | KPI Pulse</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body class="bg-light">
 
-<div id="wrapper">
-  <div class="row g-0">
-  <nav class="col-md-2 d-none d-md-block sidebar shadow-sm">
-    <div id="sidebar-container"></div>
-    <div id="navbar-container"></div>
-    </nav>
+<div class="d-none"></div>
+<div class="d-none"></div>
 
-  <main class="col-md-10 px-4 bg-light min-vh-100">
-    <div id="breadcrumb-container" class="mb-3"></div>
-    <div class="container-fluid p-4">
-      <div class="d-flex justify-content-between align-items-center pt-2 pb-4 mb-4 border-bottom">
+<div id="wrapper" class="d-flex">
+  <div id="sidebar-container" style="z-index: 1040;"></div>
+
+  <div id="page-content-wrapper" class="flex-grow-1" style="background: transparent;">
+    <div id="navbar-container" class="mb-4"></div>
+
+    <div class="container-fluid px-4 fade-in-up">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-light">
         <div>
-          <h1 class="h3 fw-bold mb-1">Performance Management</h1>
-          <p class="text-muted small mb-0">Manage and track your team's key results</p>
+          <h1 class="h3 fw-bold  mb-1">Manager Overview</h1>
+          <p class="text-muted small mb-0">Monitor team performance and verify goals.</p>
         </div>
-        <button class="btn-primary-custom">+ New KPI</button>
+        <div class="d-flex gap-2">
+          <a href="/pages/kpi-form.html" class="btn btn-primary text-white  border-0 shadow-sm d-flex align-items-center gap-2">
+            <i data-lucide="plus"></i> Assign KPI
+          </a>
+          <a href="/pages/kpi-verify.html" class="btn border border-light   d-flex align-items-center gap-2">
+            <i data-lucide="shield-check"></i> Pending Verification
+          </a>
+        </div>
       </div>
 
-      <div class="card kpi-card shadow-sm">
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
-            <thead>
-              <tr>
-                <th class="ps-4">Metric</th>
-                <th>Progress</th>
-                <th>Status</th>
-                <th class="text-end pe-4">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="ps-4 fw-semibold">Quarterly Revenue</td>
-                <td>
-                  <div class="d-flex align-items-center" style="min-width: 200px;">
-                    <div class="progress w-100 me-2">
-                      <div class="progress-bar" style="width: 75%;"></div>
-                    </div>
-                    <span class="small fw-bold">75%</span>
-                  </div>
-                </td>
-                <td><span class="badge badge-active">In Progress</span></td>
-                <td class="text-end pe-4">
-                  <button class="btn btn-sm btn-light border">Edit</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Stats Cards -->
+      <div class="row g-4 mb-5">
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm stat-card p-4 d-flex align-items-center">
+            <div class="icon-box bg-primary-light text-primary me-3" style="width: 50px; height: 50px; border-radius: 12px; background: rgba(30, 94, 255, 0.2);">
+              <i data-lucide="layers" style="color: #608DFF;"></i>
+            </div>
+            <div>
+              <p class="text-muted mb-1 small fw-semibold text-uppercase">Total Team KPIs</p>
+              <h3 class="fw-bold mb-0 " id="mgr-stat-total">0</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm stat-card p-4 d-flex align-items-center">
+            <div class="icon-box me-3" style="width: 50px; height: 50px; border-radius: 12px; background: rgba(37, 225, 145, 0.2);">
+              <i data-lucide="check-circle" style="color: #25E191;"></i>
+            </div>
+            <div>
+              <p class="text-muted mb-1 small fw-semibold text-uppercase">Completed / Verified</p>
+              <h3 class="fw-bold mb-0 " id="mgr-stat-completed">0</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm stat-card p-4 d-flex align-items-center">
+            <div class="icon-box me-3" style="width: 50px; height: 50px; border-radius: 12px; background: rgba(255, 199, 0, 0.2);">
+              <i data-lucide="clock" style="color: #FFC700;"></i>
+            </div>
+            <div>
+              <p class="text-muted mb-1 small fw-semibold text-uppercase">Pending Review</p>
+              <h3 class="fw-bold mb-0 " id="mgr-stat-pending">0</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm stat-card p-4 d-flex align-items-center">
+            <div class="icon-box text-danger me-3" style="width: 50px; height: 50px; border-radius: 12px; background: rgba(243, 67, 89, 0.2);">
+              <i data-lucide="alert-circle" style="color: #F34359;"></i>
+            </div>
+            <div>
+              <p class="text-muted mb-1 small fw-semibold text-uppercase">Delayed KPIs</p>
+              <h3 class="fw-bold mb-0 " id="mgr-stat-delayed">0</h3>
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- Main Content -->
+      <div class="row g-4 d-flex align-items-stretch">
+        <!-- Team Performance Summary -->
+        <div class="col-xl-4 d-flex">
+          <div class="card border-0 shadow-sm p-4 flex-fill border-0 d-flex flex-column h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="fw-bold  mb-0">Team Health</h5>
+            </div>
+            
+            <div class="text-center mb-4">
+              <div class="position-relative d-inline-block">
+                <svg width="140" height="140" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="8"></circle>
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="#608DFF" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="70" stroke-linecap="round"></circle>
+                </svg>
+                <div class="position-absolute top-50 start-50 translate-middle text-center">
+                  <h3 class="fw-bold mb-0 " id="mgr-health-pct">75%</h3>
+                </div>
+              </div>
+              <p class="text-muted small mt-2">Overall Completion</p>
+            </div>
+
+            <div class="mt-auto">
+              <div class="d-flex justify-content-between text-muted small mb-1">
+                <span>Top Performer</span>
+                <span class=" fw-bold">Alex J.</span>
+              </div>
+              <div class="d-flex justify-content-between text-muted small">
+                <span>Needs Attention</span>
+                <span class="text-danger fw-bold">Sarah W.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Master Table -->
+        <div class="col-xl-8 d-flex">
+          <div class="card border-0 shadow-sm p-4 flex-fill border-0 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="fw-bold  mb-0">Active Team KPIs</h5>
+              <input type="text" id="mgr-search-input" class="form-control custom-input form-control-sm w-auto" placeholder="Search by name or KPI...">
+            </div>
+            
+            <div class="table-responsive">
+              <table class="table table-hover table-borderless text-muted align-middle mb-0">
+                <thead style="background: rgba(0,0,0,0.05); border-bottom: 1px solid rgba(0,0,0,0.05);">
+                  <tr>
+                    <th class="ps-3 text-uppercase text-muted small py-3" style="background: transparent;">KPI Name</th>
+                    <th class="text-uppercase text-muted small py-3" style="background: transparent;">Assigned To</th>
+                    <th class="text-uppercase text-muted small py-3" style="background: transparent;">Target</th>
+                    <th class="text-uppercase text-muted small py-3" style="background: transparent;">Status</th>
+                    <th class="text-end pe-3 text-uppercase text-muted small py-3" style="background: transparent;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="mgr-kpi-table-body">
+                  <!-- JS Injected Row Example -->
+                  <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                    <td class="ps-3 py-3"><div class="fw-bold ">Q3 Sales Target</div><small class="text-muted">Sales</small></td>
+                    <td>Alex J.</td>
+                    <td>$500k</td>
+                    <td><span class="badge bg-primary text-white bg-opacity-25 text-primary">On Track</span></td>
+                    <td class="text-end pe-3">
+                      <button class="btn btn-sm btn-outline-dark border-0"><i data-lucide="edit-2" style="width:14px; height:14px;"></i></button>
+                      <button class="btn btn-sm btn-outline-danger border-0"><i data-lucide="trash-2" style="width:14px; height:14px;"></i></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+      
     </div>
-  </main>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="../js/load-components.js"></script>
-<script>lucide.createIcons();</script>
+<script src="/js/auth.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/kpi-staff.js"></script>
+<script src="/js/kpi-manager.js"></script>
+<script>
+  lucide.createIcons();
+  document.addEventListener('DOMContentLoaded', () => {
+    // We rely on kpi-manager.js logic for real rendering, this is just initializing the script.
+    if(typeof renderManagerView === 'function') {
+      renderManagerView();
+    }
+  });
+</script>
 </body>
 </html>

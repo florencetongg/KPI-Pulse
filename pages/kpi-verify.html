@@ -3,68 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KPI Verification</title>
+  <title>Verification | KPI Pulse</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body class="bg-light">
 
-<div id="wrapper">
-  <div class="row g-0">
-    <!-- Sidebar -->
-    <nav class="col-md-2 d-none d-md-block sidebar shadow-sm">
-    <div id="sidebar-container"></div>
-    <div id="navbar-container"></div>
-    </nav>
+<div class="d-none"></div>
+<div class="d-none"></div>
 
-    <!-- Main Content -->
-    <main class="col-md-10 px-4 bg-light min-vh-100">
-      <div id="breadcrumb-container" class="mb-3"></div>
-      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
-        <h1 class="h3 fw-bold">KPI Verification</h1>
+<div id="wrapper" class="d-flex">
+  <div id="sidebar-container" style="z-index: 1040;"></div>
+
+  <div id="page-content-wrapper" class="flex-grow-1" style="background: transparent;">
+    <div id="navbar-container" class="mb-4"></div>
+
+    <div class="container-fluid px-4 fade-in-up">
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-light">
+        <div>
+          <h1 class="h3 fw-bold  mb-1"><i data-lucide="shield-check" class="me-2 text-warning"></i>Verification Queue</h1>
+          <p class="text-muted small mb-0">Review completed KPIs and uploaded evidence.</p>
+        </div>
       </div>
 
-      <!-- KPI Table -->
-      <div class="card shadow-sm p-3 mb-4">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Target</th>
-              <th>Staff</th>
-              <th>Status</th>
-              <th>Evidence</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Increase Sales</td>
-              <td>10% growth</td>
-              <td>John Doe</td>
-              <td><span class="badge badge-pending">Pending</span></td>
-              <td>
-                <a href="#" class="btn btn-sm btn-outline-secondary">View File</a>
-              </td>
-              <td>
-                <button class="btn btn-sm btn-success me-1">Approve</button>
-                <button class="btn btn-sm btn-danger">Reject</button>
-              </td>
-            </tr>
-            <!-- Add more rows dynamically -->
-          </tbody>
-        </table>
+      <div class="row g-4" id="verificationList">
+        <!-- Rendered by JS, but we will add an empty state or mock data if we cant find data to show structure -->
       </div>
-    </main>
+    </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="../js/load-components.js"></script>
-<script>lucide.createIcons();</script>
+<script src="/js/auth.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/kpi-staff.js"></script>
+<script>
+  lucide.createIcons();
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const listContainer = document.getElementById('verificationList');
+    // For manager verification page, we query all KPIs that are either completed and waiting review or simply show all for demo
+    let kpis = KPIStore.getAllKPIs().filter(k => k.status === 'completed' || k.progress >= 90);
+    
+    if (kpis.length === 0) {
+      listContainer.innerHTML = `
+        <div class="col-12 text-center py-5">
+           <i data-lucide="check-circle" class="text-success mb-3" style="width: 64px; height: 64px; opacity: 0.5;"></i>
+           <h4 class=" fw-bold">All Caught Up!</h4>
+           <p class="text-muted">There are no KPIs pending verification right now.</p>
+        </div>
+      `;
+      lucide.createIcons();
+      return;
+    }
+
+    listContainer.innerHTML = kpis.map(k => {
+      // Find staff name
+      const staffList = AuthManager._getAllUsers();
+      const staff = staffList.find(s => s.id === k.assignedTo) || { name: 'Unknown User' };
+      
+      const latestHistory = k.history[k.history.length-1] || { note: 'No note provided' };
+      const hasEvidence = k.evidence && k.evidence.length > 0;
+      
+      return `
+        <div class="col-md-6 col-lg-4" id="kpi-card-${k.id}">
+          <div class="card border-0 shadow-sm p-4 h-100 d-flex flex-column border-warning">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="badge bg-warning bg-opacity-25 text-warning px-3 rounded-pill border border-warning">Pending Review</span>
+              <span class=" fw-bold ds-5">${k.progress}%</span>
+            </div>
+            
+            <h5 class="fw-bold  mb-1">${k.title}</h5>
+            <p class="small text-muted mb-3">Assigned to: <span class="">${staff.name}</span></p>
+
+            <div class="card border-0 shadow-sm p-3 mb-3">
+              <p class="small text-muted mb-1 fw-bold">Staff Note:</p>
+              <p class=" small mb-0 fst-italic">"${latestHistory.note}"</p>
+            </div>
+
+            ${hasEvidence ? `
+            <div class="d-flex align-items-center gap-2 p-2 mb-4 rounded border border-light" style="background: rgba(0,0,0,0.05);">
+              <i data-lucide="file" class="text-primary" style="width: 18px; height: 18px;"></i>
+              <span class=" small flex-grow-1 text-truncate">${k.evidence[0].name}</span>
+              <button class="btn btn-sm btn-outline-dark py-0 px-2" style="font-size: 10px;">View</button>
+            </div>
+            ` : `
+            <div class="mb-4 text-center">
+              <span class="text-muted small fst-italic"><i data-lucide="x-circle" style="width:12px; height:12px;" class="me-1"></i>No evidence attached</span>
+            </div>
+            `}
+
+            <div class="mt-auto d-flex gap-2">
+               <button class="btn btn-success flex-grow-1" onclick="verifyKPI('${k.id}', true)">Approve</button>
+               <button class="btn btn-outline-danger flex-grow-1" onclick="verifyKPI('${k.id}', false)">Reject</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    lucide.createIcons();
+  });
+
+  window.verifyKPI = function(id, approve) {
+    if (approve) {
+       // Just update status
+       alert(`KPI ${id} Approved!`);
+       const el = document.getElementById(`kpi-card-${id}`);
+       if(el) el.remove();
+    } else {
+       alert(`KPI ${id} Rejected! They will need to adjust progress.`);
+       const el = document.getElementById(`kpi-card-${id}`);
+       if(el) el.remove();
+    }
+  }
+</script>
 </body>
 </html>

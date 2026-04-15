@@ -1,65 +1,56 @@
 <!-- Top Navigation Bar -->
-<nav class="top-navbar d-flex align-items-center justify-content-between px-4 py-2" id="top-navbar">
+<nav class="bg-white border-bottom shadow-sm d-flex align-items-center justify-content-between px-4 py-3" id="top-navbar">
 
-  <!-- Left: Navigation Links -->
-  <div class="d-flex align-items-center gap-1">
-    <a href="dashboard.html" class="top-nav-link" data-page="dashboard.html">
-      <i class="bi bi-speedometer2 me-1"></i>
-      <span>Dashboard</span>
-    </a>
-    <a href="staff-kpi.html" class="top-nav-link" data-page="staff-kpi.html">
-      <i class="bi bi-card-checklist me-1"></i>
-      <span>My KPIs</span>
-    </a>
-    <a href="kpi-progress.html" class="top-nav-link" data-page="kpi-progress.html">
-      <i class="bi bi-graph-up-arrow me-1"></i>
-      <span>Update Progress</span>
-    </a>
-    <a href="kpi-form.html" class="top-nav-link" data-page="kpi-form.html">
-      <i class="bi bi-file-earmark-plus me-1"></i>
-      <span>KPI Form</span>
-    </a>
-    <a href="kpi-verify.html" class="top-nav-link" data-page="kpi-verify.html">
-      <i class="bi bi-patch-check me-1"></i>
-      <span>Verify</span>
-    </a>
+  <!-- Left: Responsive trigger / breadcrumb placeholder -->
+  <div class="d-flex align-items-center gap-2">
+    <!-- Breadcrumb or page title could go here if needed -->
   </div>
 
-  <!-- Right: Search, Notifications, User -->
+  <!-- Right: Notifications, User -->
   <div class="d-flex align-items-center gap-3">
-    <!-- Search Bar -->
-    <div class="top-nav-search position-relative d-none d-lg-block">
-      <i class="bi bi-search top-nav-search-icon"></i>
-      <input type="text" class="form-control form-control-sm top-nav-search-input" placeholder="Search KPIs…"
-        id="top-nav-search">
-    </div>
-
     <!-- Notifications -->
-    <button class="top-nav-icon-btn position-relative" id="btn-notifications" title="Notifications">
-      <i class="bi bi-bell"></i>
-      <span class="top-nav-badge">3</span>
+    <button class="btn btn-light position-relative rounded-circle d-flex align-items-center justify-content-center" style="width:40px; height:40px;" id="btn-notifications" title="Notifications">
+      <i class="bi bi-bell text-secondary"></i>
+      <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+        <span class="visually-hidden">New alerts</span>
+      </span>
     </button>
 
     <!-- User Avatar -->
     <div class="dropdown">
-      <button class="top-nav-user-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-        id="top-nav-user">
-        <div class="top-nav-avatar" id="top-nav-avatar">??</div>
-        <span class="d-none d-lg-inline fw-medium" id="top-nav-user-name">User Name</span>
+      <button class="btn btn-light border d-flex align-items-center gap-2 px-2 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius:12px;">
+        <div class="top-nav-avatar rounded bg-primary text-white d-flex align-items-center justify-content-center" style="width:32px; height:32px; font-weight: bold;" id="top-nav-avatar">U</div>
+        <span class="d-none d-lg-inline fw-medium text-dark" id="top-nav-user-name">User Name</span>
       </button>
-      <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius:12px; min-width:200px;">
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" style="border-radius:12px; min-width:200px;">
         <li class="px-3 py-2 border-bottom">
-          <div class="fw-bold" id="user-dropdown-name">User Name</div>
+          <div class="fw-bold text-dark" id="user-dropdown-name">User Name</div>
           <div class="small text-muted" id="user-dropdown-dept">Department</div>
         </li>
-        <li><a class="dropdown-item py-2" href="profile.html"><i class="bi bi-person me-2"></i>Profile</a></li>
-        <li><a class="dropdown-item py-2" href="settings.html"><i class="bi bi-gear me-2"></i>Settings</a></li>
+        <li><a class="dropdown-item py-2" href="/pages/profile.html"><i class="bi bi-person me-2"></i>Profile</a></li>
         <li>
           <hr class="dropdown-divider">
         </li>
-        <li><a class="dropdown-item py-2 text-danger" href="login.html"><i
-              class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+        <li><a class="dropdown-item py-2 text-danger" href="/pages/auth/login.html" id="navLogoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
       </ul>
     </div>
   </div>
 </nav>
+
+<style>
+  .top-nav-link {
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    color: #495057;
+  }
+  .top-nav-link:hover {
+    background: #f8f9fa;
+  }
+  .top-nav-link.active {
+    background: #e9ecef;
+    font-weight: 600;
+  }
+</style>

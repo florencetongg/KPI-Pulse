@@ -52,7 +52,7 @@ const AuthManager = {
   /** Log out and clear session */
   logout() {
     sessionStorage.removeItem(this.SESSION_KEY);
-    window.location.href = 'login.html';
+    window.location.href = '/pages/login.html';
   },
 
   /** Get current logged in user */
@@ -67,12 +67,16 @@ const AuthManager = {
     const isLoginPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html');
 
     if (!user && !isLoginPage) {
-      window.location.href = 'login.html';
+      window.location.href = '/pages/login.html';
       return false;
     }
 
     if (user && isLoginPage) {
-      window.location.href = 'dashboard.html';
+      if (user.role === 'manager') {
+        window.location.href = '/pages/manager-kpi.html';
+      } else {
+        window.location.href = '/pages/dashboard.html';
+      }
       return true;
     }
 
