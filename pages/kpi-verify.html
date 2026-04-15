@@ -1,124 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verification | KPI Pulse</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <title>Verification | KPI Pro</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
+
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f8f9fb;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 30px;
+    }
+
+    h1 {
+      font-family: 'Sora', sans-serif;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .badge {
+      background: #fef3c7;
+      color: #d97706;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      display: inline-block;
+    }
+
+    .btn {
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .approve {
+      background: #16a34a;
+      color: white;
+    }
+
+    .reject {
+      background: white;
+      border: 1px solid #e2e8f0;
+    }
+
+    .empty {
+      text-align: center;
+      color: #64748b;
+      padding: 50px;
+    }
+  </style>
 </head>
-<body class="bg-light">
 
-<div class="d-none"></div>
-<div class="d-none"></div>
+<body>
 
-<div id="wrapper" class="d-flex">
-  <div id="sidebar-container" style="z-index: 1040;"></div>
+  <div id="navbar-container"></div>
 
-  <div id="page-content-wrapper" class="flex-grow-1" style="background: transparent;">
-    <div id="navbar-container" class="mb-4"></div>
+  <div class="container">
 
-    <div class="container-fluid px-4 fade-in-up">
-      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-light">
-        <div>
-          <h1 class="h3 fw-bold  mb-1"><i data-lucide="shield-check" class="me-2 text-warning"></i>Verification Queue</h1>
-          <p class="text-muted small mb-0">Review completed KPIs and uploaded evidence.</p>
-        </div>
-      </div>
+    <h1>Verification</h1>
+    <p style="color:#64748b;">Review KPI submissions</p>
 
-      <div class="row g-4" id="verificationList">
-        <!-- Rendered by JS, but we will add an empty state or mock data if we cant find data to show structure -->
+    <div id="verificationList" class="grid"></div>
+
+    <div id="emptyState" class="empty">
+      No KPI pending verification.
+    </div>
+
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/kpi-manager.js"></script>
+  <script src="/js/main.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      const list = document.getElementById('verificationList');
+      const empty = document.getElementById('emptyState');
+
+      const kpis = KPIStore.getAllKPIs().filter(k => k.progress >= 100);
+
+      if (!kpis.length) {
+        empty.style.display = "block";
+        return;
+      }
+
+      empty.style.display = "none";
+
+      list.innerHTML = kpis.map(k => `
+    <div class="card" id="card-${k.id}">
+      <span class="badge">Pending Review</span>
+
+      <h3>${k.title}</h3>
+      <p>${k.progress}% completed</p>
+
+      <div style="margin-top:auto; display:flex; gap:10px;">
+        <button class="btn approve" onclick="verify('${k.id}', true)">Approve</button>
+        <button class="btn reject" onclick="verify('${k.id}', false)">Reject</button>
       </div>
     </div>
-  </div>
-</div>
+  `).join('');
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/auth.js"></script>
-<script src="/js/main.js"></script>
-<script src="/js/kpi-staff.js"></script>
-<script>
-  lucide.createIcons();
+    });
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const listContainer = document.getElementById('verificationList');
-    // For manager verification page, we query all KPIs that are either completed and waiting review or simply show all for demo
-    let kpis = KPIStore.getAllKPIs().filter(k => k.status === 'completed' || k.progress >= 90);
-    
-    if (kpis.length === 0) {
-      listContainer.innerHTML = `
-        <div class="col-12 text-center py-5">
-           <i data-lucide="check-circle" class="text-success mb-3" style="width: 64px; height: 64px; opacity: 0.5;"></i>
-           <h4 class=" fw-bold">All Caught Up!</h4>
-           <p class="text-muted">There are no KPIs pending verification right now.</p>
-        </div>
-      `;
-      lucide.createIcons();
-      return;
+    function verify(id, approve) {
+      alert(approve ? "Approved" : "Rejected");
+      document.getElementById("card-" + id).remove();
     }
+  </script>
 
-    listContainer.innerHTML = kpis.map(k => {
-      // Find staff name
-      const staffList = AuthManager._getAllUsers();
-      const staff = staffList.find(s => s.id === k.assignedTo) || { name: 'Unknown User' };
-      
-      const latestHistory = k.history[k.history.length-1] || { note: 'No note provided' };
-      const hasEvidence = k.evidence && k.evidence.length > 0;
-      
-      return `
-        <div class="col-md-6 col-lg-4" id="kpi-card-${k.id}">
-          <div class="card border-0 shadow-sm p-4 h-100 d-flex flex-column border-warning">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <span class="badge bg-warning bg-opacity-25 text-warning px-3 rounded-pill border border-warning">Pending Review</span>
-              <span class=" fw-bold ds-5">${k.progress}%</span>
-            </div>
-            
-            <h5 class="fw-bold  mb-1">${k.title}</h5>
-            <p class="small text-muted mb-3">Assigned to: <span class="">${staff.name}</span></p>
-
-            <div class="card border-0 shadow-sm p-3 mb-3">
-              <p class="small text-muted mb-1 fw-bold">Staff Note:</p>
-              <p class=" small mb-0 fst-italic">"${latestHistory.note}"</p>
-            </div>
-
-            ${hasEvidence ? `
-            <div class="d-flex align-items-center gap-2 p-2 mb-4 rounded border border-light" style="background: rgba(0,0,0,0.05);">
-              <i data-lucide="file" class="text-primary" style="width: 18px; height: 18px;"></i>
-              <span class=" small flex-grow-1 text-truncate">${k.evidence[0].name}</span>
-              <button class="btn btn-sm btn-outline-dark py-0 px-2" style="font-size: 10px;">View</button>
-            </div>
-            ` : `
-            <div class="mb-4 text-center">
-              <span class="text-muted small fst-italic"><i data-lucide="x-circle" style="width:12px; height:12px;" class="me-1"></i>No evidence attached</span>
-            </div>
-            `}
-
-            <div class="mt-auto d-flex gap-2">
-               <button class="btn btn-success flex-grow-1" onclick="verifyKPI('${k.id}', true)">Approve</button>
-               <button class="btn btn-outline-danger flex-grow-1" onclick="verifyKPI('${k.id}', false)">Reject</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-    
-    lucide.createIcons();
-  });
-
-  window.verifyKPI = function(id, approve) {
-    if (approve) {
-       // Just update status
-       alert(`KPI ${id} Approved!`);
-       const el = document.getElementById(`kpi-card-${id}`);
-       if(el) el.remove();
-    } else {
-       alert(`KPI ${id} Rejected! They will need to adjust progress.`);
-       const el = document.getElementById(`kpi-card-${id}`);
-       if(el) el.remove();
-    }
-  }
-</script>
 </body>
+
 </html>

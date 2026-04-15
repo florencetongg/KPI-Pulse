@@ -4,210 +4,177 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Update Progress | KPI Pulse</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <title>Update Progress | KPI Pro</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
+
   <style>
-    /* Custom Range Slider */
-    .custom-range {
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f8f9fb;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-family: 'Sora', sans-serif;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .slider {
       width: 100%;
-      height: 8px;
-      appearance: none;
-      background: rgba(255, 255, 255, 0.1);
-      outline: none;
-      border-radius: 4px;
+      margin-top: 15px;
     }
 
-    .custom-range::-webkit-slider-thumb {
-      appearance: none;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: var(--primary-blue);
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(30, 94, 255, 0.5);
-    }
-
-    .upload-zone {
-      border: 2px dashed rgba(255, 255, 255, 0.2);
-      border-radius: 12px;
-      padding: 2rem;
+    .progress-value {
+      font-size: 40px;
+      font-weight: 800;
       text-align: center;
-      transition: all 0.3s;
-      background: rgba(255, 255, 255, 0.02);
+      color: #4f46e5;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .upload-box {
+      border: 2px dashed #e2e8f0;
+      padding: 30px;
+      text-align: center;
+      border-radius: 12px;
       cursor: pointer;
     }
 
-    .upload-zone:hover {
-      border-color: var(--primary-blue);
-      background: rgba(30, 94, 255, 0.05);
+    .btn {
+      background: #4f46e5;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      width: 100%;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      margin-top: 10px;
     }
   </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-  <div class="d-none"></div>
-  <div class="d-none"></div>
+  <div id="navbar-container"></div>
 
-  <div id="wrapper" class="d-flex">
-    <div id="sidebar-container" style="z-index: 1040;"></div>
+  <div class="container">
 
-    <div id="page-content-wrapper" class="flex-grow-1" style="background: transparent;">
-      <div id="navbar-container" class="mb-4"></div>
+    <h1>Update Progress</h1>
+    <p id="kpiTitleHeader" style="color:#64748b;">Loading KPI...</p>
 
-      <div class="container-fluid px-4 fade-in-up" style="max-width: 900px; margin: 0 auto;">
+    <!-- PROGRESS -->
+    <div class="card">
+      <div class="progress-value" id="progressValDisplay">0%</div>
+      <input type="range" id="progressSlider" class="slider" min="0" max="100" value="0">
 
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-light">
-          <div>
-            <h1 class="h3 fw-bold  mb-1"><i data-lucide="trending-up" class="me-2 text-primary"></i>Update
-              Progress</h1>
-            <p class="text-muted small mb-0" id="kpiTitleHeader">Loading KPI...</p>
-          </div>
-          <a href="/pages/staff-kpi.html" class="btn btn-outline-dark btn-sm ">Back to Dashboard</a>
-        </div>
+      <textarea id="progressNote" placeholder="Describe your progress..." required></textarea>
+    </div>
 
-        <div class="row g-4">
-          <!-- Progress Form -->
-          <div class="col-lg-7">
-            <div class="card border-0 shadow-sm p-4 p-md-5 h-100">
-              <h5 class=" fw-bold border-bottom border-light pb-2 mb-4">Metric Updates</h5>
-              <form id="progressForm">
+    <!-- UPLOAD -->
+    <div class="card">
+      <div class="upload-box" id="uploadZone">
+        Click to upload evidence
+        <input type="file" id="evidenceFile" hidden>
+      </div>
 
-                <div class="mb-5 text-center">
-                  <h1 class="display-3 fw-bold  glow-text mb-0" id="progressValDisplay">0%</h1>
-                  <p class="text-muted small">Current Completion</p>
-                  <div class="mt-4 px-3">
-                    <input type="range" class="custom-range" id="progressSlider" min="0" max="100" value="0">
-                  </div>
-                </div>
-
-                <div class="mb-4">
-                  <label class="form-label small fw-semibold text-muted">Progress Note / Description</label>
-                  <textarea class="form-control custom-input" id="progressNote" rows="3"
-                    placeholder="What was achieved? Explain your progress..." required></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-primary text-white w-100 py-2 fw-bold border-0"
-                  style="border-radius: 10px;">Save Progress Updates</button>
-              </form>
-            </div>
-          </div>
-
-          <!-- Evidence Upload -->
-          <div class="col-lg-5">
-            <div class="card border-0 shadow-sm p-4 p-md-5 h-100">
-              <h5 class=" fw-bold border-bottom border-light pb-2 mb-4">Attach Evidence</h5>
-
-              <div class="upload-zone mb-4" id="uploadZone">
-                <i data-lucide="upload-cloud" class="text-primary mb-3 mx-auto" style="width: 48px; height: 48px;"></i>
-                <h6 class=" fw-bold mb-1">Click to Upload</h6>
-                <p class="text-muted small mb-0">Drag and drop files here to attach proof of progress (PDF, Images).</p>
-                <input type="file" id="evidenceFile" class="d-none">
-              </div>
-
-              <div class="mb-3 d-none" id="filePreviewContainer">
-                <div class="d-flex align-items-center justify-content-between p-3 rounded card border-0 shadow-sm">
-                  <div class="d-flex align-items-center gap-2">
-                    <i data-lucide="file-text" class="text-info"></i>
-                    <div>
-                      <p class=" small fw-bold mb-0" id="fileName">document.pdf</p>
-                    </div>
-                  </div>
-                  <button type="button" class="btn btn-sm text-danger" id="btnRemoveFile"><i
-                      data-lucide="x"></i></button>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
+      <div id="filePreview" style="margin-top:10px; display:none;">
+        <span id="fileName"></span>
+        <button id="removeFile">Remove</button>
       </div>
     </div>
+
+    <button class="btn" id="submitBtn">Save Progress</button>
+    <a href="staff-kpi.html" class="btn btn-secondary">Back</a>
+
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/auth.js"></script>
-  <script src="/js/main.js"></script>
   <script src="/js/kpi-staff.js"></script>
-  <script>
-    lucide.createIcons();
+  <script src="/js/main.js"></script>
 
+  <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const kpiId = urlParams.get('id');
+
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
 
       const slider = document.getElementById('progressSlider');
-      const valDisplay = document.getElementById('progressValDisplay');
-      const titleHeader = document.getElementById('kpiTitleHeader');
+      const display = document.getElementById('progressValDisplay');
 
-      if (kpiId) {
-        const kpi = KPIStore.getKPIById(kpiId);
-        if (kpi) {
-          titleHeader.textContent = `Updating: ${kpi.title}`;
-          slider.value = kpi.progress;
-          valDisplay.textContent = `${kpi.progress}%`;
-        }
-      }
-
-      slider.addEventListener('input', (e) => {
-        valDisplay.textContent = `${e.target.value}%`;
-        const val = parseInt(e.target.value);
-        if (val === 100) valDisplay.style.color = 'var(--success-green)';
-        else valDisplay.style.color = '';
+      slider.addEventListener('input', () => {
+        display.textContent = slider.value + "%";
       });
 
       const uploadZone = document.getElementById('uploadZone');
       const fileInput = document.getElementById('evidenceFile');
-      const filePreviewContainer = document.getElementById('filePreviewContainer');
+      const filePreview = document.getElementById('filePreview');
       const fileName = document.getElementById('fileName');
-      const btnRemoveFile = document.getElementById('btnRemoveFile');
-      let selectedFile = null;
 
-      uploadZone.addEventListener('click', () => fileInput.click());
-      fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-          selectedFile = e.target.files[0];
-          fileName.textContent = selectedFile.name;
-          uploadZone.classList.add('d-none');
-          filePreviewContainer.classList.remove('d-none');
+      let file = null;
+
+      uploadZone.onclick = () => fileInput.click();
+
+      fileInput.onchange = () => {
+        file = fileInput.files[0];
+        if (file) {
+          fileName.textContent = file.name;
+          filePreview.style.display = "block";
+          uploadZone.style.display = "none";
         }
-      });
+      };
 
-      btnRemoveFile.addEventListener('click', () => {
-        selectedFile = null;
-        fileInput.value = '';
-        uploadZone.classList.remove('d-none');
-        filePreviewContainer.classList.add('d-none');
-      });
+      document.getElementById('removeFile').onclick = () => {
+        file = null;
+        fileInput.value = "";
+        filePreview.style.display = "none";
+        uploadZone.style.display = "block";
+      };
 
-      document.getElementById('progressForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (!kpiId) return alert('No KPI parameter provided in URL!');
+      document.getElementById('submitBtn').onclick = () => {
+        if (!id) return alert("Missing KPI ID");
 
-        const newProgress = parseInt(slider.value);
-        const note = document.getElementById('progressNote').value;
+        KPIStore.updateProgress(id, slider.value, progressNote.value);
 
-        KPIStore.updateProgress(kpiId, newProgress, note);
-
-        if (selectedFile) {
-          // Mock adding evidence
-          KPIStore.addEvidence(kpiId, {
-            name: selectedFile.name,
-            size: selectedFile.size,
-            type: selectedFile.type,
-            data: "mock-base64-data"
+        if (file) {
+          KPIStore.addEvidence(id, {
+            name: file.name
           });
         }
 
-        alert('Progress updated successfully!');
-        window.location.href = 'staff-kpi.html';
-      });
+        alert("Progress updated");
+        window.location.href = "staff-kpi.html";
+      };
+
     });
   </script>
+
 </body>
 
 </html>

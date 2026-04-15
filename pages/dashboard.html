@@ -4,177 +4,183 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Staff Dashboard | KPI Pulse</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <title>Dashboard | KPI Pro</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f8f9fb;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 30px 20px;
+    }
+
+    h1 {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .search {
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      width: 220px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #4f46e5;
+      width: 0%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+
+    th,
+    td {
+      padding: 14px;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #64748b;
+      text-align: left;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #64748b;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      background: #4f46e5;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 13px;
+    }
+  </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-  <div id="wrapper" class="d-flex">
-    <div id="sidebar-container" style="z-index: 1040;"></div>
+  <!-- NAVBAR -->
+  <div id="navbar-container"></div>
 
-    <div id="page-content-wrapper" class="flex-grow-1" style="background: transparent; min-height: 100vh;">
-      <div id="navbar-container" class="mb-4"></div>
+  <div class="container">
 
-      <div class="container-fluid px-4 fade-in-up">
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-          <div>
-            <h1 class="h3 fw-bold mb-1">Executive Dashboard</h1>
-            <p class="text-muted small mb-0">Overview of your performance and assigned goals.</p>
-          </div>
-          <div class="btn-toolbar mb-2 mb-md-0">
-            <button type="button" class="btn btn-sm btn-outline-primary me-2">Export</button>
-            <button type="button" class="btn btn-sm btn-primary">+ New KPI</button>
-          </div>
-        </div>
+    <!-- HEADER -->
+    <div class="top-bar">
+      <div>
+        <h1>Dashboard</h1>
+        <p style="color:#64748b;">Track your KPI progress</p>
+      </div>
 
-        <!-- Stat Cards -->
-        <div class="row g-4 mb-4">
-          <div class="col-md-4">
-            <div class="card stat-card border-0 shadow-sm h-100 p-3">
-              <div class="d-flex justify-content-between">
-                <div>
-                  <p class="text-muted mb-1 fw-medium">Total KPI</p>
-                  <h2 class="fw-bold mb-0">15</h2>
-                </div>
-                <div class="icon-box bg-primary-light text-primary">
-                  <i data-lucide="bar-chart-3"></i>
-                </div>
-              </div>
-              <div class="mt-3">
-                <span class="text-success small fw-bold">↑ 12%</span>
-                <span class="text-muted small ms-1">from last month</span>
-              </div>
-            </div>
-          </div>
+      <input type="text" id="searchInput" class="search" placeholder="Search KPI...">
+    </div>
 
-          <div class="col-md-4">
-            <div class="card stat-card border-0 shadow-sm h-100 p-3">
-              <div class="d-flex justify-content-between">
-                <div>
-                  <p class="text-muted mb-1 fw-medium">Completed</p>
-                  <h2 class="fw-bold mb-0 text-success">10</h2>
-                </div>
-                <div class="icon-box bg-success-light text-success">
-                  <i data-lucide="check-circle"></i>
-                </div>
-              </div>
-              <div class="mt-3">
-                <div class="progress" style="height: 6px;">
-                  <div class="progress-bar bg-success" style="width: 66%"></div>
-                </div>
-              </div>
-            </div>
-          </div>
+    <!-- STATS (EMPTY → JS WILL FILL) -->
+    <div class="card-grid">
+      <div class="card">
+        <p>Total KPI</p>
+        <h3 id="totalKPI">0</h3>
+      </div>
 
-          <div class="col-md-4">
-            <div class="card stat-card border-0 shadow-sm h-100 p-3">
-              <div class="d-flex justify-content-between">
-                <div>
-                  <p class="text-muted mb-1 fw-medium">Pending</p>
-                  <h2 class="fw-bold mb-0 text-warning">5</h2>
-                </div>
-                <div class="icon-box bg-warning-light text-warning">
-                  <i data-lucide="clock"></i>
-                </div>
-              </div>
-              <div class="mt-3 small text-muted">Next deadline: Tomorrow</div>
-            </div>
-          </div>
-        </div>
+      <div class="card">
+        <p>Completed</p>
+        <h3 id="completedKPI">0</h3>
+      </div>
 
-        <div class="row g-4">
-          <!-- Recent Activity / Overviews -->
-          <div class="col-lg-8">
-            <div class="card border-0 shadow-sm p-4 h-100">
-              <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold mb-0">My KPIs Overview</h5>
-                <a href="staff-kpi.html" class="btn btn-sm btn-outline-primary">View All</a>
-              </div>
-              <div class="table-responsive">
-                <table class="table table-hover align-middle border-bottom">
-                  <thead class="table-light">
-                    <tr>
-                      <th scope="col" class="text-muted fw-medium border-0 rounded-start">KPI Name</th>
-                      <th scope="col" class="text-muted fw-medium border-0">Target</th>
-                      <th scope="col" class="text-muted fw-medium border-0">Progress</th>
-                      <th scope="col" class="text-end text-muted fw-medium border-0 rounded-end">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td class="py-3">
-                        <div class="d-flex flex-column">
-                          <span class="fw-bold text-dark">Q3 Sales Revenue</span>
-                          <span class="small text-muted">Financial Goal</span>
-                        </div>
-                      </td>
-                      <td class="py-3 fw-medium">$500,000</td>
-                      <td class="py-3">
-                        <div class="d-flex align-items-center gap-2">
-                          <div class="progress flex-grow-1" style="height: 8px;">
-                            <div class="progress-bar bg-primary rounded-pill" style="width: 45%"></div>
-                          </div>
-                          <span class="small fw-bold text-dark">45%</span>
-                        </div>
-                      </td>
-                      <td class="text-end py-3">
-                        <a href="kpi-progress.html?id=1" class="btn btn-sm btn-light fw-medium">
-                          <i data-lucide="arrow-up-circle" style="width: 16px; height: 16px;"
-                            class="text-primary me-1"></i>Update
-                        </a>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+      <div class="card">
+        <p>Pending</p>
+        <h3 id="pendingKPI">0</h3>
+      </div>
 
-          <!-- Quick Actions / Submit Evidence -->
-          <div class="col-lg-4">
-            <div class="card border-0 shadow-sm p-4 h-100">
-              <h5 class="fw-bold mb-4">Submit Evidence</h5>
-              <form>
-                <div class="mb-3">
-                  <label class="form-label text-muted small fw-bold">Select KPI</label>
-                  <select class="form-select border-light-subtle shadow-none">
-                    <option selected disabled>Choose a KPI to update...</option>
-                    <option value="1">Q3 Sales Revenue</option>
-                  </select>
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label text-muted small fw-bold">Evidence Document</label>
-                  <div class="border border-2 border-dashed border-light-subtle rounded-3 p-4 text-center bg-light"
-                    style="cursor: pointer;">
-                    <i data-lucide="upload-cloud" class="text-primary mb-2" style="width: 32px; height: 32px;"></i>
-                    <p class="small text-muted mb-0">Click to upload evidence</p>
-                  </div>
-                </div>
-
-                <button type="button"
-                  class="btn btn-primary w-100 fw-medium d-flex align-items-center justify-content-center">
-                  <i data-lucide="check-circle" style="width: 18px; height: 18px;" class="me-2"></i> Submit Record
-                </button>
-              </form>
-            </div>
-          </div>
+      <div class="card">
+        <p>Progress</p>
+        <h3 id="progressText">0%</h3>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressBar"></div>
         </div>
       </div>
     </div>
+
+    <!-- KPI TABLE -->
+    <table>
+      <thead>
+        <tr>
+          <th>KPI Name</th>
+          <th>Target</th>
+          <th>Status</th>
+          <th>Progress</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody id="kpiTableBody">
+        <!-- JS WILL RENDER -->
+      </tbody>
+    </table>
+
+    <!-- EMPTY STATE -->
+    <div id="emptyState" class="empty-state">
+      No KPI assigned yet.
+    </div>
+
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/auth.js"></script>
+  <script src="/js/kpi-staff.js"></script>
   <script src="/js/main.js"></script>
-  <script>
-    lucide.createIcons();
-  </script>
+
 </body>
 
 </html>
