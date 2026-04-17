@@ -3,106 +3,249 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KPI Management</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <title>Add / Edit KPI | KPI Pro</title>
+  <meta name="description" content="Create or edit a KPI and assign it to a team member.">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
-<body>
+<body class="app-body">
 
-<div id="wrapper">
-  <div class="row g-0">
-    <!-- Sidebar -->
-    <!-- Use same sidebar HTML as dashboard -->
-    <nav class="col-md-2 d-none d-md-block bg-light min-vh-100">
-    <div id="sidebar-container"></div>
-    <div id="navbar-container"></div>
+<div class="app-shell">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <a href="/index.html" class="sidebar-logo">KPI<span>Pro</span></a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar" id="sidebarAvatar">M</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebarName">Manager</div>
+        <span class="sidebar-role-badge manager">Manager</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="sidebar-section-label">Main</span>
+      <ul>
+        <li>
+          <a href="manager-kpi.html" class="sidebar-nav-link">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="kpi-form.html" class="sidebar-nav-link active">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Add KPI
+          </a>
+        </li>
+        <li>
+          <a href="kpi-verify.html" class="sidebar-nav-link">
+            <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Verify KPIs
+          </a>
+        </li>
+      </ul>
+      <span class="sidebar-section-label">Analytics</span>
+      <ul>
+        <li>
+          <a href="manager-kpi.html#staff-performance" class="sidebar-nav-link">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Staff Performance
+          </a>
+        </li>
+      </ul>
+      <span class="sidebar-section-label">Account</span>
+      <ul>
+        <li>
+          <a href="profile.html" class="sidebar-nav-link">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Profile
+          </a>
+        </li>
+      </ul>
     </nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout-btn" onclick="logout()">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN WRAPPER ═══ -->
+  <div class="app-main-wrapper">
+
+    <!-- Topbar -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <a href="manager-kpi.html" style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:0.85rem;text-decoration:none;" title="Back to Dashboard">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Back
+        </a>
+        <h1 class="topbar-title" id="formPageTitle">Add New KPI</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-icon-btn" id="darkModeToggle" title="Toggle dark mode">
+          <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <a href="profile.html" class="topbar-user">
+          <div class="topbar-avatar" id="topbarAvatar">M</div>
+          <div>
+            <div class="topbar-user-name" id="topbarName">Manager</div>
+            <div class="topbar-user-role">Manager</div>
+          </div>
+        </a>
+      </div>
+    </header>
 
     <!-- Main Content -->
-    <main class="col-md-10 px-4 bg-light min-vh-100">
-      <div id="breadcrumb-container" class="mb-3"></div>
-      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-4 pb-2 mb-4 border-bottom">
-        <h1 class="h3 fw-bold">KPI Management</h1>
-        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#kpiModal">
-          + Add KPI
-        </button>
-      </div>
+    <main class="app-main">
+      <div class="fade-in-up" style="max-width:860px;margin:0 auto;">
 
-      <!-- KPI Table -->
-      <div class="card shadow-sm p-3 mb-4">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Target</th>
-              <th>Staff</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Increase Sales</td>
-              <td>10% growth</td>
-              <td>John Doe</td>
-              <td><span class="badge badge-active">Active</span></td>
-              <td>
-                <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#kpiModal">Edit</button>
-                <button class="btn btn-sm btn-outline-danger">Delete</button>
-              </td>
-            </tr>
-            <!-- Add more rows dynamically -->
-          </tbody>
-        </table>
-      </div>
+        <!-- Alerts -->
+        <div class="alert alert-success" id="successAlert" style="display:none;">
+          <div class="alert-icon">✓</div>
+          <div class="alert-content"><span id="successMsg">KPI saved successfully!</span></div>
+        </div>
+        <div class="alert alert-error" id="errorAlert" style="display:none;">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content"><span id="errorMsg">Please fix the errors below.</span></div>
+        </div>
 
-      <!-- KPI Modal Form -->
-      <div class="modal fade" id="kpiModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content rounded-4">
-            <div class="modal-header">
-              <h5 class="modal-title">Add / Edit KPI</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <form id="kpiForm" novalidate>
+          <input type="hidden" id="kpiId">
+
+          <!-- Section: Basic Info -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <h2 class="section-card-title">KPI Details</h2>
+              <span class="badge badge-info" id="kpiStatusBadge" style="display:none;">Editing</span>
             </div>
-            <div class="modal-body">
-              <form>
-                <div class="mb-3">
-                  <label for="kpiName" class="form-label">KPI Name</label>
-                  <input type="text" class="form-control custom-input" id="kpiName" placeholder="Enter KPI Name">
+            <div class="section-card-body">
+              <div class="grid grid-cols-2" style="gap:20px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label required" for="kpiName">KPI Name</label>
+                  <input type="text" id="kpiName" class="form-input" placeholder="e.g. Increase Monthly Sales" required>
+                  <div class="form-hint error" id="kpiNameError"></div>
                 </div>
-                <div class="mb-3">
-                  <label for="kpiTarget" class="form-label">Target</label>
-                  <input type="text" class="form-control custom-input" id="kpiTarget" placeholder="Enter Target">
-                </div>
-                <div class="mb-3">
-                  <label for="kpiStaff" class="form-label">Staff</label>
-                  <input type="text" class="form-control custom-input" id="kpiStaff" placeholder="Assign Staff">
-                </div>
-                <div class="mb-3">
-                  <label for="kpiStatus" class="form-label">Status</label>
-                  <select class="form-select custom-input" id="kpiStatus">
-                    <option value="active">Active</option>
-                    <option value="completed">Completed</option>
-                    <option value="pending">Pending</option>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label required" for="kpiCategory">Category</label>
+                  <select id="kpiCategory" class="form-select" required>
+                    <option value="">Select category</option>
+                    <option value="Financial">Financial</option>
+                    <option value="Customer">Customer</option>
+                    <option value="Operations">Operations</option>
+                    <option value="HR">Human Resources</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Sales">Sales</option>
+                    <option value="Quality">Quality</option>
+                    <option value="Other">Other</option>
                   </select>
+                  <div class="form-hint error" id="kpiCategoryError"></div>
                 </div>
-                <button type="submit" class="btn btn-primary-custom w-100">Save KPI</button>
-              </form>
+              </div>
+
+              <div class="form-group" style="margin-top:20px;">
+                <label class="form-label" for="kpiDescription">Description / Objective</label>
+                <textarea id="kpiDescription" class="form-textarea" placeholder="Describe what this KPI measures and why it matters…" style="min-height:90px;"></textarea>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
+          <!-- Section: Target & Timeline -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <h2 class="section-card-title">Target & Timeline</h2>
+            </div>
+            <div class="section-card-body">
+              <div class="grid grid-cols-2" style="gap:20px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label required" for="kpiTarget">Target Value</label>
+                  <input type="text" id="kpiTarget" class="form-input" placeholder="e.g. 500,000 or 95%" required>
+                  <div class="form-hint error" id="kpiTargetError"></div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label required" for="kpiUnit">Unit / Measure</label>
+                  <input type="text" id="kpiUnit" class="form-input" placeholder="e.g. RM, %, Units, Calls" required>
+                  <div class="form-hint error" id="kpiUnitError"></div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label required" for="kpiDueDate">Due Date</label>
+                  <input type="date" id="kpiDueDate" class="form-input" required>
+                  <div class="form-hint error" id="kpiDueDateError"></div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label required" for="kpiPriority">Priority</label>
+                  <select id="kpiPriority" class="form-select" required>
+                    <option value="">Select priority</option>
+                    <option value="low">🟢 Low</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="high">🔴 High</option>
+                  </select>
+                  <div class="form-hint error" id="kpiPriorityError"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Staff Assignment -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <h2 class="section-card-title">Staff Assignment</h2>
+            </div>
+            <div class="section-card-body">
+              <div class="grid grid-cols-2" style="gap:20px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label required" for="kpiAssignedTo">Assign To</label>
+                  <select id="kpiAssignedTo" class="form-select" required>
+                    <option value="">Select staff member</option>
+                    <!-- Populated by JS from registered users -->
+                  </select>
+                  <div class="form-hint error" id="kpiAssignedToError"></div>
+                  <div class="form-hint">Only staff accounts will appear here.</div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label class="form-label required" for="kpiStatus">Status</label>
+                  <select id="kpiStatus" class="form-select" required>
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="approved">Approved</option>
+                  </select>
+                  <div class="form-hint error" id="kpiStatusError"></div>
+                </div>
+              </div>
+            </div>
+            <div class="section-card-footer" style="display:flex;gap:12px;justify-content:flex-end;">
+              <a href="manager-kpi.html" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary" id="submitKpiBtn">
+                <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><line x1="19" y1="21" x2="5" y2="21"/><polyline points="17 11 12 6 7 11"/><line x1="12" y1="6" x2="12" y2="21"/></svg>
+                Save KPI
+              </button>
+            </div>
+          </div>
+
+        </form>
+      </div>
     </main>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="../js/load-components.js"></script>
-<script>lucide.createIcons();</script>
+<script src="../js/auth.js"></script>
+<script src="../js/kpi-manager.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!requireAuth('manager')) return;
+    const user = getCurrentUser();
+    populateNavUser(user);
+    initDarkMode();
+    initKpiForm();
+
+    document.getElementById('kpiForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      saveKpiForm();
+    });
+  });
+</script>
 </body>
 </html>

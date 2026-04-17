@@ -1,130 +1,464 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KPI Pro | Performance Management System</title>
-
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
-  <!-- Lucide -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="../css/style.css">
-
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500&display=swap"
+    rel="stylesheet">
   <style>
-    .hero-section {
-      padding: 100px 0;
-      background: white;
-      border-bottom: 1px solid var(--border-color);
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    .feature-icon {
-      width: 60px;
-      height: 60px;
-      margin-bottom: 20px;
+
+    :root {
+      --navy: #0f172a;
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --border: #e2e8f0;
+      --muted: #64748b;
+      --radius: 14px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f8f9fb;
+      color: #1a1e2e;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--navy);
+      letter-spacing: -0.5px;
+      text-decoration: none;
+    }
+
+    .logo span {
+      color: var(--primary);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color .2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--navy);
+    }
+
+    .nav-cta {
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all .18s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: #f1f5f9;
+      color: var(--navy);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, .25);
+    }
+
+    .btn-primary:hover {
+      background: #4338ca;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, .35);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--navy);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: #a5b4fc;
+      background: #f5f3ff;
+    }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .4px;
+    }
+
+    .badge-indigo {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 90px 2rem 80px;
+      text-align: center;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero h1 {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      color: var(--navy);
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin: 16px auto 20px;
+      max-width: 700px;
+    }
+
+    .hero h1 em {
+      color: var(--primary);
+      font-style: normal;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 520px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ── MOCKUP ── */
+    .mockup-wrap {
+      margin: 52px auto 0;
+      max-width: 860px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, .12);
+      border: 1px solid var(--border);
+    }
+
+    .mockup-bar {
+      background: var(--navy);
+      padding: 10px 14px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .mockup-img {
+      display: block;
+      width: 100%;
+      opacity: .82;
+    }
+
+    /* ── STATS ── */
+    .stats {
+      padding: 60px 2rem;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 24px;
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Sora', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--primary);
+      display: block;
+    }
+
+    .stat-lbl {
+      font-size: .82rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 80px 2rem;
+      background: #f8f9fb;
+    }
+
+    .features h2 {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.8rem;
+      text-align: center;
+      color: var(--navy);
+      margin-bottom: 48px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 28px 24px;
+      transition: box-shadow .2s, transform .2s;
+    }
+
+    .card:hover {
+      box-shadow: 0 8px 30px rgba(15, 23, 42, .08);
+      transform: translateY(-3px);
+    }
+
+    .icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .icon-box svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2;
+    }
+
+    .card h5 {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      font-size: .875rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 28px 2rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      background: #fff;
+    }
+
+    footer p {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        padding: 60px 1.25rem 60px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- Navbar will load here -->
-  <div id="navbar-container"></div>
+  <!-- NAVBAR -->
+  <nav>
+    <a href="/" class="logo">KPI<span>Pro</span></a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#">Pricing</a></li>
+      <li><a href="#">About</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="/pages/login.html" class="btn btn-ghost">Log in</a>
+      <a href="/pages/register.html" class="btn btn-primary">Start free trial</a>
+    </div>
+  </nav>
 
-  <!-- HERO SECTION -->
-  <header class="hero-section text-center">
-    <div class="container">
-      <span class="badge badge-active mb-3">Enterprise Performance Tracking</span>
-      <h1 class="display-4 fw-800 mb-4" style="color: var(--dark-navy);">
-        Track Goals. <span class="text-primary">Drive Results.</span>
-      </h1>
-      <p class="lead text-muted mb-5 mx-auto" style="max-width: 600px;">
-        The all-in-one KPI management system designed for high-performing teams.
-        Align your staff, track progress in real-time, and hit your targets.
-      </p>
+  <!-- HERO -->
+  <header class="hero">
+    <span class="badge badge-indigo">
+      <svg width="8" height="8" viewBox="0 0 8 8">
+        <circle cx="4" cy="4" r="4" fill="#4f46e5" />
+      </svg>
+      Enterprise performance tracking
+    </span>
+    <h1>Track Goals.<br><em>Drive Results.</em></h1>
+    <p>
+      The all-in-one KPI management system for high-performing teams.
+      Align staff, track progress in real-time, and hit every target.
+    </p>
+    <div class="hero-btns">
+      <a href="/pages/register.html" class="btn btn-primary" style="padding:12px 28px;font-size:15px">Start free
+        trial</a>
+      <a href="#features" class="btn btn-outline" style="padding:12px 28px;font-size:15px">Learn more</a>
+    </div>
 
-      <div class="d-flex justify-content-center gap-3">
-        <a href="register.html" class="btn btn-primary-custom btn-lg px-5 shadow">Start Free Trial</a>
-        <a href="#features" class="btn btn-outline-dark btn-lg px-5">Learn More</a>
+    <div class="mockup-wrap">
+      <div class="mockup-bar">
+        <div class="dot" style="background:#ff5f56"></div>
+        <div class="dot" style="background:#ffbd2e"></div>
+        <div class="dot" style="background:#27c93f"></div>
       </div>
-
-      <div class="mt-5 pt-4">
-        <div class="card border-0 shadow-lg mx-auto overflow-hidden"
-             style="max-width: 900px; border-radius: 20px;">
-          <div class="bg-dark p-2 d-flex gap-1 ps-3">
-            <div style="width:8px;height:8px;border-radius:50%;background:#ff5f56;"></div>
-            <div style="width:8px;height:8px;border-radius:50%;background:#ffbd2e;"></div>
-            <div style="width:8px;height:8px;border-radius:50%;background:#27c93f;"></div>
-          </div>
-          <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200"
-               alt="Dashboard Preview"
-               class="img-fluid opacity-75">
-        </div>
-      </div>
+      <img class="mockup-img"
+        src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1200"
+        alt="Dashboard preview">
     </div>
   </header>
 
-  <!-- FEATURES -->
-  <section id="features" class="py-5 bg-light">
-    <div class="container py-5">
-      <div class="row g-4 text-center">
-
-        <div class="col-md-4">
-          <div class="card border-0 p-4 h-100 shadow-sm">
-            <div class="icon-box bg-primary-light text-primary mx-auto feature-icon">
-              <i data-lucide="target"></i>
-            </div>
-            <h5 class="fw-bold">Goal Alignment</h5>
-            <p class="text-muted small">
-              Connect individual KPIs to organizational objectives seamlessly.
-            </p>
-          </div>
-        </div>
-
-        <div class="col-md-4">
-          <div class="card border-0 p-4 h-100 shadow-sm">
-            <div class="icon-box bg-success-light text-success mx-auto feature-icon">
-              <i data-lucide="trending-up"></i>
-            </div>
-            <h5 class="fw-bold">Real-time Analytics</h5>
-            <p class="text-muted small">
-              Visualize progress with dynamic charts and automated reporting.
-            </p>
-          </div>
-        </div>
-
-        <div class="col-md-4">
-          <div class="card border-0 p-4 h-100 shadow-sm">
-            <div class="icon-box bg-warning-light text-warning mx-auto feature-icon">
-              <i data-lucide="shield-check"></i>
-            </div>
-            <h5 class="fw-bold">Verification Engine</h5>
-            <p class="text-muted small">
-              Ensure data integrity with manager approval workflows.
-            </p>
-          </div>
-        </div>
-
+  <!-- STATS -->
+  <section class="stats">
+    <div class="stats-grid">
+      <div>
+        <span class="stat-num">12k+</span>
+        <div class="stat-lbl">Teams onboarded</div>
+      </div>
+      <div>
+        <span class="stat-num">98%</span>
+        <div class="stat-lbl">Goal completion rate</div>
+      </div>
+      <div>
+        <span class="stat-num">4.9★</span>
+        <div class="stat-lbl">Average rating</div>
+      </div>
+      <div>
+        <span class="stat-num">60+</span>
+        <div class="stat-lbl">Countries</div>
       </div>
     </div>
   </section>
 
-  <!-- FOOTER -->
-  <footer class="py-4 border-top">
-    <div class="container text-center">
-      <p class="text-muted small mb-0">
-        &copy; 2026 KPI Pro Performance Systems. All rights reserved.
-      </p>
+  <!-- FEATURES -->
+  <section id="features" class="features">
+    <h2>Everything your team needs</h2>
+    <div class="cards">
+
+      <div class="card">
+        <div class="icon-box" style="background:var(--primary-light)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#4f46e5">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="6" />
+            <circle cx="12" cy="12" r="2" />
+          </svg>
+        </div>
+        <h5>Goal alignment</h5>
+        <p>Connect individual KPIs to organizational objectives seamlessly across all departments.</p>
+      </div>
+
+      <div class="card">
+        <div class="icon-box" style="background:var(--success-light)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#16a34a">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+            <polyline points="17 6 23 6 23 12" />
+          </svg>
+        </div>
+        <h5>Real-time analytics</h5>
+        <p>Visualize progress with dynamic charts and fully automated reporting pipelines.</p>
+      </div>
+
+      <div class="card">
+        <div class="icon-box" style="background:var(--warning-light)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#d97706">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <h5>Verification engine</h5>
+        <p>Ensure data integrity with built-in manager approval workflows and audit trails.</p>
+      </div>
+
     </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 KPI Pro Performance Systems. All rights reserved.</p>
   </footer>
 
-  <!-- Load Components Script -->
-  <script src="loadComponents.js"></script>
-
 </body>
+
 </html>

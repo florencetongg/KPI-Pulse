@@ -1,77 +1,473 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | KPI System</title>
-  
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  
+  <title>Login | KPI Pro</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .login-page {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .login-page nav {
+      position: relative;
+      z-index: 10;
+    }
+
+    .login-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      flex: 1;
+      min-height: calc(100vh - 64px);
+    }
+
+    .login-left {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+      padding: 60px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-left::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      left: -80px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(79, 70, 229, 0.35) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .login-left::after {
+      content: '';
+      position: absolute;
+      bottom: -100px;
+      right: -60px;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(79, 70, 229, 0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .login-left-content {
+      position: relative;
+      z-index: 2;
+      max-width: 380px;
+    }
+
+    .login-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.6rem, 2.5vw, 2.4rem);
+      color: white;
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+      margin-bottom: 20px;
+    }
+
+    .login-title em {
+      color: var(--primary-mid);
+      font-style: normal;
+    }
+
+    .login-subtitle {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    .login-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .login-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .feature-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius);
+      background: rgba(79, 70, 229, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--primary-mid);
+      font-size: 1.2rem;
+    }
+
+    .feature-text strong {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 2px;
+    }
+
+    .feature-text span {
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    .login-divider {
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      margin: 40px 0 28px;
+    }
+
+    .login-trust {
+      font-size: 0.78rem;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .login-right {
+      background: var(--bg);
+      padding: 60px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-form {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .login-header {
+      margin-bottom: 32px;
+    }
+
+    .login-header h2 {
+      margin-bottom: 6px;
+    }
+
+    .login-form p {
+      margin-bottom: 32px;
+    }
+
+    .login-form-group {
+      margin-bottom: 24px;
+    }
+
+    .login-form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 12px;
+    }
+
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 14px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 1rem;
+      padding: 0;
+    }
+
+    .toggle-password:hover {
+      color: var(--navy);
+    }
+
+    .forgot-password-link {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: right;
+    }
+
+    .forgot-password-link a {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .remember-me input {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .form-error {
+      color: var(--danger);
+      font-size: 0.8rem;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .form-error.show {
+      display: block;
+    }
+
+    .error-alert {
+      background: var(--danger-light);
+      border: 1px solid #fecaca;
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-size: 0.875rem;
+      color: #991b1b;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .error-alert.show {
+      display: flex;
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .login-footer p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .login-footer a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    @media (max-width: 1024px) {
+      .login-left {
+        display: none;
+      }
+
+      .login-container {
+        grid-template-columns: 1fr;
+      }
+
+      .login-right {
+        min-height: calc(100vh - 64px);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .login-right {
+        padding: 40px 20px;
+      }
+
+      .login-form {
+        max-width: 100%;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gradient-primary">
 
-<div class="container d-flex justify-content-center align-items-center vh-100">
-  <div class="card login-card border-0 shadow-lg p-4">
-    <div class="text-center mb-4">
-      <div class="brand-logo mb-2 mx-auto">K</div>
-      <h3 class="fw-bold text-dark">Welcome Back</h3>
-      <p class="text-muted small">Please enter your details to sign in</p>
-    </div>
-
-    <form>
-      <div class="mb-3">
-        <label class="form-label small fw-semibold text-secondary">Email Address</label>
-        <input type="email" class="form-control custom-input" placeholder="name@company.com" required>
+<body>
+  <div class="login-page">
+    <!-- Navbar -->
+    <nav>
+      <div class="navbar-wrapper">
+        <a href="/index.html" class="logo">
+          KPI <span>Pro</span>
+        </a>
+        <a href="/index.html" class="btn btn-secondary btn-sm" style="margin-left: auto;">← Back</a>
       </div>
-      
-      <div class="mb-3">
-        <div class="d-flex justify-content-between">
-          <label class="form-label small fw-semibold text-secondary">Password</label>
-          <a href="reset-password.html" class="small text-decoration-none">Forgot?</a>
+    </nav>
+
+    <!-- Login Container -->
+    <div class="login-container">
+      <!-- Left Panel -->
+      <div class="login-left">
+        <div class="login-left-content">
+          <h1 class="login-title">Welcome <em>Back</em></h1>
+          <p class="login-subtitle">Sign in to continue to your KPI management dashboard and track your performance.</p>
+
+          <ul class="login-features">
+            <li class="login-feature">
+              <div class="feature-icon">✓</div>
+              <div class="feature-text">
+                <strong>Real-time Updates</strong>
+                <span>Get instant notifications on KPI changes</span>
+              </div>
+            </li>
+            <li class="login-feature">
+              <div class="feature-icon">📊</div>
+              <div class="feature-text">
+                <strong>Performance Analytics</strong>
+                <span>Track your progress with detailed insights</span>
+              </div>
+            </li>
+            <li class="login-feature">
+              <div class="feature-icon">🔒</div>
+              <div class="feature-text">
+                <strong>Secure & Encrypted</strong>
+                <span>Your data is protected with enterprise security</span>
+              </div>
+            </li>
+          </ul>
+
+          <hr class="login-divider">
+          <p class="login-trust">✓ Trusted by 500+ Organizations</p>
         </div>
-        
-        <div class="input-group">
-          <input type="password" class="form-control custom-input" id="loginPassword" placeholder="••••••••" required>
-          <span class="input-group-text bg-white border-start-0" id="togglePassword" style="cursor:pointer;">
-            <i class="bi bi-eye-slash-fill text-muted"></i>
-          </span>
-        </div>
       </div>
 
-      <div class="mb-4 form-check">
-        <input type="checkbox" class="form-check-input" id="rememberMe">
-        <label class="form-check-label small text-muted" for="rememberMe">Keep me logged in</label>
+      <!-- Right Panel - Form -->
+      <div class="login-right">
+        <form class="login-form" id="loginForm">
+          <div class="login-header">
+            <h2>Welcome Back</h2>
+            <p>Please enter your credentials to sign in</p>
+          </div>
+
+          <!-- Error Alert -->
+          <div class="error-alert" id="errorAlert">
+            <span>⚠️</span>
+            <span id="errorMessage"></span>
+          </div>
+
+          <!-- Email Field -->
+          <div class="login-form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" class="form-input" placeholder="name@company.com" required>
+            <div class="form-error" id="emailError"></div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="login-form-group">
+            <label for="password">Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="password" class="form-input" placeholder="••••••••" required
+                style="width: 100%;">
+              <button type="button" class="toggle-password" id="togglePassword">👁️</button>
+            </div>
+            <div class="forgot-password-link">
+              <a href="/reset-password.html">Forgot password?</a>
+            </div>
+            <div class="form-error" id="passwordError"></div>
+          </div>
+
+          <!-- Remember Me -->
+          <div class="remember-me">
+            <input type="checkbox" id="rememberMe">
+            <label for="rememberMe" style="margin: 0; cursor: pointer;">Keep me logged in</label>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-bottom: 16px;">Sign In</button>
+
+          <!-- Sign Up Link -->
+          <div class="login-footer">
+            <p>Don't have an account? <a href="/pages/register.html">Sign Up</a></p>
+          </div>
+        </form>
+
       </div>
-
-      <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">Sign In</button>
-    </form>
-
-    <div class="text-center mt-4">
-      <p class="small text-muted">Don't have an account? <a href="register.html" class="text-decoration-none">Sign Up</a></p>
     </div>
   </div>
-</div>
 
-<script>
-  // Toggle Password Visibility Logic (Your original function)
-  const togglePassword = document.querySelector('#togglePassword');
-  const passwordInput = document.querySelector('#loginPassword');
+  <script src="../js/auth.js"></script>
+  <script>
+    // Password toggle
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
 
-  togglePassword.addEventListener('click', function () {
-    // Toggle the type attribute
-    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-    passwordInput.setAttribute('type', type);
-    
-    // Toggle the icon
-    const icon = this.querySelector('i');
-    icon.classList.toggle('bi-eye-fill');
-    icon.classList.toggle('bi-eye-slash-fill');
-  });
-</script>
+    if (togglePassword && passwordInput) {
+      togglePassword.addEventListener('click', (e) => {
+        e.preventDefault();
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        togglePassword.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+      });
+    }
 
+    // Form validation and submission
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const errorAlert = document.getElementById('errorAlert');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Reset errors
+        document.getElementById('emailError').textContent = '';
+        document.getElementById('passwordError').textContent = '';
+        errorAlert.classList.remove('show');
+
+        let isValid = true;
+
+        // Email validation
+        if (!email) {
+          document.getElementById('emailError').textContent = 'Email is required';
+          isValid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          document.getElementById('emailError').textContent = 'Please enter a valid email';
+          isValid = false;
+        }
+
+        // Password validation
+        if (!password) {
+          document.getElementById('passwordError').textContent = 'Password is required';
+          isValid = false;
+        } else if (password.length < 6) {
+          document.getElementById('passwordError').textContent = 'Password must be at least 6 characters';
+          isValid = false;
+        }
+
+        if (!isValid) return;
+
+        // Use auth.js for login
+        try {
+          const result = await login(email, password, document.getElementById('rememberMe').checked);
+          // Redirect using safe logic in auth.js
+          redirectToModuleHome();
+        } catch (error) {
+          errorMessage.textContent = error.message || 'Login failed. Please try again.';
+          errorAlert.classList.add('show');
+        }
+      });
+    }
+  </script>
 </body>
-</html>
+
+</html>

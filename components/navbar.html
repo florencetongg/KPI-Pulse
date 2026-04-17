@@ -1,3 +1,66 @@
-<nav class="navbar navbar-light bg-light px-4">
-  <span class="navbar-brand"></span>
+<nav>
+  <div class="navbar-wrapper">
+    <a href="/index.html" class="logo">
+      KPI <span>Pro</span>
+    </a>
+
+    <ul class="nav-menu" id="navMenu">
+      <li><a href="/pages/dashboard.html" class="nav-link">Dashboard</a></li>
+      <li><a href="/pages/staff-kpi.html" class="nav-link">KPIs</a></li>
+      <li><a href="/pages/manager-kpi.html" class="nav-link">Management</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="nav-icon" title="Dark Mode" id="themeToggle">🌙</button>
+
+      <div class="user-profile" id="userProfile" title="User Menu">
+        <div class="user-avatar" id="userAvatar">U</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">User</div>
+          <div class="user-role" id="userRole">Staff</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </nav>
+
+<script>
+  // Initialize navbar
+  document.addEventListener('DOMContentLoaded', function () {
+    const userProfile = document.getElementById('userProfile');
+    const themeToggle = document.getElementById('themeToggle');
+
+    // Load user data from localStorage
+    const userData = JSON.parse(localStorage.getItem('userData') || '{"name":"User","role":"staff"}');
+    document.getElementById('userName').textContent = userData.name || 'User';
+    document.getElementById('userRole').textContent = userData.role || 'staff';
+    document.getElementById('userAvatar').textContent = (userData.name || 'U').charAt(0).toUpperCase();
+
+    // User profile click handler
+    if (userProfile) {
+      userProfile.addEventListener('click', function () {
+        window.location.href = '/profile.html';
+      });
+    }
+
+    // Theme toggle
+    if (themeToggle) {
+      themeToggle.addEventListener('click', function () {
+        if (document.documentElement.getAttribute('data-theme') === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'light');
+          localStorage.setItem('theme', 'light');
+          themeToggle.textContent = '🌙';
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+          themeToggle.textContent = '☀️';
+        }
+      });
+
+      // Load saved theme
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    }
+  });
+</script>

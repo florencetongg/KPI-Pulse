@@ -1,73 +1,351 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Performance | KPI Pro</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <title>Manager Dashboard | KPI Pro</title>
+  <meta name="description"
+    content="Monitor team performance, manage KPIs and track completion rates across your department.">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
-<body>
 
-<div id="wrapper">
-  <div class="row g-0">
-  <nav class="col-md-2 d-none d-md-block sidebar shadow-sm">
-    <div id="sidebar-container"></div>
-    <div id="navbar-container"></div>
-    </nav>
+<body class="app-body">
 
-  <main class="col-md-10 px-4 bg-light min-vh-100">
-    <div id="breadcrumb-container" class="mb-3"></div>
-    <div class="container-fluid p-4">
-      <div class="d-flex justify-content-between align-items-center pt-2 pb-4 mb-4 border-bottom">
-        <div>
-          <h1 class="h3 fw-bold mb-1">Performance Management</h1>
-          <p class="text-muted small mb-0">Manage and track your team's key results</p>
-        </div>
-        <button class="btn-primary-custom">+ New KPI</button>
+  <div class="app-shell">
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <a href="/index.html" class="sidebar-logo">KPI<span>Pro</span></a>
       </div>
-
-      <div class="card kpi-card shadow-sm">
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
-            <thead>
-              <tr>
-                <th class="ps-4">Metric</th>
-                <th>Progress</th>
-                <th>Status</th>
-                <th class="text-end pe-4">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="ps-4 fw-semibold">Quarterly Revenue</td>
-                <td>
-                  <div class="d-flex align-items-center" style="min-width: 200px;">
-                    <div class="progress w-100 me-2">
-                      <div class="progress-bar" style="width: 75%;"></div>
-                    </div>
-                    <span class="small fw-bold">75%</span>
-                  </div>
-                </td>
-                <td><span class="badge badge-active">In Progress</span></td>
-                <td class="text-end pe-4">
-                  <button class="btn btn-sm btn-light border">Edit</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebarAvatar">M</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarName">Manager</div>
+          <span class="sidebar-role-badge manager">Manager</span>
         </div>
+      </div>
+      <nav class="sidebar-nav">
+        <span class="sidebar-section-label">Main</span>
+        <ul>
+          <li>
+            <a href="manager-kpi.html" class="sidebar-nav-link active">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="kpi-form.html" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+              Add KPI
+            </a>
+          </li>
+          <li>
+            <a href="kpi-verify.html" class="sidebar-nav-link" id="verifyLink">
+              <svg viewBox="0 0 24 24">
+                <polyline points="9 11 12 14 22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+              Verify KPIs
+              <span id="pendingBadge"
+                style="margin-left:auto;background:#dc2626;color:#fff;font-size:0.65rem;font-weight:700;padding:1px 7px;border-radius:20px;display:none;">0</span>
+            </a>
+          </li>
+        </ul>
+        <span class="sidebar-section-label">Analytics</span>
+        <ul>
+          <li>
+            <a href="manager-kpi.html#staff-performance" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              Staff Performance
+            </a>
+          </li>
+        </ul>
+        <span class="sidebar-section-label">Account</span>
+        <ul>
+          <li>
+            <a href="profile.html" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Profile
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="sidebar-logout-btn" onclick="logout()">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN WRAPPER ═══ -->
+    <div class="app-main-wrapper">
+
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <h1 class="topbar-title">Manager Dashboard</h1>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-icon-btn" id="darkModeToggle" title="Toggle dark mode">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          </button>
+          <a href="profile.html" class="topbar-user">
+            <div class="topbar-avatar" id="topbarAvatar">M</div>
+            <div>
+              <div class="topbar-user-name" id="topbarName">Manager</div>
+              <div class="topbar-user-role">Manager</div>
+            </div>
+          </a>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="app-main">
+        <div class="fade-in-up">
+
+          <!-- Page Header -->
+          <div class="page-header">
+            <div class="page-header-info">
+              <h1>Team Performance Overview</h1>
+              <p>Monitor KPI progress and identify who needs attention</p>
+            </div>
+            <div class="page-header-actions">
+              <a href="kpi-verify.html" class="btn btn-secondary btn-sm" id="verifyAlertBtn" style="display:none;">
+                ⚠️ <span id="pendingCount">0</span> Pending Verification
+              </a>
+              <a href="kpi-form.html" class="btn btn-primary">
+                <svg viewBox="0 0 24 24"
+                  style="width:15px;height:15px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add New KPI
+              </a>
+            </div>
+          </div>
+
+          <!-- Stat Cards -->
+          <div class="kpi-stats-grid">
+            <div class="kpi-stat-card primary">
+              <div class="kpi-stat-icon primary">
+                <svg viewBox="0 0 24 24">
+                  <line x1="18" y1="20" x2="18" y2="10" />
+                  <line x1="12" y1="20" x2="12" y2="4" />
+                  <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+              </div>
+              <div class="kpi-stat-value" id="statTotal">0</div>
+              <div class="kpi-stat-label">Total KPIs</div>
+            </div>
+            <div class="kpi-stat-card success">
+              <div class="kpi-stat-icon success">
+                <svg viewBox="0 0 24 24">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              </div>
+              <div class="kpi-stat-value" id="statCompleted">0</div>
+              <div class="kpi-stat-label">Completed KPIs</div>
+            </div>
+            <div class="kpi-stat-card warning">
+              <div class="kpi-stat-icon warning">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </div>
+              <div class="kpi-stat-value" id="statPending">0</div>
+              <div class="kpi-stat-label">Pending KPIs</div>
+            </div>
+            <div class="kpi-stat-card info">
+              <div class="kpi-stat-icon info">
+                <svg viewBox="0 0 24 24">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                  <polyline points="17 6 23 6 23 12" />
+                </svg>
+              </div>
+              <div class="kpi-stat-value" id="statRate">0%</div>
+              <div class="kpi-stat-label">Completion Rate</div>
+            </div>
+          </div>
+
+          <!-- KPI Table -->
+          <div class="section-card">
+            <div class="section-card-header">
+              <h2 class="section-card-title">
+                <svg viewBox="0 0 24 24"
+                  style="width:18px;height:18px;stroke:var(--primary);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:8px">
+                  <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                  <rect x="9" y="3" width="6" height="4" rx="1" />
+                </svg>
+                KPI Management
+              </h2>
+              <div style="display:flex;gap:10px;align-items:center;">
+                <div style="position:relative;">
+                  <input type="text" id="kpiSearch" class="form-input" placeholder="Search KPIs…"
+                    style="padding-left:34px;height:36px;font-size:0.825rem;width:200px;">
+                  <svg viewBox="0 0 24 24"
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--muted);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </div>
+                <select id="statusFilter" class="form-select" style="font-size:0.825rem;width:160px;">
+                  <option value="">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="submitted">Submitted</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+            <div class="data-table-wrap" style="border-radius:0;border:none;border-top:1px solid var(--border);">
+              <table class="data-table" id="kpiTable">
+                <thead>
+                  <tr>
+                    <th>KPI Name</th>
+                    <th>Target</th>
+                    <th>Assigned To</th>
+                    <th>Due Date</th>
+                    <th>Progress</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="kpiTableBody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+            <div id="kpiEmptyState" class="section-card-footer"
+              style="text-align:center;padding:48px 24px;display:none;">
+              <svg viewBox="0 0 24 24"
+                style="width:48px;height:48px;margin:0 auto 12px;display:block;stroke:#cbd5e1;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                <rect x="9" y="3" width="6" height="4" rx="1" />
+                <line x1="9" y1="12" x2="15" y2="12" />
+                <line x1="9" y1="16" x2="12" y2="16" />
+              </svg>
+              <p style="margin:0;font-weight:600;color:var(--navy);">No KPIs yet</p>
+              <p style="margin:4px 0 16px;font-size:0.825rem;">Click "Add New KPI" to create your first KPI.</p>
+              <a href="kpi-form.html" class="btn btn-primary btn-sm">Add KPI</a>
+            </div>
+          </div>
+
+          <!-- Staff Performance -->
+          <div class="section-card" id="staff-performance">
+            <div class="section-card-header">
+              <h2 class="section-card-title">
+                <svg viewBox="0 0 24 24"
+                  style="width:18px;height:18px;stroke:var(--primary);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:8px">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                Staff Performance Summary
+              </h2>
+            </div>
+            <div class="data-table-wrap" style="border-radius:0;border:none;border-top:1px solid var(--border);">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Staff Member</th>
+                    <th>Department</th>
+                    <th>Assigned KPIs</th>
+                    <th>Completed</th>
+                    <th>Completion Rate</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="staffTableBody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+            <div id="staffEmptyState" class="section-card-footer"
+              style="text-align:center;padding:40px 24px;display:none;">
+              <p style="margin:0;color:var(--muted);">No staff KPI data available yet.</p>
+            </div>
+          </div>
+
+        </div><!-- fade-in-up -->
+      </main>
+    </div>
+  </div>
+
+  <!-- ═══ DELETE CONFIRM MODAL ═══ -->
+  <div class="modal" id="deleteModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Delete KPI</h3>
+        <button class="modal-close" onclick="closeModal('deleteModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-error" style="display:flex;">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <div class="alert-title">This action cannot be undone</div>
+            Are you sure you want to delete "<strong id="deleteKpiName"></strong>"?
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteKpiBtn">Delete KPI</button>
       </div>
     </div>
-  </main>
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="../js/load-components.js"></script>
-<script>lucide.createIcons();</script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/kpi-manager.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!requireAuth('manager')) return;
+      const user = getCurrentUser();
+      populateNavUser(user);
+      initDarkMode();
+      loadManagerDashboard();
+
+      // Greeting
+      const hr = new Date().getHours();
+      const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+      const welcomeEl = document.querySelector('.page-header-info h1');
+      if (welcomeEl) welcomeEl.textContent = greet + ', ' + (user.name || 'Manager') + '! 👋';
+
+      // Search + filter
+      document.getElementById('kpiSearch').addEventListener('input', renderKpiTable);
+      document.getElementById('statusFilter').addEventListener('change', renderKpiTable);
+    });
+  </script>
 </body>
+
 </html>
