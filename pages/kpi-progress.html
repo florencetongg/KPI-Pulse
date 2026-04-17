@@ -5,176 +5,455 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Update Progress | KPI Pro</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500&display=swap"
+  <meta name="description"
+    content="Update your KPI progress, enter current values and upload evidence for manager review.">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-
+  <link rel="stylesheet" href="../css/style.css">
   <style>
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: #f8f9fb;
+    .progress-ring-wrap {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: 0 auto;
     }
 
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 40px 20px;
+    .progress-ring-wrap svg {
+      transform: rotate(-90deg);
     }
 
-    h1 {
+    .ring-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-label span:first-child {
       font-family: 'Sora', sans-serif;
-    }
-
-    .card {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 24px;
-      margin-bottom: 20px;
-    }
-
-    .slider {
-      width: 100%;
-      margin-top: 15px;
-    }
-
-    .progress-value {
-      font-size: 40px;
+      font-size: 1.6rem;
       font-weight: 800;
-      text-align: center;
-      color: #4f46e5;
+      color: var(--navy);
     }
 
-    textarea {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-    }
-
-    .upload-box {
-      border: 2px dashed #e2e8f0;
-      padding: 30px;
-      text-align: center;
-      border-radius: 12px;
-      cursor: pointer;
-    }
-
-    .btn {
-      background: #4f46e5;
-      color: white;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      width: 100%;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-secondary {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      margin-top: 10px;
+    .ring-label span:last-child {
+      font-size: 0.8rem;
+      color: var(--muted);
     }
   </style>
 </head>
 
-<body>
+<body class="app-body">
 
-  <div id="navbar-container"></div>
+  <div class="app-shell">
 
-  <div class="container">
-
-    <h1>Update Progress</h1>
-    <p id="kpiTitleHeader" style="color:#64748b;">Loading KPI...</p>
-
-    <!-- PROGRESS -->
-    <div class="card">
-      <div class="progress-value" id="progressValDisplay">0%</div>
-      <input type="range" id="progressSlider" class="slider" min="0" max="100" value="0">
-
-      <textarea id="progressNote" placeholder="Describe your progress..." required></textarea>
-    </div>
-
-    <!-- UPLOAD -->
-    <div class="card">
-      <div class="upload-box" id="uploadZone">
-        Click to upload evidence
-        <input type="file" id="evidenceFile" hidden>
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <a href="/index.html" class="sidebar-logo">KPI<span>Pro</span></a>
       </div>
-
-      <div id="filePreview" style="margin-top:10px; display:none;">
-        <span id="fileName"></span>
-        <button id="removeFile">Remove</button>
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebarAvatar">S</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarName">Staff</div>
+          <span class="sidebar-role-badge staff">Staff</span>
+        </div>
       </div>
+      <nav class="sidebar-nav">
+        <span class="sidebar-section-label">Main</span>
+        <ul>
+          <li>
+            <a href="dashboard.html" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="staff-kpi.html" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                <rect x="9" y="3" width="6" height="4" rx="1" />
+              </svg>
+              My KPIs
+            </a>
+          </li>
+          <li>
+            <a href="kpi-progress.html" class="sidebar-nav-link active">
+              <svg viewBox="0 0 24 24">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                <polyline points="17 6 23 6 23 12" />
+              </svg>
+              Update Progress
+            </a>
+          </li>
+        </ul>
+        <span class="sidebar-section-label">Account</span>
+        <ul>
+          <li>
+            <a href="profile.html" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Profile
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="sidebar-logout-btn" onclick="logout()">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN WRAPPER ═══ -->
+    <div class="app-main-wrapper">
+
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <a href="staff-kpi.html"
+            style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:0.85rem;text-decoration:none;">
+            <svg viewBox="0 0 24 24"
+              style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round">
+              <path d="M19 12H5M12 5l-7 7 7 7" />
+            </svg>
+            Back to My KPIs
+          </a>
+          <h1 class="topbar-title">Update Progress</h1>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-icon-btn" id="darkModeToggle" title="Toggle dark mode">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          </button>
+          <a href="profile.html" class="topbar-user">
+            <div class="topbar-avatar" id="topbarAvatar">S</div>
+            <div>
+              <div class="topbar-user-name" id="topbarName">Staff</div>
+              <div class="topbar-user-role">Staff</div>
+            </div>
+          </a>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="app-main">
+        <div class="fade-in-up">
+
+          <!-- Alerts -->
+          <div class="alert alert-success" id="successAlert" style="display:none;">
+            <div class="alert-icon">✓</div>
+            <div class="alert-content">
+              <div class="alert-title">Progress Updated!</div>
+              <span id="successMsg">Your progress has been submitted for manager review.</span>
+            </div>
+          </div>
+          <div class="alert alert-error" id="errorAlert" style="display:none;">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content"><span id="errorMsg">Please fix the errors below.</span></div>
+          </div>
+
+          <!-- Page Header -->
+          <div class="page-header">
+            <div class="page-header-info">
+              <h1>Submit KPI Progress</h1>
+              <p>Select a KPI, enter your current progress and upload supporting evidence</p>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start;">
+
+            <!-- Main Form -->
+            <form id="progressForm" novalidate>
+              <!-- Step 1: Select KPI -->
+              <div class="section-card">
+                <div class="section-card-header">
+                  <h2 class="section-card-title">
+                    <span
+                      style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:var(--primary);color:white;border-radius:50%;font-size:0.75rem;font-weight:700;margin-right:8px;">1</span>
+                    Select KPI
+                  </h2>
+                </div>
+                <div class="section-card-body">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label required" for="kpiSelect">KPI to Update</label>
+                    <select id="kpiSelect" class="form-select" required onchange="onKpiSelect()">
+                      <option value="">— Choose a KPI —</option>
+                    </select>
+                    <div class="form-hint error" id="kpiSelectError"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- KPI Info Card (shown after selection) -->
+              <div class="section-card" id="kpiInfoCard" style="display:none;">
+                <div class="section-card-body" style="display:flex;gap:20px;align-items:center;">
+                  <div class="progress-ring-wrap">
+                    <svg width="140" height="140" viewBox="0 0 140 140">
+                      <circle cx="70" cy="70" r="56" fill="none" stroke="var(--border)" stroke-width="12" />
+                      <circle cx="70" cy="70" r="56" fill="none" stroke="#4f46e5" stroke-width="12"
+                        stroke-dasharray="352" id="kpiInfoRing" stroke-dashoffset="352" stroke-linecap="round"
+                        style="transition:stroke-dashoffset 0.6s ease;" />
+                    </svg>
+                    <div class="ring-label">
+                      <span id="ringPct">0%</span>
+                      <span>Current</span>
+                    </div>
+                  </div>
+                  <div style="flex:1;">
+                    <div
+                      style="font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:6px;"
+                      id="infoKpiName">—</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem;">
+                      <div><span style="color:var(--muted);">Target:</span> <strong id="infoTarget">—</strong></div>
+                      <div><span style="color:var(--muted);">Due:</span> <strong id="infoDue">—</strong></div>
+                      <div><span style="color:var(--muted);">Category:</span> <strong id="infoCat">—</strong></div>
+                      <div><span style="color:var(--muted);">Status:</span> <span id="infoStatus"></span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2: Progress -->
+              <div class="section-card">
+                <div class="section-card-header">
+                  <h2 class="section-card-title">
+                    <span
+                      style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:var(--primary);color:white;border-radius:50%;font-size:0.75rem;font-weight:700;margin-right:8px;">2</span>
+                    Enter Progress
+                  </h2>
+                </div>
+                <div class="section-card-body">
+                  <div class="form-group">
+                    <label class="form-label required">Progress Percentage</label>
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;">
+                      <input type="range" id="progressSlider" min="0" max="100" value="0"
+                        style="flex:1;accent-color:var(--primary);height:6px;cursor:pointer;"
+                        oninput="syncSlider(this.value)">
+                      <div style="display:flex;align-items:center;gap:4px;">
+                        <input type="number" id="progressInput" min="0" max="100" value="0" class="form-input"
+                          style="width:72px;height:40px;text-align:center;font-weight:700;font-size:1.1rem;"
+                          oninput="syncInput(this.value)">
+                        <span style="font-size:1rem;color:var(--muted);font-weight:600;">%</span>
+                      </div>
+                    </div>
+                    <div
+                      style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px;">
+                      <div id="progressBar"
+                        style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),#818cf8);border-radius:3px;transition:width 0.3s;">
+                      </div>
+                    </div>
+                    <div class="form-hint error" id="progressError"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="currentValue">Current Achievement Value <span
+                        style="color:var(--muted);font-weight:400;">(optional)</span></label>
+                    <input type="text" id="currentValue" class="form-input"
+                      placeholder="e.g. 375,000 or 95 or 48 calls">
+                    <div class="form-hint">Enter the actual value you've achieved so far.</div>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="progressNotes">Update Notes <span
+                        style="color:var(--muted);font-weight:400;">(optional)</span></label>
+                    <textarea id="progressNotes" class="form-textarea"
+                      placeholder="Describe what you've accomplished, any challenges, or context…"
+                      style="min-height:100px;"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3: Evidence -->
+              <div class="section-card">
+                <div class="section-card-header">
+                  <h2 class="section-card-title">
+                    <span
+                      style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:var(--primary);color:white;border-radius:50%;font-size:0.75rem;font-weight:700;margin-right:8px;">3</span>
+                    Upload Evidence
+                  </h2>
+                  <span style="font-size:0.78rem;color:var(--muted);">Required for manager approval</span>
+                </div>
+                <div class="section-card-body">
+                  <div class="upload-zone" id="uploadZone">
+                    <div class="upload-zone-icon">
+                      <svg viewBox="0 0 24 24">
+                        <polyline points="16 16 12 12 8 16" />
+                        <line x1="12" y1="12" x2="12" y2="21" />
+                        <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+                      </svg>
+                    </div>
+                    <div class="upload-zone-title">Drag & drop or click to upload</div>
+                    <div class="upload-zone-hint">PDF, JPG, PNG, DOCX up to 10MB</div>
+                    <input type="file" id="evidenceFile" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                  </div>
+                  <div id="filePreview"
+                    style="display:none;margin-top:12px;padding:14px;background:var(--bg-secondary);border-radius:12px;display:none;align-items:center;gap:12px;">
+                    <svg viewBox="0 0 24 24"
+                      style="width:28px;height:28px;stroke:var(--primary);stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                    <div style="flex:1;">
+                      <div id="previewFileName" style="font-size:0.875rem;font-weight:600;color:var(--navy);"></div>
+                      <div id="previewFileSize" style="font-size:0.75rem;color:var(--muted);"></div>
+                    </div>
+                    <button type="button" onclick="removeFile()"
+                      style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;">
+                      <svg viewBox="0 0 24 24"
+                        style="width:18px;height:18px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="form-hint error" id="evidenceError"></div>
+                </div>
+                <div class="section-card-footer" style="display:flex;gap:12px;justify-content:flex-end;">
+                  <a href="staff-kpi.html" class="btn btn-secondary">Cancel</a>
+                  <button type="submit" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24"
+                      style="width:15px;height:15px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                      <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    Submit Update
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <!-- Tips Sidebar Panel -->
+            <div style="position: sticky; top: 20px;">
+              <div class="section-card" style="margin-bottom:16px;">
+                <div class="section-card-header" style="padding:14px 20px;">
+                  <h2 class="section-card-title" style="font-size:0.9rem;">💡 Submission Tips</h2>
+                </div>
+                <div class="section-card-body" style="padding:16px 20px;">
+                  <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px;">
+                    <li style="display:flex;gap:10px;font-size:0.825rem;">
+                      <span style="color:var(--success);font-size:1rem;flex-shrink:0;">✓</span>
+                      Upload clear, dated evidence files
+                    </li>
+                    <li style="display:flex;gap:10px;font-size:0.825rem;">
+                      <span style="color:var(--success);font-size:1rem;flex-shrink:0;">✓</span>
+                      Be specific in your notes
+                    </li>
+                    <li style="display:flex;gap:10px;font-size:0.825rem;">
+                      <span style="color:var(--success);font-size:1rem;flex-shrink:0;">✓</span>
+                      Submit regularly for better tracking
+                    </li>
+                    <li style="display:flex;gap:10px;font-size:0.825rem;">
+                      <span style="color:var(--warning);font-size:1rem;flex-shrink:0;">⚠</span>
+                      Manager will review your submission
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- KPI Status Legend -->
+              <div class="section-card">
+                <div class="section-card-header" style="padding:14px 20px;">
+                  <h2 class="section-card-title" style="font-size:0.9rem;">Status Guide</h2>
+                </div>
+                <div class="section-card-body" style="padding:12px 16px;">
+                  <div style="display:flex;flex-direction:column;gap:8px;font-size:0.8rem;">
+                    <div style="display:flex;align-items:center;gap:8px;"><span
+                        class="badge badge-pending">Pending</span> — Not yet started</div>
+                    <div style="display:flex;align-items:center;gap:8px;"><span class="badge badge-warning">In
+                        Progress</span> — Actively working</div>
+                    <div style="display:flex;align-items:center;gap:8px;"><span
+                        class="badge badge-info">Submitted</span> — Awaiting review</div>
+                    <div style="display:flex;align-items:center;gap:8px;"><span
+                        class="badge badge-success">Approved</span> — Manager verified</div>
+                    <div style="display:flex;align-items:center;gap:8px;"><span
+                        class="badge badge-danger">Rejected</span> — Resubmit required</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- grid -->
+        </div><!-- fade-in-up -->
+      </main>
     </div>
-
-    <button class="btn" id="submitBtn">Save Progress</button>
-    <a href="staff-kpi.html" class="btn btn-secondary">Back</a>
-
   </div>
 
-  <script src="/js/auth.js"></script>
-  <script src="/js/kpi-staff.js"></script>
-  <script src="/js/main.js"></script>
-
+  <script src="../js/auth.js"></script>
+  <script src="../js/kpi-staff.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!requireAuth('staff')) return;
+      const user = getCurrentUser();
+      populateNavUser(user);
+      initDarkMode();
+      initProgressPage();
 
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get('id');
+      // File upload events
+      const fileInput = document.getElementById('evidenceFile');
+      const zone = document.getElementById('uploadZone');
 
-      const slider = document.getElementById('progressSlider');
-      const display = document.getElementById('progressValDisplay');
-
-      slider.addEventListener('input', () => {
-        display.textContent = slider.value + "%";
+      fileInput.addEventListener('change', function () { handleFileSelect(this.files[0]); });
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragging'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('dragging'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault(); zone.classList.remove('dragging');
+        if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
       });
 
-      const uploadZone = document.getElementById('uploadZone');
-      const fileInput = document.getElementById('evidenceFile');
-      const filePreview = document.getElementById('filePreview');
-      const fileName = document.getElementById('fileName');
-
-      let file = null;
-
-      uploadZone.onclick = () => fileInput.click();
-
-      fileInput.onchange = () => {
-        file = fileInput.files[0];
-        if (file) {
-          fileName.textContent = file.name;
-          filePreview.style.display = "block";
-          uploadZone.style.display = "none";
-        }
-      };
-
-      document.getElementById('removeFile').onclick = () => {
-        file = null;
-        fileInput.value = "";
-        filePreview.style.display = "none";
-        uploadZone.style.display = "block";
-      };
-
-      document.getElementById('submitBtn').onclick = () => {
-        if (!id) return alert("Missing KPI ID");
-
-        KPIStore.updateProgress(id, slider.value, progressNote.value);
-
-        if (file) {
-          KPIStore.addEvidence(id, {
-            name: file.name
-          });
-        }
-
-        alert("Progress updated");
-        window.location.href = "staff-kpi.html";
-      };
-
+      document.getElementById('progressForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitProgressPage();
+      });
     });
-  </script>
 
+    function syncSlider(v) {
+      document.getElementById('progressInput').value = v;
+      document.getElementById('progressBar').style.width = v + '%';
+      updateInfoRing(parseInt(v));
+    }
+    function syncInput(v) {
+      v = Math.min(Math.max(parseInt(v) || 0, 0), 100);
+      document.getElementById('progressSlider').value = v;
+      document.getElementById('progressInput').value = v;
+      document.getElementById('progressBar').style.width = v + '%';
+      updateInfoRing(v);
+    }
+    function updateInfoRing(pct) {
+      const ring = document.getElementById('kpiInfoRing');
+      if (ring) {
+        const c = 2 * Math.PI * 56;
+        ring.setAttribute('stroke-dasharray', c);
+        ring.setAttribute('stroke-dashoffset', c - (c * pct / 100));
+      }
+      const el = document.getElementById('ringPct');
+      if (el) el.textContent = pct + '%';
+    }
+    function handleFileSelect(file) {
+      if (!file) return;
+      document.getElementById('filePreview').style.display = 'flex';
+      document.getElementById('previewFileName').textContent = file.name;
+      document.getElementById('previewFileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+    }
+    function removeFile() {
+      document.getElementById('evidenceFile').value = '';
+      document.getElementById('filePreview').style.display = 'none';
+    }
+  </script>
 </body>
 
 </html>

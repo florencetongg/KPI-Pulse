@@ -4,202 +4,694 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile | KPI Pulse</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="/css/style.css">
+  <title>Profile | KPI Pro</title>
+  <meta name="description"
+    content="Manage your KPI Pro account — update profile, change password, and account settings.">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pwd-strength {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .pwd-strength div {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+
+    .pwd-strength div.weak {
+      background: #dc2626;
+    }
+
+    .pwd-strength div.fair {
+      background: #d97706;
+    }
+
+    .pwd-strength div.good {
+      background: #eab308;
+    }
+
+    .pwd-strength div.strong {
+      background: #16a34a;
+    }
+
+    .pwd-strength-label {
+      font-size: 0.75rem;
+      margin-top: 4px;
+      color: var(--muted);
+    }
+
+    .danger-zone-card {
+      border: 1px solid #fecaca;
+      background: #fff5f5;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 0;
+    }
+
+    body.dark .danger-zone-card {
+      background: #2a1414;
+      border-color: #7f1d1d;
+    }
+
+    .toggle-pwd {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 4px;
+    }
+
+    .toggle-pwd svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 1.75;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .pwd-field-wrap {
+      position: relative;
+    }
+
+    .pwd-field-wrap .form-input {
+      padding-right: 40px;
+    }
+
+    body.dark .danger-zone-card {
+      background: #1e0808;
+      border-color: #7f1d1d;
+    }
+  </style>
 </head>
 
-<body class="bg-light">
+<body class="app-body">
 
-  <div class="d-none"></div>
-  <div class="d-none"></div>
+  <div class="app-shell">
 
-  <div id="wrapper" class="d-flex">
-    <!-- Sidebar Container -->
-    <div id="sidebar-container" style="z-index: 1040;"></div>
-
-    <div id="page-content-wrapper" class="flex-grow-1" style="background: transparent; min-height: 100vh;">
-      <!-- Navbar Container -->
-      <div id="navbar-container" class="mb-4"></div>
-
-      <div class="container-fluid px-4 fade-in-up">
-        <div id="breadcrumb-container" class="mb-3"></div>
-
-        <div class="d-flex align-items-center mb-4 pb-2 border-bottom border-light">
-          <h1 class="h3 fw-bold  mb-0">My Profile</h1>
+    <!-- ═══ SIDEBAR (dynamically rendered by JS based on role) ═══ -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-header">
+        <a href="/index.html" class="sidebar-logo">KPI<span>Pro</span></a>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebarAvatar">U</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarName">User</div>
+          <span class="sidebar-role-badge" id="sidebarRoleBadge">—</span>
         </div>
+      </div>
+      <!-- Nav rendered by JS -->
+      <nav class="sidebar-nav" id="sidebarNav"></nav>
+      <div class="sidebar-footer">
+        <button class="sidebar-logout-btn" onclick="logout()">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Sign Out
+        </button>
+      </div>
+    </aside>
 
-        <div class="row g-4">
-          <div class="col-lg-4">
-            <div class="card border-0 shadow-sm text-center p-4">
-              <div class="position-relative d-inline-block mx-auto mb-3">
-                <img id="profileAvatarImg"
-                  src="https://ui-avatars.com/api/?name=User&background=1E5EFF&color=fff&size=128"
-                  class="rounded-circle shadow-sm border border-4 border-light" alt="Avatar">
-                <button
-                  class="btn btn-sm btn-primary text-white position-absolute bottom-0 end-0 rounded-circle p-2 shadow"
-                  title="Change Avatar">
-                  <i data-lucide="camera" style="width:14px; height:14px;"></i>
-                </button>
-              </div>
-              <h5 class="fw-bold mb-0 " id="profileDisplayName">User Name</h5>
-              <p class="text-muted small mt-1" id="profileDisplayRole">Staff Member</p>
-              <hr class="border-light w-75 mx-auto">
-              <div class="text-start small text-muted mt-3 px-3">
-                <p class="mb-2 d-flex justify-content-between">
-                  <strong>Joined:</strong> <span id="profileJoinDate">Recent</span>
-                </p>
-                <p class="mb-0 d-flex justify-content-between">
-                  <strong>Status:</strong> <span class="badge bg-success-soft text-success">Active</span>
-                </p>
-              </div>
+    <!-- ═══ MAIN WRAPPER ═══ -->
+    <div class="app-main-wrapper">
+
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <a href="#" id="backLink"
+            style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:0.85rem;text-decoration:none;">
+            <svg viewBox="0 0 24 24"
+              style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round">
+              <path d="M19 12H5M12 5l-7 7 7 7" />
+            </svg>
+            Dashboard
+          </a>
+          <h1 class="topbar-title">My Profile</h1>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-icon-btn" id="darkModeToggle" title="Toggle dark mode">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          </button>
+          <a href="profile.html" class="topbar-user">
+            <div class="topbar-avatar" id="topbarAvatar">U</div>
+            <div>
+              <div class="topbar-user-name" id="topbarName">User</div>
+              <div class="topbar-user-role" id="topbarRole"></div>
             </div>
-          </div>
+          </a>
+        </div>
+      </header>
 
-          <div class="col-lg-8">
-            <div class="card border-0 shadow-sm p-4 mb-4">
-              <h5 class="fw-bold mb-4 ">Account Settings</h5>
-              <div id="profileAlert" class="alert custom-alert py-2 small d-none" role="alert"></div>
-              <form id="profileForm">
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label small fw-semibold text-muted">Full Name</label>
-                    <input type="text" id="profName" class="form-control custom-input" value="">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-semibold text-muted">Email Address</label>
-                    <input type="email" id="profEmail" class="form-control custom-input" disabled>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-semibold text-muted">Department</label>
-                    <select id="profDept" class="form-select custom-input">
-                      <option class="text-dark">Operations</option>
-                      <option class="text-dark">Sales</option>
-                      <option class="text-dark">Engineering</option>
-                      <option class="text-dark">Marketing</option>
-                      <option class="text-dark">HR</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="mt-4">
-                  <button type="submit" class="btn border-0 register-btn px-4">Save Changes</button>
-                </div>
-              </form>
+      <!-- Main Content -->
+      <main class="app-main">
+        <div class="fade-in-up"
+          style="display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:start;max-width:960px;margin:0 auto;">
+
+          <!-- Left: Tab Nav -->
+          <div class="section-card" style="margin-bottom:0;overflow:visible;">
+            <!-- Avatar block -->
+            <div style="padding:24px 20px;text-align:center;border-bottom:1px solid var(--border);">
+              <div class="profile-avatar-ring" id="profileAvatarBig" style="margin:0 auto 12px;">U</div>
+              <div style="font-family:'Sora',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);"
+                id="profileName">User</div>
+              <div style="font-size:0.8rem;color:var(--muted);margin-top:2px;" id="profileEmail">—</div>
+              <span class="badge" id="profileRoleBadge" style="margin-top:8px;">—</span>
             </div>
-
-            <div class="card border-0 shadow-sm p-4 mb-4">
-              <h5 class="fw-bold mb-4 ">Update Password</h5>
-              <div id="passwordAlert" class="alert custom-alert py-2 small d-none" role="alert"></div>
-              <form id="passwordForm">
-                <div class="mb-3">
-                  <label class="form-label small fw-semibold text-muted">Current Password</label>
-                  <input type="password" id="currentPwd" class="form-control custom-input" required>
-                </div>
-                <div class="row g-3 mb-4">
-
-                  <div class="col-md-6">
-                    <label class="form-label small fw-semibold text-muted">New Password</label>
-                    <input type="password" id="newPwd" class="form-control custom-input" required>
-                    <small class="text-muted">
-                      Must be at least 8 characters, include uppercase, number & symbol.
-                    </small>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label small fw-semibold text-muted">Confirm New Password</label>
-                    <input type="password" id="confirmPwd" class="form-control custom-input" required>
-                  </div>
-                </div>
-                <button type="submit" class="btn btn-outline-dark">Update Password</button>
-              </form>
-            </div>
-
-            <div class="card border-0 shadow-sm p-4 border-danger">
-              <h5 class="fw-bold text-danger mb-2">Danger Zone</h5>
-              <p class="text-muted small mb-3">
-                This action is permanent and cannot be undone.
-              </p>
-              <button id="btnDeleteAccount" class="btn btn-danger">
-                <i class="bi bi-trash me-1"></i> Delete Account
+            <!-- Tabs -->
+            <div style="padding:8px 4px;">
+              <button class="profile-tab-btn active" onclick="showTab('viewTab', this)" id="btn-viewTab">
+                <svg viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Profile Info
+              </button>
+              <button class="profile-tab-btn" onclick="showTab('editTab', this)" id="btn-editTab">
+                <svg viewBox="0 0 24 24">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Edit Profile
+              </button>
+              <button class="profile-tab-btn" onclick="showTab('passwordTab', this)" id="btn-passwordTab">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                Change Password
+              </button>
+              <button class="profile-tab-btn" onclick="showTab('dangerTab', this)" id="btn-dangerTab">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                Danger Zone
               </button>
             </div>
+          </div>
 
+          <!-- Right: Tab Content -->
+          <div>
+
+            <!-- ── VIEW PROFILE ── -->
+            <div id="viewTab" class="section-card" style="margin-bottom:0;">
+              <div class="section-card-header">
+                <h2 class="section-card-title">Account Information</h2>
+                <button class="btn btn-secondary btn-sm"
+                  onclick="showTab('editTab', document.getElementById('btn-editTab'))">
+                  <svg viewBox="0 0 24 24"
+                    style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  Edit
+                </button>
+              </div>
+              <div class="section-card-body">
+                <div class="grid grid-cols-2" style="gap:20px;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <div class="form-label">Full Name</div>
+                    <div class="profile-field-view" id="viewName">—</div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <div class="form-label">Email Address</div>
+                    <div class="profile-field-view" id="viewEmail">—</div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <div class="form-label">Department</div>
+                    <div class="profile-field-view" id="viewDept">—</div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <div class="form-label">Role</div>
+                    <div class="profile-field-view" id="viewRole">—</div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <div class="form-label">Member Since</div>
+                    <div class="profile-field-view" id="viewJoined">—</div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <div class="form-label">Account ID</div>
+                    <div class="profile-field-view" id="viewId" style="font-family:monospace;font-size:0.8rem;">—</div>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-top:20px;margin-bottom:0;">
+                  <div class="form-label">Bio</div>
+                  <div class="profile-field-view" id="viewBio" style="min-height:60px;">—</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── EDIT PROFILE ── -->
+            <div id="editTab" class="section-card" style="margin-bottom:0;display:none;">
+              <div class="section-card-header">
+                <h2 class="section-card-title">Edit Profile</h2>
+              </div>
+              <div class="alert alert-success" id="editSuccess" style="margin:16px 16px 0;display:none;">
+                <div class="alert-icon">✓</div>
+                <div class="alert-content">Profile updated successfully!</div>
+              </div>
+              <div class="alert alert-error" id="editError" style="margin:16px 16px 0;display:none;">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content"><span id="editErrorMsg">Please fix the errors below.</span></div>
+              </div>
+              <form id="editProfileForm" novalidate>
+                <div class="section-card-body">
+                  <div class="grid grid-cols-2" style="gap:20px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                      <label class="form-label required" for="editName">Full Name</label>
+                      <input type="text" id="editName" class="form-input" required placeholder="Your full name">
+                      <div class="form-hint error" id="editNameError"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                      <label class="form-label required" for="editEmail">Email Address</label>
+                      <input type="email" id="editEmail" class="form-input" required placeholder="you@example.com">
+                      <div class="form-hint error" id="editEmailError"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                      <label class="form-label" for="editDept">Department</label>
+                      <select id="editDept" class="form-select">
+                        <option value="General">General</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Operations">Operations</option>
+                        <option value="Finance">Finance</option>
+                        <option value="HR">Human Resources</option>
+                        <option value="IT">IT / Technology</option>
+                        <option value="Customer Service">Customer Service</option>
+                      </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                      <label class="form-label">Role</label>
+                      <div class="profile-field-view" id="editRoleDisplay"
+                        style="display:flex;align-items:center;gap:8px;">—</div>
+                      <div class="form-hint">Contact admin to change your role.</div>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin-top:20px;margin-bottom:0;">
+                    <label class="form-label" for="editBio">Bio <span
+                        style="color:var(--muted);font-weight:400;">(optional)</span></label>
+                    <textarea id="editBio" class="form-textarea" placeholder="A short bio about yourself…"
+                      style="min-height:80px;"></textarea>
+                  </div>
+                </div>
+                <div class="section-card-footer" style="display:flex;gap:12px;justify-content:flex-end;">
+                  <button type="button" class="btn btn-secondary"
+                    onclick="showTab('viewTab', document.getElementById('btn-viewTab'))">Cancel</button>
+                  <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- ── CHANGE PASSWORD ── -->
+            <div id="passwordTab" class="section-card" style="margin-bottom:0;display:none;">
+              <div class="section-card-header">
+                <h2 class="section-card-title">Change Password</h2>
+              </div>
+              <div class="alert alert-success" id="pwdSuccess" style="margin:16px 16px 0;display:none;">
+                <div class="alert-icon">✓</div>
+                <div class="alert-content">Password changed successfully!</div>
+              </div>
+              <div class="alert alert-error" id="pwdError" style="margin:16px 16px 0;display:none;">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content"><span id="pwdErrorMsg">An error occurred.</span></div>
+              </div>
+              <form id="changePasswordForm" novalidate>
+                <div class="section-card-body">
+                  <div class="form-group">
+                    <label class="form-label required" for="currentPwd">Current Password</label>
+                    <div class="pwd-field-wrap">
+                      <input type="password" id="currentPwd" class="form-input" required
+                        placeholder="Enter current password">
+                      <button type="button" class="toggle-pwd" onclick="togglePwd('currentPwd', this)"
+                        title="Show/hide password">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="form-hint error" id="currentPwdError"></div>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label required" for="newPwd">New Password</label>
+                    <div class="pwd-field-wrap">
+                      <input type="password" id="newPwd" class="form-input" required placeholder="At least 8 characters"
+                        oninput="checkPasswordStrength(this.value)">
+                      <button type="button" class="toggle-pwd" onclick="togglePwd('newPwd', this)"
+                        title="Show/hide password">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="pwd-strength">
+                      <div id="s1"></div>
+                      <div id="s2"></div>
+                      <div id="s3"></div>
+                      <div id="s4"></div>
+                    </div>
+                    <div class="pwd-strength-label" id="pwdStrengthLabel"></div>
+                    <div class="form-hint error" id="newPwdError"></div>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label required" for="confirmPwd">Confirm New Password</label>
+                    <div class="pwd-field-wrap">
+                      <input type="password" id="confirmPwd" class="form-input" required
+                        placeholder="Re-enter new password">
+                      <button type="button" class="toggle-pwd" onclick="togglePwd('confirmPwd', this)"
+                        title="Show/hide password">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="form-hint error" id="confirmPwdError"></div>
+                  </div>
+                </div>
+                <div class="section-card-footer" style="display:flex;gap:12px;justify-content:flex-end;">
+                  <button type="button" class="btn btn-secondary"
+                    onclick="document.getElementById('changePasswordForm').reset();clearPwdFields()">Clear</button>
+                  <button type="submit" class="btn btn-primary">Update Password</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- ── DANGER ZONE ── -->
+            <div id="dangerTab" class="section-card" style="margin-bottom:0;display:none;">
+              <div class="section-card-header">
+                <h2 class="section-card-title" style="color:#dc2626;">⚠ Danger Zone</h2>
+              </div>
+              <div class="section-card-body">
+                <div class="danger-zone-card">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;">
+                    <div style="flex:1;">
+                      <h3 style="margin:0 0 6px;font-size:1rem;font-family:'Sora',sans-serif;color:#991b1b;">Delete
+                        Account</h3>
+                      <p style="margin:0;font-size:0.875rem;color:#7f1d1d;">
+                        Permanently delete your account and all associated KPI data. This action is
+                        <strong>irreversible</strong>.
+                      </p>
+                    </div>
+                    <button class="btn btn-danger" onclick="openDeleteModal()" style="flex-shrink:0;">Delete
+                      Account</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- right col -->
+        </div><!-- grid -->
+      </main>
+    </div>
+  </div>
+
+  <!-- ═══ DELETE ACCOUNT MODAL ═══ -->
+  <div class="modal" id="deleteAccountModal">
+    <div class="modal-content" style="max-width:480px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color:#dc2626;">Delete Account</h3>
+        <button class="modal-close" onclick="closeModal('deleteAccountModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-error" style="display:flex;margin-bottom:20px;">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <div class="alert-title">This cannot be undone!</div>
+            Your account and all your KPI data will be permanently deleted.
           </div>
         </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label required" for="deleteConfirmEmail">
+            Type your email address to confirm: <strong id="deleteEmailHint" style="color:var(--navy);"></strong>
+          </label>
+          <input type="email" id="deleteConfirmEmail" class="form-input" placeholder="Enter your email to confirm">
+          <div class="form-hint error" id="deleteConfirmError"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('deleteAccountModal')">Cancel, Keep Account</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDeleteAccount()">Yes, Delete
+          Everything</button>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/js/auth.js"></script>
-  <script src="/js/main.js"></script>
+  <script src="../js/auth.js"></script>
   <script>
-    lucide.createIcons();
+    // ── Init ──────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!requireAuth()) return;
+      const user = getCurrentUser();
+      populateNavUser(user);
+      initDarkMode();
+      renderRoleSidebar(user.role);
+      populateProfilePage(user);
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const user = AuthManager.getCurrentUser();
-      if (user) {
-        document.getElementById('profName').value = user.name || '';
-        document.getElementById('profEmail').value = user.email || '';
-        document.getElementById('profileDisplayName').textContent = user.name || 'User';
-        document.getElementById('profileDisplayRole').textContent = (user.role || 'Staff').toUpperCase();
+      document.getElementById('backLink').href = user.role === 'manager' ? 'manager-kpi.html' : 'dashboard.html';
 
-        const dept = document.getElementById('profDept');
-        for (let i = 0; i < dept.options.length; i++) {
-          if (dept.options[i].text === user.department) {
-            dept.selectedIndex = i;
-            break;
-          }
-        }
-
-        const d = new Date(user.createdAt || Date.now());
-        document.getElementById('profileJoinDate').textContent = d.toLocaleDateString();
-        document.getElementById('profileAvatarImg').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=1E5EFF&color=fff&size=128`;
-      }
-
-      document.getElementById('profileForm').addEventListener('submit', (e) => {
+      // Edit form submit
+      document.getElementById('editProfileForm').addEventListener('submit', async function (e) {
         e.preventDefault();
-        const updatedName = document.getElementById('profName').value;
-        const updatedDept = document.getElementById('profDept').value;
-
-        // Update logic would go here. For demo, we just show success.
-        const alertBox = document.getElementById('profileAlert');
-        alertBox.className = 'alert py-2 small alert-success';
-        alertBox.textContent = 'Profile updated successfully!';
-        alertBox.classList.remove('d-none');
-        setTimeout(() => alertBox.classList.add('d-none'), 3000);
+        if (!validateEditForm()) return;
+        const btn = this.querySelector('[type=submit]');
+        btn.disabled = true; btn.textContent = 'Saving…';
+        try {
+          const updated = await updateProfile({
+            name: document.getElementById('editName').value.trim(),
+            email: document.getElementById('editEmail').value.trim(),
+            department: document.getElementById('editDept').value,
+            bio: document.getElementById('editBio').value.trim(),
+          });
+          populateProfilePage(updated);
+          document.getElementById('editSuccess').style.display = 'flex';
+          setTimeout(() => document.getElementById('editSuccess').style.display = 'none', 3000);
+        } catch (err) {
+          document.getElementById('editErrorMsg').textContent = err.message;
+          document.getElementById('editError').style.display = 'flex';
+        }
+        btn.disabled = false; btn.textContent = 'Save Changes';
       });
 
-      document.getElementById('passwordForm').addEventListener('submit', (e) => {
+      // Password form submit
+      document.getElementById('changePasswordForm').addEventListener('submit', async function (e) {
         e.preventDefault();
-        const newP = document.getElementById('newPwd').value;
-        const confP = document.getElementById('confirmPwd').value;
-        const alertBox = document.getElementById('passwordAlert');
-
-        if (newP !== confP) {
-          alertBox.className = 'alert py-2 small custom-alert';
-          alertBox.textContent = 'Passwords do not match.';
-          alertBox.classList.remove('d-none');
-          return;
-        }
-
-        // Pass update logic here
-        alertBox.className = 'alert py-2 small alert-success';
-        alertBox.textContent = 'Password updated successfully!';
-        alertBox.classList.remove('d-none');
-        e.target.reset();
-        setTimeout(() => alertBox.classList.add('d-none'), 3000);
-      });
-
-      document.getElementById('btnDeleteAccount').addEventListener('click', () => {
-        if (confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
-          AuthManager.logout();
+        clearPwdErrors();
+        const curr = document.getElementById('currentPwd').value;
+        const next = document.getElementById('newPwd').value;
+        const conf = document.getElementById('confirmPwd').value;
+        let ok = true;
+        if (!curr) { showErr('currentPwdError', 'Current password is required.'); ok = false; }
+        if (!next || next.length < 8) { showErr('newPwdError', 'New password must be at least 8 characters.'); ok = false; }
+        if (next !== conf) { showErr('confirmPwdError', 'Passwords do not match.'); ok = false; }
+        if (!ok) return;
+        const btn = this.querySelector('[type=submit]');
+        btn.disabled = true; btn.textContent = 'Updating…';
+        const result = await changePassword(curr, next);
+        btn.disabled = false; btn.textContent = 'Update Password';
+        if (result) {
+          document.getElementById('pwdSuccess').style.display = 'flex';
+          this.reset(); clearPwdFields();
+          setTimeout(() => document.getElementById('pwdSuccess').style.display = 'none', 3000);
+        } else {
+          document.getElementById('pwdErrorMsg').textContent = 'Current password is incorrect.';
+          document.getElementById('pwdError').style.display = 'flex';
         }
       });
-
     });
+
+    // ── Sidebar renderer ────────────────────────────────────────────────────
+    function renderRoleSidebar(role) {
+      const badge = document.getElementById('sidebarRoleBadge');
+      badge.className = 'sidebar-role-badge ' + role;
+      badge.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+
+      const nav = document.getElementById('sidebarNav');
+      if (role === 'manager') {
+        nav.innerHTML = `
+        <span class="sidebar-section-label">Main</span>
+        <ul>
+          <li><a href="manager-kpi.html" class="sidebar-nav-link">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Dashboard</a></li>
+          <li><a href="kpi-form.html" class="sidebar-nav-link">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Add KPI</a></li>
+          <li><a href="kpi-verify.html" class="sidebar-nav-link">
+            <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Verify KPIs</a></li>
+        </ul>
+        <span class="sidebar-section-label">Account</span>
+        <ul>
+          <li><a href="profile.html" class="sidebar-nav-link active">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Profile</a></li>
+        </ul>`;
+      } else {
+        nav.innerHTML = `
+        <span class="sidebar-section-label">Main</span>
+        <ul>
+          <li><a href="dashboard.html" class="sidebar-nav-link">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Dashboard</a></li>
+          <li><a href="staff-kpi.html" class="sidebar-nav-link">
+            <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+            My KPIs</a></li>
+          <li><a href="kpi-progress.html" class="sidebar-nav-link">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            Update Progress</a></li>
+        </ul>
+        <span class="sidebar-section-label">Account</span>
+        <ul>
+          <li><a href="profile.html" class="sidebar-nav-link active">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Profile</a></li>
+        </ul>`;
+      }
+    }
+
+    // ── Populate page fields ─────────────────────────────────────────────────
+    function populateProfilePage(user) {
+      const init = (user.name || 'U').charAt(0).toUpperCase();
+      document.getElementById('profileAvatarBig').textContent = init;
+      document.getElementById('profileName').textContent = user.name || '—';
+      document.getElementById('profileEmail').textContent = user.email || '—';
+
+      const rb = document.getElementById('profileRoleBadge');
+      rb.textContent = user.role || '—';
+      rb.className = 'badge badge-' + (user.role === 'manager' ? 'active' : 'info');
+
+      // View tab
+      document.getElementById('viewName').textContent = user.name || '—';
+      document.getElementById('viewEmail').textContent = user.email || '—';
+      document.getElementById('viewDept').textContent = user.department || '—';
+      document.getElementById('viewRole').textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : '—';
+      document.getElementById('viewBio').textContent = user.bio || '—';
+      document.getElementById('viewId').textContent = user.id || '—';
+      document.getElementById('viewJoined').textContent = user.joinedAt ? new Date(user.joinedAt).toLocaleDateString('en-MY', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+
+      // Edit tab prefill
+      document.getElementById('editName').value = user.name || '';
+      document.getElementById('editEmail').value = user.email || '';
+      document.getElementById('editDept').value = user.department || 'General';
+      document.getElementById('editBio').value = user.bio || '';
+      const roleDisp = document.getElementById('editRoleDisplay');
+      roleDisp.innerHTML = `<span class="badge badge-${user.role === 'manager' ? 'active' : 'info'}">${user.role || '—'}</span>`;
+
+      // Delete hint
+      const dh = document.getElementById('deleteEmailHint');
+      if (dh) dh.textContent = user.email || '';
+    }
+
+    // ── Tab switching ──────────────────────────────────────────────────────
+    function showTab(tabId, btn) {
+      ['viewTab', 'editTab', 'passwordTab', 'dangerTab'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
+      document.querySelectorAll('.profile-tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).style.display = 'block';
+      btn.classList.add('active');
+    }
+
+    // ── Password strength ────────────────────────────────────────────────
+    function checkPasswordStrength(pwd) {
+      const bars = ['s1', 's2', 's3', 's4'];
+      bars.forEach(id => { document.getElementById(id).className = ''; });
+      const label = document.getElementById('pwdStrengthLabel');
+      if (!pwd) { label.textContent = ''; return; }
+      let score = 0;
+      if (pwd.length >= 8) score++;
+      if (/[A-Z]/.test(pwd)) score++;
+      if (/[0-9]/.test(pwd)) score++;
+      if (/[^A-Za-z0-9]/.test(pwd)) score++;
+      const classes = ['weak', 'fair', 'good', 'strong'];
+      const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+      for (let i = 0; i < score; i++) document.getElementById(bars[i]).className = classes[score - 1];
+      label.textContent = labels[score - 1] || '';
+      label.style.color = ['#dc2626', '#d97706', '#eab308', '#16a34a'][score - 1] || '';
+    }
+
+    function togglePwd(fieldId, btn) {
+      const f = document.getElementById(fieldId);
+      f.type = f.type === 'password' ? 'text' : 'password';
+      btn.style.opacity = f.type === 'text' ? '0.5' : '1';
+    }
+    function clearPwdFields() {
+      ['s1', 's2', 's3', 's4'].forEach(id => document.getElementById(id).className = '');
+      document.getElementById('pwdStrengthLabel').textContent = '';
+      clearPwdErrors();
+    }
+    function clearPwdErrors() {
+      ['currentPwdError', 'newPwdError', 'confirmPwdError'].forEach(id => document.getElementById(id).textContent = '');
+      ['pwdSuccess', 'pwdError'].forEach(id => document.getElementById(id).style.display = 'none');
+    }
+
+    // ── Edit form validation ─────────────────────────────────────────────
+    function validateEditForm() {
+      let ok = true;
+      document.getElementById('editNameError').textContent = '';
+      document.getElementById('editEmailError').textContent = '';
+      const name = document.getElementById('editName').value.trim();
+      const email = document.getElementById('editEmail').value.trim();
+      if (!name) { showErr('editNameError', 'Name is required.'); ok = false; }
+      if (!email || !email.includes('@')) { showErr('editEmailError', 'Valid email is required.'); ok = false; }
+      if (!ok) { document.getElementById('editError').style.display = 'flex'; document.getElementById('editErrorMsg').textContent = 'Please fix the errors above.'; }
+      else document.getElementById('editError').style.display = 'none';
+      return ok;
+    }
+
+    // ── Delete account ───────────────────────────────────────────────────
+    function openDeleteModal() {
+      const user = getCurrentUser();
+      document.getElementById('deleteEmailHint').textContent = user?.email || '';
+      document.getElementById('deleteConfirmEmail').value = '';
+      document.getElementById('deleteConfirmError').textContent = '';
+      document.getElementById('deleteAccountModal').classList.add('open');
+    }
+    async function confirmDeleteAccount() {
+      const user = getCurrentUser();
+      const input = document.getElementById('deleteConfirmEmail').value.trim();
+      if (input.toLowerCase() !== (user?.email || '').toLowerCase()) {
+        showErr('deleteConfirmError', 'Email does not match. Please enter your exact email address.');
+        return;
+      }
+      const btn = document.getElementById('confirmDeleteBtn');
+      btn.disabled = true; btn.textContent = 'Deleting…';
+      const ok = await deleteAccount('confirm');
+      if (ok) {
+        window.location.href = '/pages/login.html';
+      } else {
+        showErr('deleteConfirmError', 'Could not delete account. Try again.');
+        btn.disabled = false; btn.textContent = 'Yes, Delete Everything';
+      }
+    }
+
+    function showErr(id, msg) { document.getElementById(id).textContent = msg; }
+
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    window.addEventListener('click', e => { if (e.target.classList.contains('modal')) e.target.classList.remove('open'); });
   </script>
 </body>
 

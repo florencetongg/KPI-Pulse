@@ -4,10 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register | KPI Pro</title>
+  <title>Register | KPIPro</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
   <style>
     *,
     *::before,
@@ -556,7 +557,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M19 12H5M12 5l-7 7 7 7" />
       </svg>
-      Back to home
+      Back
     </a>
   </nav>
 
@@ -727,7 +728,9 @@
 
   </div><!-- end .page-body -->
 
+  <script src="../js/auth.js"></script>
   <script>
+
     /* ── PASSWORD STRENGTH ── */
     const pwdInput = document.getElementById('regPassword');
     const strengthFill = document.getElementById('strengthFill');
@@ -809,29 +812,35 @@
       if (password.length < 8)
         return showError('Password must be at least 8 characters.');
 
-      const data = { name, email, department: dept, role, password };
+      const formData = { fullName: name, email, department: dept, role, password };
 
-      /* If AuthManager is available (from auth.js) use it, otherwise fallback */
-      if (typeof AuthManager !== 'undefined') {
-        const result = AuthManager.register(data);
-        if (result.success) {
-          AuthManager.login(email, password);
-          window.location.href = role === 'manager' ? 'manager-kpi.html' : 'staff-kpi.html';
-        } else {
-          showError(result.message);
-        }
-      } else {
-        /* Demo fallback: store in localStorage and redirect */
-        const users = JSON.parse(localStorage.getItem('kpipro_users') || '[]');
-        if (users.find(u => u.email === email)) {
-          return showError('An account with this email already exists.');
-        }
-        users.push(data);
-        localStorage.setItem('kpipro_users', JSON.stringify(users));
-        localStorage.setItem('kpipro_current_user', JSON.stringify(data));
-        window.location.href = role === 'manager' ? 'manager-kpi.html' : 'staff-kpi.html';
-      }
+      // Use auth.js for registration
+      register(formData)
+        .then(() => {
+          // Show success message instead of auto-redirecting
+          const rightPanel = document.querySelector('.right-panel');
+          rightPanel.innerHTML = `
+            <div class="success-state" style="text-align: center; padding: 40px 20px; animation: fadeUp 0.5s ease both;">
+              <div style="width: 80px; height: 80px; background: #f0fdf4; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px;">✓</div>
+              <h2 style="font-family: 'Sora', sans-serif; font-weight: 800; color: #0f172a; margin-bottom: 12px;">Registration Successful!</h2>
+              <p style="color: #64748b; margin-bottom: 32px;">Your account has been created. Redirecting you to login...</p>
+              <div class="spinner" style="margin: 0 auto; width: 30px; height: 30px; border: 3px solid rgba(79, 70, 229, 0.2); border-top-color: #4f46e5; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            </div>
+          `;
+
+          // Redirect to login page after 2.5 seconds
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2500);
+
+
+        })
+        .catch(err => {
+          showError(err.message || 'Registration failed.');
+        });
     });
+
+
   </script>
 
 </body>

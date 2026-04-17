@@ -3,136 +3,280 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Verification | KPI Pro</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500&display=swap"
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KPI Verification | KPI Pro</title>
+  <meta name="description" content="Review submitted KPI evidence and approve or reject staff updates.">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-
-  <style>
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: #f8f9fb;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: auto;
-      padding: 30px;
-    }
-
-    h1 {
-      font-family: 'Sora', sans-serif;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-    }
-
-    .card {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .badge {
-      background: #fef3c7;
-      color: #d97706;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      display: inline-block;
-    }
-
-    .btn {
-      padding: 8px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .approve {
-      background: #16a34a;
-      color: white;
-    }
-
-    .reject {
-      background: white;
-      border: 1px solid #e2e8f0;
-    }
-
-    .empty {
-      text-align: center;
-      color: #64748b;
-      padding: 50px;
-    }
-  </style>
+  <link rel="stylesheet" href="../css/style.css">
 </head>
 
-<body>
+<body class="app-body">
 
-  <div id="navbar-container"></div>
+  <div class="app-shell">
 
-  <div class="container">
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <a href="/index.html" class="sidebar-logo">KPI<span>Pro</span></a>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebarAvatar">M</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarName">Manager</div>
+          <span class="sidebar-role-badge manager">Manager</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <span class="sidebar-section-label">Main</span>
+        <ul>
+          <li>
+            <a href="manager-kpi.html" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="kpi-form.html" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+              Add KPI
+            </a>
+          </li>
+          <li>
+            <a href="kpi-verify.html" class="sidebar-nav-link active">
+              <svg viewBox="0 0 24 24">
+                <polyline points="9 11 12 14 22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+              Verify KPIs
+            </a>
+          </li>
+        </ul>
+        <span class="sidebar-section-label">Analytics</span>
+        <ul>
+          <li>
+            <a href="manager-kpi.html#staff-performance" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              Staff Performance
+            </a>
+          </li>
+        </ul>
+        <span class="sidebar-section-label">Account</span>
+        <ul>
+          <li>
+            <a href="profile.html" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Profile
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="sidebar-logout-btn" onclick="logout()">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Sign Out
+        </button>
+      </div>
+    </aside>
 
-    <h1>Verification</h1>
-    <p style="color:#64748b;">Review KPI submissions</p>
+    <!-- ═══ MAIN WRAPPER ═══ -->
+    <div class="app-main-wrapper">
 
-    <div id="verificationList" class="grid"></div>
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <h1 class="topbar-title">KPI Verification</h1>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-icon-btn" id="darkModeToggle" title="Toggle dark mode">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          </button>
+          <a href="profile.html" class="topbar-user">
+            <div class="topbar-avatar" id="topbarAvatar">M</div>
+            <div>
+              <div class="topbar-user-name" id="topbarName">Manager</div>
+              <div class="topbar-user-role">Manager</div>
+            </div>
+          </a>
+        </div>
+      </header>
 
-    <div id="emptyState" class="empty">
-      No KPI pending verification.
+      <!-- Main Content -->
+      <main class="app-main">
+        <div class="fade-in-up">
+
+          <!-- Alerts -->
+          <div class="alert alert-success" id="successAlert" style="display:none;">
+            <div class="alert-icon">✓</div>
+            <div class="alert-content"><span id="successMsg"></span></div>
+          </div>
+
+          <!-- Page Header -->
+          <div class="page-header">
+            <div class="page-header-info">
+              <h1>Review Submissions</h1>
+              <p>Approve or reject KPI evidence submitted by your staff</p>
+            </div>
+            <div class="page-header-actions">
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-secondary btn-sm" id="filterAll" onclick="setVerifyFilter('all')">All</button>
+                <button class="btn btn-primary btn-sm" id="filterPending" onclick="setVerifyFilter('submitted')">Pending
+                  Review</button>
+                <button class="btn btn-secondary btn-sm" id="filterApproved"
+                  onclick="setVerifyFilter('approved')">Approved</button>
+                <button class="btn btn-secondary btn-sm" id="filterRejected"
+                  onclick="setVerifyFilter('rejected')">Rejected</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verification Cards -->
+          <div id="verifyList">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="verifyEmpty" class="section-card" style="display:none;">
+            <div class="section-card-body" style="text-align:center;padding:60px 24px;">
+              <svg viewBox="0 0 24 24"
+                style="width:56px;height:56px;margin:0 auto 16px;display:block;stroke:#cbd5e1;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                <polyline points="9 11 12 14 22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+              <p style="margin:0;font-weight:700;font-size:1.05rem;color:var(--navy);">No Submissions to Review</p>
+              <p style="margin:6px 0 0;color:var(--muted);font-size:0.875rem;">Staff submitted KPIs will appear here for
+                your approval.</p>
+            </div>
+          </div>
+
+        </div><!-- fade-in-up -->
+      </main>
     </div>
-
   </div>
 
-  <script src="/js/auth.js"></script>
-  <script src="/js/kpi-manager.js"></script>
-  <script src="/js/main.js"></script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-
-      const list = document.getElementById('verificationList');
-      const empty = document.getElementById('emptyState');
-
-      const kpis = KPIStore.getAllKPIs().filter(k => k.progress >= 100);
-
-      if (!kpis.length) {
-        empty.style.display = "block";
-        return;
-      }
-
-      empty.style.display = "none";
-
-      list.innerHTML = kpis.map(k => `
-    <div class="card" id="card-${k.id}">
-      <span class="badge">Pending Review</span>
-
-      <h3>${k.title}</h3>
-      <p>${k.progress}% completed</p>
-
-      <div style="margin-top:auto; display:flex; gap:10px;">
-        <button class="btn approve" onclick="verify('${k.id}', true)">Approve</button>
-        <button class="btn reject" onclick="verify('${k.id}', false)">Reject</button>
+  <!-- ═══ APPROVE CONFIRM MODAL ═══ -->
+  <div class="modal" id="approveModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Approve KPI Submission</h3>
+        <button class="modal-close" onclick="closeModal('approveModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-success" style="display:flex;">
+          <div class="alert-icon">✓</div>
+          <div class="alert-content">
+            You are about to <strong>approve</strong> the submission for:<br>
+            <strong id="approveKpiName" style="color:var(--navy);"></strong>
+          </div>
+        </div>
+        <p style="margin:0;font-size:0.875rem;color:var(--muted);">This will mark the KPI as approved. The staff member
+          will be notified.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('approveModal')">Cancel</button>
+        <button class="btn btn-success" id="confirmApproveBtn">✓ Approve</button>
       </div>
     </div>
-  `).join('');
+  </div>
 
+  <!-- ═══ REJECT MODAL ═══ -->
+  <div class="modal" id="rejectModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Reject KPI Submission</h3>
+        <button class="modal-close" onclick="closeModal('rejectModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-error" style="display:flex;margin-bottom:20px;">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            You are about to <strong>reject</strong> the submission for:<br>
+            <strong id="rejectKpiName" style="color:var(--navy);"></strong>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label required" for="rejectReason">Rejection Reason</label>
+          <textarea id="rejectReason" class="form-textarea" placeholder="Explain why this submission is being rejected…"
+            style="min-height:100px;" required></textarea>
+          <div class="form-hint error" id="rejectReasonError"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('rejectModal')">Cancel</button>
+        <button class="btn btn-danger" id="confirmRejectBtn">Reject Submission</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ EVIDENCE PREVIEW MODAL ═══ -->
+  <div class="modal" id="evidenceModal">
+    <div class="modal-content" style="max-width:640px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Evidence Preview</h3>
+        <button class="modal-close" onclick="closeModal('evidenceModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="evidencePreviewContent"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('evidenceModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/kpi-manager.js"></script>
+  <script>
+    let currentVerifyFilter = 'all';
+
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!requireAuth('manager')) return;
+      const user = getCurrentUser();
+      populateNavUser(user);
+      initDarkMode();
+      renderVerifyList();
     });
 
-    function verify(id, approve) {
-      alert(approve ? "Approved" : "Rejected");
-      document.getElementById("card-" + id).remove();
+    function setVerifyFilter(f) {
+      currentVerifyFilter = f;
+      ['filterAll', 'filterPending', 'filterApproved', 'filterRejected'].forEach(id => {
+        document.getElementById(id).className = 'btn btn-secondary btn-sm';
+      });
+      const map = { all: 'filterAll', submitted: 'filterPending', approved: 'filterApproved', rejected: 'filterRejected' };
+      if (map[f]) document.getElementById(map[f]).className = 'btn btn-primary btn-sm';
+      renderVerifyList();
     }
-  </script>
 
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    window.addEventListener('click', function (e) {
+      if (e.target.classList.contains('modal')) e.target.classList.remove('open');
+    });
+  </script>
 </body>
 
 </html>

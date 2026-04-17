@@ -4,183 +4,411 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | KPI Pro</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500&display=swap"
+  <title>Staff Dashboard | KPI Pro</title>
+  <meta name="description" content="Track your assigned KPIs, view progress and submit evidence for approval.">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-
+  <link rel="stylesheet" href="../css/style.css">
   <style>
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: #f8f9fb;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: auto;
-      padding: 30px 20px;
-    }
-
-    h1 {
-      font-family: 'Sora', sans-serif;
-      font-weight: 800;
-      color: #0f172a;
-    }
-
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .search {
-      padding: 10px;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      width: 220px;
-    }
-
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 25px;
-    }
-
-    .card {
+    .quick-submit-card {
       background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .quick-submit-card .section-card-header {
+      padding: 16px 20px;
+    }
+
+    .quick-submit-card .section-card-body {
       padding: 20px;
     }
 
-    .progress-bar {
-      height: 8px;
-      background: #e2e8f0;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 8px;
+    .activity-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
     }
 
-    .progress-fill {
-      height: 100%;
-      background: #4f46e5;
-      width: 0%;
+    .activity-item:last-child {
+      border-bottom: none;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid #e2e8f0;
+    .activity-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 5px;
     }
 
-    th,
-    td {
-      padding: 14px;
-      font-size: 14px;
+    .activity-dot.success {
+      background: var(--success);
     }
 
-    th {
-      background: #f1f5f9;
-      color: #64748b;
-      text-align: left;
+    .activity-dot.warning {
+      background: var(--warning);
     }
 
-    .empty-state {
-      text-align: center;
-      padding: 40px;
-      color: #64748b;
+    .activity-dot.primary {
+      background: var(--primary);
     }
 
-    .btn {
-      padding: 6px 12px;
-      background: #4f46e5;
-      color: white;
-      border-radius: 6px;
-      text-decoration: none;
-      font-size: 13px;
+    .activity-dot.danger {
+      background: var(--danger);
+    }
+
+    .activity-text {
+      font-size: 0.85rem;
+      color: var(--navy);
+    }
+
+    .activity-time {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Dark mode overrides for custom elements */
+    body.dark .quick-submit-card {
+      background: #1e293b;
+      border-color: #293548;
+    }
+
+    body.dark .activity-item {
+      border-bottom-color: #293548;
+    }
+
+    body.dark .activity-text {
+      color: #e2e8f0;
     }
   </style>
 </head>
 
-<body>
+<body class="app-body">
 
-  <!-- NAVBAR -->
-  <div id="navbar-container"></div>
+  <div class="app-shell">
 
-  <div class="container">
-
-    <!-- HEADER -->
-    <div class="top-bar">
-      <div>
-        <h1>Dashboard</h1>
-        <p style="color:#64748b;">Track your KPI progress</p>
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <a href="/index.html" class="sidebar-logo">KPI<span>Pro</span></a>
       </div>
-
-      <input type="text" id="searchInput" class="search" placeholder="Search KPI...">
-    </div>
-
-    <!-- STATS (EMPTY → JS WILL FILL) -->
-    <div class="card-grid">
-      <div class="card">
-        <p>Total KPI</p>
-        <h3 id="totalKPI">0</h3>
-      </div>
-
-      <div class="card">
-        <p>Completed</p>
-        <h3 id="completedKPI">0</h3>
-      </div>
-
-      <div class="card">
-        <p>Pending</p>
-        <h3 id="pendingKPI">0</h3>
-      </div>
-
-      <div class="card">
-        <p>Progress</p>
-        <h3 id="progressText">0%</h3>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressBar"></div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebarAvatar">S</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarName">Staff</div>
+          <span class="sidebar-role-badge staff">Staff</span>
         </div>
       </div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Main</div>
+        <ul>
+          <li>
+            <a href="dashboard.html" class="sidebar-nav-link active">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="staff-kpi.html" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                <rect x="9" y="3" width="6" height="4" rx="1" />
+              </svg>
+              My KPIs
+            </a>
+          </li>
+          <li>
+            <a href="kpi-progress.html" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                <polyline points="17 6 23 6 23 12" />
+              </svg>
+              Update Progress
+            </a>
+          </li>
+        </ul>
+        <div class="sidebar-section-label">Account</div>
+        <ul>
+          <li>
+            <a href="profile.html" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Profile
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="sidebar-logout-btn" onclick="logout()">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN WRAPPER ═══ -->
+    <div class="app-main-wrapper">
+
+      <!-- Topbar -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <h1 class="topbar-title">My Dashboard</h1>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-icon-btn" id="darkModeToggle" title="Toggle dark mode">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          </button>
+          <a href="profile.html" class="topbar-user">
+            <div class="topbar-avatar" id="topbarAvatar">S</div>
+            <div>
+              <div class="topbar-user-name" id="topbarName">Staff</div>
+              <div class="topbar-user-role">Staff</div>
+            </div>
+          </a>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="app-main">
+        <div class="fade-in-up">
+
+          <!-- Page Header -->
+          <div class="page-header">
+            <div class="page-header-info">
+              <h1 id="welcomeHeading">Good morning! 👋</h1>
+              <p>Here's a summary of your KPI progress today.</p>
+            </div>
+
+            <div class="page-header-actions">
+              <!-- Using <a> tags styled as buttons -->
+              <a href="staff-kpi.html" class="btn btn-secondary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="聯合 4 6h16M4 12h16M4 18h16">
+                  </path>
+                </svg>
+                View All KPIs
+              </a>
+              <a href="kpi-progress.html" class="btn btn-primary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Update Progress
+              </a>
+            </div>
+          </div>
+
+          <!-- Stat Cards -->
+          <div class="kpi-stats-grid">
+            <div class="kpi-stat-card primary">
+              <div class="kpi-stat-icon primary">
+                <svg viewBox="0 0 24 24">
+                  <line x1="18" y1="20" x2="18" y2="10" />
+                  <line x1="12" y1="20" x2="12" y2="4" />
+                  <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+              </div>
+              <div class="kpi-stat-value" id="statAssigned">0</div>
+              <div class="kpi-stat-label">Assigned KPIs</div>
+            </div>
+            <div class="kpi-stat-card success">
+              <div class="kpi-stat-icon success">
+                <svg viewBox="0 0 24 24">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              </div>
+              <div class="kpi-stat-value" id="statCompleted">0</div>
+              <div class="kpi-stat-label">Completed</div>
+            </div>
+            <div class="kpi-stat-card warning">
+              <div class="kpi-stat-icon warning">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </div>
+              <div class="kpi-stat-value" id="statPending">0</div>
+              <div class="kpi-stat-label">Pending</div>
+            </div>
+            <div class="kpi-stat-card info">
+              <div class="kpi-stat-icon info">
+                <svg viewBox="0 0 24 24">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                  <polyline points="17 6 23 6 23 12" />
+                </svg>
+              </div>
+              <div class="kpi-stat-value" id="statProgress">0%</div>
+              <div class="kpi-stat-label">Avg. Progress</div>
+            </div>
+          </div>
+
+          <!-- Two column layout: KPI Overview + Quick Actions -->
+          <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+
+            <!-- My KPIs Overview -->
+            <div class="section-card" style="margin-bottom:0;">
+              <div class="section-card-header">
+                <h2 class="section-card-title">My KPIs Overview</h2>
+                <a href="staff-kpi.html" class="btn btn-secondary btn-sm">View All</a>
+              </div>
+              <!-- Search + Filter bar -->
+              <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;">
+                <div style="position:relative;flex:1;">
+                  <input type="text" id="dashSearch" class="form-input" placeholder="Search…"
+                    style="padding-left:32px;height:34px;font-size:0.8rem;">
+                  <svg viewBox="0 0 24 24"
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--muted);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </div>
+                <select id="dashStatusFilter" class="form-select" style="height:34px;font-size:0.8rem;width:140px;">
+                  <option value="">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="submitted">Submitted</option>
+                  <option value="approved">Approved</option>
+                </select>
+              </div>
+              <div class="data-table-wrap" style="border-radius:0;border:none;">
+                <table class="data-table" id="myKpiTable">
+                  <thead>
+                    <tr>
+                      <th>KPI Name</th>
+                      <th>Target</th>
+                      <th>Progress</th>
+                      <th>Due Date</th>
+                      <th>Status</th>
+                      <th style="text-align:right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="myKpiTableBody">
+                    <!-- JS populated -->
+                  </tbody>
+                </table>
+              </div>
+              <div id="dashEmptyState" class="section-card-footer"
+                style="text-align:center;padding:40px 24px;display:none;">
+                <p style="margin:0 0 8px;font-weight:600;color:var(--navy);">No KPIs assigned yet</p>
+                <p style="margin:0;font-size:0.825rem;color:var(--muted);">Your manager will assign KPIs to you soon.
+                </p>
+              </div>
+            </div>
+
+            <!-- Right column -->
+            <div style="display:flex;flex-direction:column;gap:20px;">
+
+              <!-- Overall Progress Ring -->
+              <div class="section-card" style="margin-bottom:0;padding:24px;text-align:center;">
+                <h3 style="font-size:0.9rem;font-weight:700;margin:0 0 20px;color:var(--navy);">Overall Progress</h3>
+                <div style="position:relative;width:120px;height:120px;margin:0 auto;">
+                  <svg viewBox="0 0 120 120" style="width:120px;height:120px;transform:rotate(-90deg);">
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" stroke-width="10" />
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="#4f46e5" stroke-width="10" stroke-dasharray="314"
+                      id="progressRing" stroke-dashoffset="314" stroke-linecap="round"
+                      style="transition:stroke-dashoffset 0.8s ease;" />
+                  </svg>
+                  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+                    <span id="progressRingText"
+                      style="font-family:'Sora',sans-serif;font-size:1.4rem;font-weight:800;color:var(--navy);">0%</span>
+                  </div>
+                </div>
+                <p style="margin:16px 0 0;font-size:0.8rem;color:var(--muted);">Average across all KPIs</p>
+              </div>
+
+              <!-- Recent Activity -->
+              <div class="section-card" style="margin-bottom:0;">
+                <div class="section-card-header" style="padding:16px 20px;">
+                  <h2 class="section-card-title" style="font-size:0.9rem;">Recent Updates</h2>
+                </div>
+                <div style="padding:4px 20px 12px;" id="activityList">
+                  <div class="activity-item">
+                    <div class="activity-dot primary"></div>
+                    <div>
+                      <div class="activity-text">No recent updates yet.</div>
+                      <div class="activity-time">Start by updating your KPI progress.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Links -->
+              <div class="section-card" style="margin-bottom:0;">
+                <div class="section-card-header" style="padding:16px 20px;">
+                  <h2 class="section-card-title" style="font-size:0.9rem;">Quick Actions</h2>
+                </div>
+                <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
+                  <a href="staff-kpi.html" class="btn btn-secondary" style="justify-content:flex-start;gap:10px;">
+                    <svg viewBox="0 0 24 24"
+                      style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                      <rect x="9" y="3" width="6" height="4" rx="1" />
+                    </svg>
+                    View My KPIs
+                  </a>
+                  <a href="kpi-progress.html" class="btn btn-primary" style="justify-content:flex-start;gap:10px;">
+                    <svg viewBox="0 0 24 24"
+                      style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                      <polyline points="17 6 23 6 23 12" />
+                    </svg>
+                    Update Progress
+                  </a>
+                  <a href="profile.html" class="btn btn-secondary" style="justify-content:flex-start;gap:10px;">
+                    <svg viewBox="0 0 24 24"
+                      style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    Edit Profile
+                  </a>
+                </div>
+              </div>
+
+            </div><!-- right col -->
+          </div><!-- grid -->
+
+        </div><!-- fade-in-up -->
+      </main>
     </div>
-
-    <!-- KPI TABLE -->
-    <table>
-      <thead>
-        <tr>
-          <th>KPI Name</th>
-          <th>Target</th>
-          <th>Status</th>
-          <th>Progress</th>
-          <th></th>
-        </tr>
-      </thead>
-
-      <tbody id="kpiTableBody">
-        <!-- JS WILL RENDER -->
-      </tbody>
-    </table>
-
-    <!-- EMPTY STATE -->
-    <div id="emptyState" class="empty-state">
-      No KPI assigned yet.
-    </div>
-
   </div>
 
-  <script src="/js/auth.js"></script>
-  <script src="/js/kpi-staff.js"></script>
-  <script src="/js/main.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/kpi-staff.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!requireAuth('staff')) return;
+      const user = getCurrentUser();
+      populateNavUser(user);
+      initDarkMode();
 
+      // Greeting
+      const hr = new Date().getHours();
+      const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('welcomeHeading').textContent = greet + ', ' + (user.name || 'there') + '! 👋';
+
+      loadStaffDashboard();
+
+      document.getElementById('dashSearch').addEventListener('input', renderMyKpiTable);
+      document.getElementById('dashStatusFilter').addEventListener('change', renderMyKpiTable);
+    });
+  </script>
 </body>
 
 </html>

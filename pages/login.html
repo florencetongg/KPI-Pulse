@@ -5,266 +5,482 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login | KPI Pro</title>
-
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500&display=swap"
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap"
     rel="stylesheet">
-
+  <link rel="stylesheet" href="../css/style.css">
   <style>
-    :root {
-      --navy: #0f172a;
-      --primary: #4f46e5;
-      --primary-light: #eef2ff;
-      --border: #e2e8f0;
-      --muted: #64748b;
-      --radius: 14px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: #f8f9fb;
+    .login-page {
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
+      height: 100vh;
     }
 
-    /* NAVBAR (same as index) */
-    nav {
-      background: #fff;
-      border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
+    .login-page nav {
+      position: relative;
+      z-index: 10;
+    }
+
+    .login-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      flex: 1;
+      min-height: calc(100vh - 64px);
+    }
+
+    .login-left {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+      padding: 60px 56px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 64px;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
     }
 
-    .logo {
+    .login-left::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      left: -80px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(79, 70, 229, 0.35) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .login-left::after {
+      content: '';
+      position: absolute;
+      bottom: -100px;
+      right: -60px;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(79, 70, 229, 0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .login-left-content {
+      position: relative;
+      z-index: 2;
+      max-width: 380px;
+    }
+
+    .login-title {
       font-family: 'Sora', sans-serif;
       font-weight: 800;
-      font-size: 1.2rem;
-      color: var(--navy);
-      text-decoration: none;
+      font-size: clamp(1.6rem, 2.5vw, 2.4rem);
+      color: white;
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+      margin-bottom: 20px;
     }
 
-    .logo span {
-      color: var(--primary);
+    .login-title em {
+      color: var(--primary-mid);
+      font-style: normal;
     }
 
-    /* LOGIN CONTAINER */
-    .login-wrapper {
-      flex: 1;
+    .login-subtitle {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    .login-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .login-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .feature-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius);
+      background: rgba(79, 70, 229, 0.2);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 40px 20px;
+      flex-shrink: 0;
+      color: var(--primary-mid);
+      font-size: 1.2rem;
     }
 
-    .login-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 40px;
+    .feature-text strong {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 2px;
+    }
+
+    .feature-text span {
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    .login-divider {
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      margin: 40px 0 28px;
+    }
+
+    .login-trust {
+      font-size: 0.78rem;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .login-right {
+      background: var(--bg);
+      padding: 60px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-form {
       width: 100%;
       max-width: 420px;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
     }
 
-    .login-card h2 {
-      font-family: 'Sora', sans-serif;
-      text-align: center;
-      margin-bottom: 8px;
-      color: var(--navy);
+    .login-header {
+      margin-bottom: 32px;
     }
 
-    .login-card p {
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-bottom: 24px;
-    }
-
-    /* INPUT */
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    label {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--muted);
-      display: block;
+    .login-header h2 {
       margin-bottom: 6px;
     }
 
-    input {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      font-size: 14px;
-      outline: none;
+    .login-form p {
+      margin-bottom: 32px;
     }
 
-    input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px var(--primary-light);
+    .login-form-group {
+      margin-bottom: 24px;
     }
 
-    /* PASSWORD TOGGLE */
-    .password-wrap {
-      display: flex;
-    }
-
-    .password-wrap input {
-      border-right: none;
-      border-radius: 8px 0 0 8px;
-    }
-
-    .toggle-btn {
-      padding: 0 12px;
-      border: 1px solid var(--border);
-      border-left: none;
-      background: #fff;
-      cursor: pointer;
-      border-radius: 0 8px 8px 0;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    /* BUTTON */
-    .btn {
-      width: 100%;
-      padding: 11px;
-      border-radius: 8px;
-      border: none;
+    .login-form-group label {
+      display: block;
+      font-size: 0.875rem;
       font-weight: 600;
-      cursor: pointer;
-      background: var(--primary);
-      color: #fff;
-      transition: 0.2s;
-    }
-
-    .btn:hover {
-      background: #4338ca;
-    }
-
-    /* ERROR */
-    .error {
-      background: #fee2e2;
-      color: #991b1b;
-      padding: 8px;
-      border-radius: 6px;
-      font-size: 13px;
+      color: var(--navy);
       margin-bottom: 12px;
+    }
+
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 14px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 1rem;
+      padding: 0;
+    }
+
+    .toggle-password:hover {
+      color: var(--navy);
+    }
+
+    .forgot-password-link {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: right;
+    }
+
+    .forgot-password-link a {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .remember-me input {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .form-error {
+      color: var(--danger);
+      font-size: 0.8rem;
+      margin-top: 6px;
       display: none;
     }
 
-    .extra {
-      text-align: center;
-      margin-top: 16px;
-      font-size: 13px;
-      color: var(--muted);
+    .form-error.show {
+      display: block;
     }
 
-    .extra a {
+    .error-alert {
+      background: var(--danger-light);
+      border: 1px solid #fecaca;
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-size: 0.875rem;
+      color: #991b1b;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .error-alert.show {
+      display: flex;
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .login-footer p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .login-footer a {
       color: var(--primary);
-      text-decoration: none;
       font-weight: 600;
+      text-decoration: none;
+    }
+
+    @media (max-width: 1024px) {
+      .login-left {
+        display: none;
+      }
+
+      .login-container {
+        grid-template-columns: 1fr;
+      }
+
+      .login-right {
+        min-height: calc(100vh - 64px);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .login-right {
+        padding: 40px 20px;
+      }
+
+      .login-form {
+        max-width: 100%;
+      }
     }
   </style>
 </head>
 
 <body>
+  <div class="login-page">
+    <!-- Navbar -->
+    <nav>
+      <div class="navbar-wrapper">
+        <a href="/index.html" class="logo">
+          KPI <span>Pro</span>
+        </a>
+        <a href="/index.html" class="btn btn-secondary btn-sm" style="margin-left: auto;">← Back</a>
+      </div>
+    </nav>
 
-  <!-- NAVBAR -->
-  <nav>
-    <a href="/" class="logo">KPI<span>Pro</span></a>
-  </nav>
+    <!-- Login Container -->
+    <div class="login-container">
+      <!-- Left Panel -->
+      <div class="login-left">
+        <div class="login-left-content">
+          <h1 class="login-title">Welcome <em>Back</em></h1>
+          <p class="login-subtitle">Sign in to continue to your KPI management dashboard and track your performance.</p>
 
-  <!-- LOGIN -->
-  <div class="login-wrapper">
-    <div class="login-card">
+          <ul class="login-features">
+            <li class="login-feature">
+              <div class="feature-icon">✓</div>
+              <div class="feature-text">
+                <strong>Real-time Updates</strong>
+                <span>Get instant notifications on KPI changes</span>
+              </div>
+            </li>
+            <li class="login-feature">
+              <div class="feature-icon">📊</div>
+              <div class="feature-text">
+                <strong>Performance Analytics</strong>
+                <span>Track your progress with detailed insights</span>
+              </div>
+            </li>
+            <li class="login-feature">
+              <div class="feature-icon">🔒</div>
+              <div class="feature-text">
+                <strong>Secure & Encrypted</strong>
+                <span>Your data is protected with enterprise security</span>
+              </div>
+            </li>
+          </ul>
 
-      <h2>Welcome back</h2>
-      <p>Sign in to your KPI dashboard</p>
-
-      <div id="errorAlert" class="error"></div>
-
-      <form id="loginForm">
-
-        <div class="form-group">
-          <label>Email Address</label>
-          <input type="email" id="loginEmail" placeholder="name@company.com" required>
+          <hr class="login-divider">
+          <p class="login-trust">✓ Trusted by 500+ Organizations</p>
         </div>
-
-        <div class="form-group">
-          <label>Password</label>
-          <div class="password-wrap">
-            <input type="password" id="loginPassword" placeholder="••••••••" required>
-            <button type="button" class="toggle-btn" id="togglePassword">Show</button>
-          </div>
-        </div>
-
-        <button type="submit" class="btn">Sign In</button>
-      </form>
-
-      <div class="extra">
-        Don't have an account?
-        <a href="/pages/register.html">Sign up</a>
       </div>
 
+      <!-- Right Panel - Form -->
+      <div class="login-right">
+        <form class="login-form" id="loginForm">
+          <div class="login-header">
+            <h2>Welcome Back</h2>
+            <p>Please enter your credentials to sign in</p>
+          </div>
+
+          <!-- Error Alert -->
+          <div class="error-alert" id="errorAlert">
+            <span>⚠️</span>
+            <span id="errorMessage"></span>
+          </div>
+
+          <!-- Email Field -->
+          <div class="login-form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" class="form-input" placeholder="name@company.com" required>
+            <div class="form-error" id="emailError"></div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="login-form-group">
+            <label for="password">Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="password" class="form-input" placeholder="••••••••" required
+                style="width: 100%;">
+              <button type="button" class="toggle-password" id="togglePassword">👁️</button>
+            </div>
+            <div class="forgot-password-link">
+              <a href="/reset-password.html">Forgot password?</a>
+            </div>
+            <div class="form-error" id="passwordError"></div>
+          </div>
+
+          <!-- Remember Me -->
+          <div class="remember-me">
+            <input type="checkbox" id="rememberMe">
+            <label for="rememberMe" style="margin: 0; cursor: pointer;">Keep me logged in</label>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-bottom: 16px;">Sign In</button>
+
+          <!-- Sign Up Link -->
+          <div class="login-footer">
+            <p>Don't have an account? <a href="/pages/register.html">Sign Up</a></p>
+          </div>
+
+          <!-- Demo Buttons -->
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed var(--border); text-align: center;">
+            <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 12px;">For Demonstration Purposes</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('email').value='staff@kpipro.com'; document.getElementById('password').value='password123';">
+                Staff Demo
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" style="color: #4f46e5; border-color: rgba(79, 70, 229, 0.3); background: rgba(79, 70, 229, 0.05);" onclick="document.getElementById('email').value='manager@kpipro.com'; document.getElementById('password').value='password123';">
+                Manager Demo
+              </button>
+            </div>
+          </div>
+        </form>
+
+      </div>
     </div>
   </div>
 
-  <!-- SCRIPT -->
-  <script src="/js/auth.js"></script>
+  <script src="../js/auth.js"></script>
   <script>
+    // Password toggle
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+
+    if (togglePassword && passwordInput) {
+      togglePassword.addEventListener('click', (e) => {
+        e.preventDefault();
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        togglePassword.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+      });
+    }
+
+    // Form validation and submission
     const loginForm = document.getElementById('loginForm');
-    const errorAlert = document.getElementById('errorAlert');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    loginForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      errorAlert.style.display = "none";
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const errorAlert = document.getElementById('errorAlert');
+        const errorMessage = document.getElementById('errorMessage');
 
-      const email = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value;
+        // Reset errors
+        document.getElementById('emailError').textContent = '';
+        document.getElementById('passwordError').textContent = '';
+        errorAlert.classList.remove('show');
 
-      const result = AuthManager.login(email, password);
+        let isValid = true;
 
-      if (result.success) {
-        if (result.user.role === 'manager') {
-          window.location.href = 'manager-kpi.html';
-        } else {
-          window.location.href = 'staff-kpi.html';
+        // Email validation
+        if (!email) {
+          document.getElementById('emailError').textContent = 'Email is required';
+          isValid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          document.getElementById('emailError').textContent = 'Please enter a valid email';
+          isValid = false;
         }
-      } else {
-        errorAlert.textContent = result.message;
-        errorAlert.style.display = "block";
-      }
-    });
 
-    // Toggle password
-    const toggle = document.getElementById('togglePassword');
-    const password = document.getElementById('loginPassword');
+        // Password validation
+        if (!password) {
+          document.getElementById('passwordError').textContent = 'Password is required';
+          isValid = false;
+        } else if (password.length < 6) {
+          document.getElementById('passwordError').textContent = 'Password must be at least 6 characters';
+          isValid = false;
+        }
 
-    toggle.addEventListener('click', () => {
-      if (password.type === "password") {
-        password.type = "text";
-        toggle.textContent = "Hide";
-      } else {
-        password.type = "password";
-        toggle.textContent = "Show";
-      }
-    });
+        if (!isValid) return;
+
+        // Use auth.js for login
+        try {
+          const result = await login(email, password, document.getElementById('rememberMe').checked);
+          // Redirect using safe logic in auth.js
+          redirectToModuleHome();
+        } catch (error) {
+          errorMessage.textContent = error.message || 'Login failed. Please try again.';
+          errorAlert.classList.add('show');
+        }
+      });
+    }
   </script>
-
 </body>
 
-</html>
+</html>
