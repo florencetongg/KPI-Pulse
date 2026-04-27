@@ -54,9 +54,8 @@ function initializeNavbar() {
         applyTheme(savedTheme);
 
         themeToggle.addEventListener('click', () => {
-            const currentTheme = localStorage.getItem('theme') || 'light';
+            const currentTheme = document.body.classList.contains('dark') ? 'dark' : 'light';
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            localStorage.setItem('theme', newTheme);
             applyTheme(newTheme);
         });
     }
@@ -89,20 +88,15 @@ function initializeNavbar() {
 function applyTheme(theme) {
     const html = document.documentElement;
     const themeToggle = document.getElementById('themeToggle');
+    const isDark = theme === 'dark';
 
-    if (theme === 'dark') {
-        html.setAttribute('data-theme', 'dark');
-        if (themeToggle) themeToggle.textContent = '☀️';
-        document.body.style.backgroundColor = '#0f172a';
-        document.body.style.color = '#e2e8f0';
-    } else {
-        html.removeAttribute('data-theme');
-        if (themeToggle) themeToggle.textContent = '🌙';
-        document.body.style.backgroundColor = '#ffffff';
-        document.body.style.color = '#1e293b';
-    }
+    // Keep both selectors in sync because some pages/styles rely on .dark,
+    // while others rely on [data-theme].
+    html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.body.classList.toggle('dark', isDark);
+    if (themeToggle) themeToggle.textContent = isDark ? '☀️' : '🌙';
 
-    localStorage.setItem('theme', theme);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
 /**

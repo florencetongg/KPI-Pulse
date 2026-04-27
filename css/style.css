@@ -2618,6 +2618,63 @@ body.app-body {
 /* ══════════════════════════════════════════════════════════════
    30. JAVASCRIPT DARK MODE (.dark class on <body>)
    ══════════════════════════════════════════════════════════════ */
+html[data-theme='light'] {
+  --navy: #0f172a;
+  --navy-light: #192332;
+  --bg: #f8f9fb;
+  --bg-secondary: #f1f5f9;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --muted: #64748b;
+  --muted-light: #94a3b8;
+}
+
+html[data-theme='light'] .form-input,
+html[data-theme='light'] .form-select,
+html[data-theme='light'] .form-textarea {
+  background: var(--surface);
+  color: var(--navy);
+  border-color: var(--border);
+}
+
+html[data-theme='light'] table {
+  background: var(--surface);
+  color: var(--navy);
+}
+
+html[data-theme='light'] th,
+html[data-theme='light'] thead {
+  background: #f8fafc;
+  color: var(--muted);
+}
+
+html[data-theme='light'] tbody tr:hover {
+  background: #f8fafc;
+}
+
+html[data-theme='light'] .data-table thead {
+  background: #f8fafc;
+}
+
+html[data-theme='light'] .data-table td {
+  color: var(--navy);
+  border-bottom-color: #f1f5f9;
+}
+
+html[data-theme='light'] .data-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+html[data-theme='dark'] {
+  --navy: #f1f5f9;
+  --bg: #0f172a;
+  --bg-secondary: #1e293b;
+  --surface: #1e293b;
+  --border: #293548;
+  --muted: #94a3b8;
+  --muted-light: #64748b;
+}
+
 body.dark {
   --navy: #f1f5f9;
   --bg: #0f172a;

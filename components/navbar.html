@@ -45,22 +45,22 @@
 
     // Theme toggle
     if (themeToggle) {
+      const setTheme = (theme) => {
+        const isDark = theme === 'dark';
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        document.body.classList.toggle('dark', isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        themeToggle.textContent = isDark ? '☀️' : '🌙';
+      };
+
       themeToggle.addEventListener('click', function () {
-        if (document.documentElement.getAttribute('data-theme') === 'dark') {
-          document.documentElement.setAttribute('data-theme', 'light');
-          localStorage.setItem('theme', 'light');
-          themeToggle.textContent = '🌙';
-        } else {
-          document.documentElement.setAttribute('data-theme', 'dark');
-          localStorage.setItem('theme', 'dark');
-          themeToggle.textContent = '☀️';
-        }
+        const nextTheme = document.body.classList.contains('dark') ? 'light' : 'dark';
+        setTheme(nextTheme);
       });
 
       // Load saved theme
       const savedTheme = localStorage.getItem('theme') || 'light';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+      setTheme(savedTheme);
     }
   });
 </script>

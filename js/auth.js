@@ -285,12 +285,20 @@ async function authenticatedFetch(url, options = {}) {
 
 // ── Dark Mode Initialiser (call once per page) ──────────────────────────────
 function initDarkMode(toggleBtnId = 'darkModeToggle') {
-  if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+  const setTheme = (theme) => {
+    const isDark = theme === 'dark';
+    document.body.classList.toggle('dark', isDark);
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  };
+
+  setTheme(localStorage.getItem('theme') === 'dark' ? 'dark' : 'light');
+
   const btn = document.getElementById(toggleBtnId);
   if (btn) {
     btn.addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+      const nextTheme = document.body.classList.contains('dark') ? 'light' : 'dark';
+      setTheme(nextTheme);
     });
   }
 }
