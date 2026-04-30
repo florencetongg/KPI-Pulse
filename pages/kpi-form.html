@@ -7,6 +7,54 @@
   <meta name="description" content="Create or edit a KPI and assign it to a team member.">
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+    .quick-form { margin-bottom: 20px; }
+
+    .quick-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .quick-row input {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      font-size: 14px;
+      background: #f9fafb;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    .quick-row input:focus {
+      border-color: #6366f1;
+      background: #fff;
+      box-shadow: 0 0 0 2px rgba(99,102,241,0.15);
+    }
+
+    .quick-row button {
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: none;
+      background: #4f46e5;
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+
+    .quick-row button:hover {
+      background: #4338ca;
+    }
+
+    @media (max-width: 768px) {
+      .quick-row { flex-direction: column; }
+    }
+  </style>
+  
 </head>
 <body class="app-body">
 
@@ -113,8 +161,16 @@
           <div class="alert-content"><span id="errorMsg">Please fix the errors below.</span></div>
         </div>
 
-        <form id="kpiForm" novalidate>
-          <input type="hidden" id="kpiId">
+        <form id="kpiForm" class="quick-form">
+          <div class="quick-row">
+            <input type="text" id="name" placeholder="KPI Name" required />
+            <input type="number" id="target" placeholder="Target" required />
+            <input type="text" id="staff" placeholder="Staff Name" required />
+            <button type="submit">Add KPI</button>
+          </div>
+        </form>
+
+        <script src="js/kpi-manager.js"></script>
 
           <!-- Section: Basic Info -->
           <div class="section-card">
@@ -247,5 +303,6 @@
     });
   });
 </script>
+
 </body>
 </html>
