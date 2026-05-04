@@ -30,8 +30,8 @@
     const userProfile = document.getElementById('userProfile');
     const themeToggle = document.getElementById('themeToggle');
 
-    // Load user data from localStorage
-    const userData = JSON.parse(localStorage.getItem('userData') || '{"name":"User","role":"staff"}');
+    // Load user data from session storage
+    const userData = JSON.parse(sessionStorage.getItem('userData') || '{"name":"User","role":"staff"}');
     document.getElementById('userName').textContent = userData.name || 'User';
     document.getElementById('userRole').textContent = userData.role || 'staff';
     document.getElementById('userAvatar').textContent = (userData.name || 'U').charAt(0).toUpperCase();
@@ -49,7 +49,7 @@
         const isDark = theme === 'dark';
         document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
         document.body.classList.toggle('dark', isDark);
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        sessionStorage.setItem('theme', isDark ? 'dark' : 'light');
         themeToggle.textContent = isDark ? '☀️' : '🌙';
       };
 
@@ -59,7 +59,7 @@
       });
 
       // Load saved theme
-      const savedTheme = localStorage.getItem('theme') || 'light';
+      const savedTheme = sessionStorage.getItem('theme') || 'light';
       setTheme(savedTheme);
     }
   });

@@ -50,7 +50,7 @@ function initializeNavbar() {
     const themeToggle = document.getElementById('themeToggle');
     if (themeToggle) {
         // Check saved theme preference
-        const savedTheme = localStorage.getItem('theme') || 'light';
+        const savedTheme = sessionStorage.getItem('theme') || 'light';
         applyTheme(savedTheme);
 
         themeToggle.addEventListener('click', () => {
@@ -96,7 +96,7 @@ function applyTheme(theme) {
     document.body.classList.toggle('dark', isDark);
     if (themeToggle) themeToggle.textContent = isDark ? '☀️' : '🌙';
 
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    sessionStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
 /**
@@ -176,7 +176,7 @@ function checkAuthentication() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
     const isPublic = publicPages.includes(currentPage);
-    const isAuthenticated = !!localStorage.getItem('authToken');
+    const isAuthenticated = !!sessionStorage.getItem('authToken');
 
     if (!isPublic && !isAuthenticated) {
         window.location.href = '/login.html';

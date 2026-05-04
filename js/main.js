@@ -24,10 +24,10 @@ function initializeApp() {
 }
 
 /**
- * Initialize theme from localStorage or system preference
+ * Initialize theme from session storage or system preference
  */
 function initializeTheme() {
-  const savedTheme = localStorage.getItem('theme');
+  const savedTheme = sessionStorage.getItem('theme');
 
   if (savedTheme) {
     applyTheme(savedTheme);
@@ -39,7 +39,7 @@ function initializeTheme() {
 
   // Listen for system theme changes
   window.matchMedia('(prefers-color-scheme: dark)').addListener((e) => {
-    if (!localStorage.getItem('theme')) {
+    if (!sessionStorage.getItem('theme')) {
       applyTheme(e.matches ? 'dark' : 'light');
     }
   });
@@ -49,7 +49,7 @@ function initializeTheme() {
  * Verify user session is still valid
  */
 async function verifyUserSession() {
-  const token = localStorage.getItem('authToken');
+  const token = sessionStorage.getItem('authToken');
   if (!token) return;
 
   try {

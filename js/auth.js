@@ -25,6 +25,56 @@ const ROLE_REDIRECTS = {
 };
 const LOGIN_PAGE = 'login.html';
 
+const SESSION_KEYS = {
+  token: 'authToken',
+  user: 'userData',
+  theme: 'theme',
+};
+
+function shouldUseBackendAuth() {
+  // Local static runs should use Firestore-backed auth flow.
+  return !/localhost|127\.0\.0\.1/i.test(window.location.hostname);
+}
+
+function _getStore() {
+  return window.sessionStorage;
+}
+
+function _getDb() {
+  if (typeof db === 'undefined') {
+    throw new Error('Firestore is not initialized. Make sure firebase scripts are loaded first.');
+  }
+  return db;
+}
+
+async function _findUserByEmail(email) {
+  const emailLower = String(email || '').trim().toLowerCase();
+  if (!emailLower) return null;
+
+  const dbRef = _getDb();
+  const byLower = await dbRef.collection('users')
+    .where('emailLower', '==', emailLower)
+    .limit(1)
+    .get();
+
+  if (!byLower.empty) {
+    const doc = byLower.docs[0];
+    return { id: doc.id, ...doc.data() };
+  }
+
+  const byEmail = await dbRef.collection('users')
+    .where('email', '==', email)
+    .limit(1)
+    .get();
+
+  if (!byEmail.empty) {
+    const doc = byEmail.docs[0];
+    return { id: doc.id, ...doc.data() };
+  }
+
+  return null;
+}
+
 
 // ── Auth Guard ──────────────────────────────────────────────────────────────
 /**
@@ -33,7 +83,7 @@ const LOGIN_PAGE = 'login.html';
  * @returns {boolean} true if access allowed
  */
 function requireAuth(requiredRole = null) {
-  const token = localStorage.getItem('authToken');
+  const token = _getStore().getItem(SESSION_KEYS.token);
   const user = getCurrentUser();
 
   if (!token || !user) {
@@ -57,6 +107,10 @@ function requireAuth(requiredRole = null) {
  * @returns {Promise<Object>} { token, user }
  */
 async function login(email, password, rememberMe = false) {
+  if (!shouldUseBackendAuth()) {
+    return mockLogin(email, password, rememberMe);
+  }
+
   try {
     const response = await fetch(API_ENDPOINTS.login, {
       method: 'POST',
@@ -73,34 +127,39 @@ async function login(email, password, rememberMe = false) {
   }
 }
 
-function mockLogin(email, password, rememberMe = false) {
+async function mockLogin(email, password, rememberMe = false) {
   if (!email || !password || password.length < 6) {
     throw new Error('Invalid credentials — password must be at least 6 characters.');
   }
 
-  // Try to find a registered user first
-  const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-  const existingUser = registeredUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+  const existingUser = await _findUserByEmail(email);
+
+  if (existingUser && existingUser.password && existingUser.password !== password) {
+    throw new Error('Invalid credentials. Please check your email and password.');
+  }
 
   // Default role detection if not a registered user
   const isManagerEmail = email.toLowerCase().includes('manager') || email === 'manager@kpipro.com';
 
   const userData = existingUser || {
-    id: 'u_' + Math.random().toString(36).substr(2, 9),
+    id: '',
     name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
     email: email,
+    emailLower: email.toLowerCase(),
     role: isManagerEmail ? 'manager' : 'staff',
     department: 'General',
     bio: '',
     joinedAt: new Date().toISOString(),
+    password,
   };
 
-  // Critical fix: ensure existing user role is respected
-  if (existingUser) userData.role = existingUser.role;
-
+  if (!existingUser) {
+    const docRef = await _getDb().collection('users').add(userData);
+    userData.id = docRef.id;
+  }
 
   _storeSession('mock-token-' + Date.now(), userData, rememberMe);
-  return { token: localStorage.getItem('authToken'), user: userData };
+  return { token: _getStore().getItem(SESSION_KEYS.token), user: userData };
 }
 
 
@@ -110,6 +169,10 @@ function mockLogin(email, password, rememberMe = false) {
  * @returns {Promise<Object>} { token, user }
  */
 async function register(formData) {
+  if (!shouldUseBackendAuth()) {
+    return mockRegister(formData);
+  }
+
   try {
     const response = await fetch(API_ENDPOINTS.register, {
       method: 'POST',
@@ -126,25 +189,26 @@ async function register(formData) {
   }
 }
 
-function mockRegister(formData) {
-  // Check duplicate email
-  const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-  if (registeredUsers.find(u => u.email.toLowerCase() === formData.email.toLowerCase())) {
+async function mockRegister(formData) {
+  const existingUser = await _findUserByEmail(formData.email);
+  if (existingUser) {
     throw new Error('An account with this email already exists.');
   }
 
   const userData = {
-    id: 'u_' + Math.random().toString(36).substr(2, 9),
+    id: '',
     name: formData.fullName,
     email: formData.email,
+    emailLower: formData.email.toLowerCase(),
     role: formData.role || 'staff',
     department: formData.department || 'General',
     bio: '',
     joinedAt: new Date().toISOString(),
+    password: formData.password,
   };
 
-  registeredUsers.push(userData);
-  localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+  const docRef = await _getDb().collection('users').add(userData);
+  userData.id = docRef.id;
   
   // Do NOT automatically log the user in. Force them to use the login page.
   return { success: true, user: userData };
@@ -153,7 +217,7 @@ function mockRegister(formData) {
 // ── Logout ──────────────────────────────────────────────────────────────────
 async function logout() {
   try {
-    const token = localStorage.getItem('authToken');
+    const token = _getStore().getItem(SESSION_KEYS.token);
     if (token) {
       await fetch(API_ENDPOINTS.logout, {
         method: 'POST',
@@ -162,25 +226,24 @@ async function logout() {
     }
   } catch (e) { /* ignore network errors on logout */ }
 
-  localStorage.removeItem('authToken');
-  localStorage.removeItem('userData');
-  localStorage.removeItem('rememberMe');
+  _getStore().removeItem(SESSION_KEYS.token);
+  _getStore().removeItem(SESSION_KEYS.user);
   window.location.href = LOGIN_PAGE;
 }
 
 // ── Session Helpers ─────────────────────────────────────────────────────────
 function _storeSession(token, user, rememberMe = false) {
-  localStorage.setItem('authToken', token);
-  localStorage.setItem('userData', JSON.stringify(user));
-  if (rememberMe) localStorage.setItem('rememberMe', 'true');
+  const store = _getStore();
+  store.setItem(SESSION_KEYS.token, token);
+  store.setItem(SESSION_KEYS.user, JSON.stringify(user));
 }
 
 function isAuthenticated() {
-  return !!localStorage.getItem('authToken') && !!getCurrentUser();
+  return !!_getStore().getItem(SESSION_KEYS.token) && !!getCurrentUser();
 }
 
 function getCurrentUser() {
-  const raw = localStorage.getItem('userData');
+  const raw = _getStore().getItem(SESSION_KEYS.user);
   try { return raw ? JSON.parse(raw) : null; } catch { return null; }
 }
 
@@ -214,7 +277,7 @@ function _safeRedirect(targetPage) {
 // ── Profile Update ──────────────────────────────────────────────────────────
 async function updateProfile(updates) {
   try {
-    const token = localStorage.getItem('authToken');
+    const token = _getStore().getItem(SESSION_KEYS.token);
     const response = await fetch(API_ENDPOINTS.updateProfile, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -222,57 +285,98 @@ async function updateProfile(updates) {
     });
     if (!response.ok) throw new Error('Update failed');
     const data = await response.json();
-    localStorage.setItem('userData', JSON.stringify(data.user));
+    _getStore().setItem(SESSION_KEYS.user, JSON.stringify(data.user));
     return data.user;
   } catch (err) {
-    // Mock: merge updates into localStorage
     const user = getCurrentUser();
+    if (!user?.id) throw new Error('User session is missing. Please login again.');
+
     const updated = { ...user, ...updates };
-    localStorage.setItem('userData', JSON.stringify(updated));
-    // Sync into registeredUsers list
-    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const idx = registeredUsers.findIndex(u => u.email === updated.email);
-    if (idx !== -1) { registeredUsers[idx] = updated; localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers)); }
+
+    await _getDb().collection('users').doc(user.id).set({
+      ...updated,
+      emailLower: String(updated.email || '').toLowerCase(),
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+
+    _getStore().setItem(SESSION_KEYS.user, JSON.stringify(updated));
     return updated;
   }
 }
 
 async function changePassword(currentPassword, newPassword) {
   try {
-    const token = localStorage.getItem('authToken');
+    const token = _getStore().getItem(SESSION_KEYS.token);
     const response = await fetch(API_ENDPOINTS.changePassword, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ currentPassword, newPassword }),
     });
     return response.ok;
-  } catch { return true; } // Mock success
+  } catch {
+    const user = getCurrentUser();
+    if (!user?.id) return false;
+
+    const snap = await _getDb().collection('users').doc(user.id).get();
+    if (!snap.exists) return false;
+    const data = snap.data();
+    if (data.password && data.password !== currentPassword) return false;
+
+    await _getDb().collection('users').doc(user.id).set({
+      password: newPassword,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+    return true;
+  }
 }
 
 async function deleteAccount(password) {
   try {
-    const token = localStorage.getItem('authToken');
+    const token = _getStore().getItem(SESSION_KEYS.token);
     const response = await fetch(API_ENDPOINTS.deleteAccount, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
     });
-    if (response.ok) { _clearAllData(); return true; }
+    if (response.ok) { await _clearAllData(); return true; }
     return false;
-  } catch { _clearAllData(); return true; } // Mock success
+  } catch {
+    await _clearAllData();
+    return true;
+  }
 }
 
-function _clearAllData() {
-  const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+async function _clearAllData() {
   const user = getCurrentUser();
-  const filtered = registeredUsers.filter(u => u.email !== user?.email);
-  localStorage.clear();
-  localStorage.setItem('registeredUsers', JSON.stringify(filtered));
+  const dbRef = _getDb();
+
+  if (user?.id) {
+    await dbRef.collection('users').doc(user.id).delete();
+  }
+
+  if (user?.id || user?.email) {
+    const assignedById = user?.id
+      ? await dbRef.collection('kpi').where('assignedTo', '==', user.id).get()
+      : { docs: [] };
+    const assignedByEmail = user?.email
+      ? await dbRef.collection('kpi').where('assignedTo', '==', user.email).get()
+      : { docs: [] };
+
+    const toDelete = [...assignedById.docs, ...assignedByEmail.docs]
+      .reduce((acc, doc) => {
+        if (!acc.find(d => d.id === doc.id)) acc.push(doc);
+        return acc;
+      }, []);
+
+    await Promise.all(toDelete.map(doc => dbRef.collection('kpi').doc(doc.id).delete()));
+  }
+
+  _getStore().clear();
 }
 
 // ── Authenticated Fetch ─────────────────────────────────────────────────────
 async function authenticatedFetch(url, options = {}) {
-  const token = localStorage.getItem('authToken');
+  const token = _getStore().getItem(SESSION_KEYS.token);
   return fetch(url, {
     ...options,
     headers: {
@@ -289,10 +393,10 @@ function initDarkMode(toggleBtnId = 'darkModeToggle') {
     const isDark = theme === 'dark';
     document.body.classList.toggle('dark', isDark);
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    _getStore().setItem(SESSION_KEYS.theme, isDark ? 'dark' : 'light');
   };
 
-  setTheme(localStorage.getItem('theme') === 'dark' ? 'dark' : 'light');
+  setTheme(_getStore().getItem(SESSION_KEYS.theme) === 'dark' ? 'dark' : 'light');
 
   const btn = document.getElementById(toggleBtnId);
   if (btn) {

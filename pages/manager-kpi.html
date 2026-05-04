@@ -76,6 +76,16 @@
               Staff Performance
             </a>
           </li>
+          <li>
+            <a href="manager-kpi.html#kpi-history" class="sidebar-nav-link">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 3v5h5" />
+                <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+                <polyline points="12 7 12 12 16 14" />
+              </svg>
+              KPI History
+            </a>
+          </li>
         </ul>
         <span class="sidebar-section-label">Account</span>
         <ul>
@@ -297,6 +307,33 @@
             </div>
           </div>
 
+          <!-- KPI History -->
+          <div class="section-card" id="kpi-history">
+            <div class="section-card-header">
+              <h2 class="section-card-title">
+                <svg viewBox="0 0 24 24"
+                  style="width:18px;height:18px;stroke:var(--primary);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;margin-right:8px">
+                  <path d="M3 3v5h5" />
+                  <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" />
+                  <polyline points="12 7 12 12 16 14" />
+                </svg>
+                KPI History
+              </h2>
+              <div id="kpiHistoryConnection" style="font-size:0.78rem;font-weight:700;color:var(--muted);">
+                Checking Firestore...
+              </div>
+            </div>
+            <div class="section-card-body" style="padding:0 20px 8px;">
+              <ul id="kpiHistoryList" style="list-style:none;margin:0;padding:0;">
+                <!-- Populated by JS -->
+              </ul>
+              <div id="kpiHistoryEmpty" class="section-card-footer"
+                style="text-align:center;padding:30px 8px;display:none;border-top:1px solid var(--border);">
+                <p style="margin:0;color:var(--muted);">No KPI history available yet.</p>
+              </div>
+            </div>
+          </div>
+
         </div><!-- fade-in-up -->
       </main>
     </div>
@@ -325,6 +362,9 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="../js/firebase.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/kpi-manager.js"></script>
   <script>

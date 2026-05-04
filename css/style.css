@@ -1107,9 +1107,11 @@ tbody tr:hover {
 }
 
 .feature-text strong {
+  display: block;
   font-size: 0.9rem;
-  font-weight: var(--fw-semibold);
+  font-weight: 600;
   color: white;
+  margin-bottom: 2px;
 }
 
 .feature-text span {

@@ -3,61 +3,142 @@
  * Powers manager-kpi.html, kpi-form.html, kpi-verify.html
  */
 
+function _db() {
+  if (typeof db === 'undefined') {
+    throw new Error('Firestore is not initialized.');
+  }
+  return db;
+}
+
+let lastKpiSource = 'remote';
+
+function normalizeMaybeTimestamp(value) {
+  if (value && typeof value.toDate === 'function') {
+    return value.toDate().toISOString();
+  }
+  return value;
+}
+
+function normalizeKpiRecord(record) {
+  return {
+    ...record,
+    createdAt: normalizeMaybeTimestamp(record.createdAt),
+    updatedAt: normalizeMaybeTimestamp(record.updatedAt),
+    submittedAt: normalizeMaybeTimestamp(record.submittedAt),
+  };
+}
+
 // ── Data Store ───────────────────────────────────────────────────────────────
-function getKpis() {
-  return JSON.parse(localStorage.getItem('kpis') || '[]');
+async function getKpis() {
+  const snapshot = await _db().collection('kpi').get();
+  const kpis = snapshot.docs.map(doc => normalizeKpiRecord({ id: doc.id, ...doc.data() }));
+  lastKpiSource = 'remote';
+  return kpis;
 }
-function saveKpis(kpis) {
-  localStorage.setItem('kpis', JSON.stringify(kpis));
+
+async function getKpiById(id) {
+  if (!id) return null;
+  const snap = await _db().collection('kpi').doc(id).get();
+  if (!snap.exists) return null;
+  return { id: snap.id, ...snap.data() };
 }
-function getKpiById(id) {
-  return getKpis().find(k => k.id === id) || null;
+
+async function saveKpi(kpi) {
+  const now = new Date().toISOString();
+  const payload = { ...kpi, updatedAt: now };
+
+  if (kpi.id) {
+    const id = kpi.id;
+    delete payload.id;
+    await _db().collection('kpi').doc(id).set(payload, { merge: true });
+    return id;
+  }
+
+  payload.createdAt = payload.createdAt || now;
+  const docRef = await _db().collection('kpi').add(payload);
+  return docRef.id;
 }
-function getStaffUsers() {
-  const reg = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-  return reg.filter(u => u.role === 'staff');
+
+async function deleteKpi(id) {
+  if (!id) return;
+  await _db().collection('kpi').doc(id).delete();
+}
+
+async function getStaffUsers() {
+  const snapshot = await _db().collection('users')
+    .where('role', '==', 'staff')
+    .get();
+
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
 }
 
 // ── Manager Dashboard ────────────────────────────────────────────────────────
-function loadManagerDashboard() {
-  const kpis = getKpis();
-  const total     = kpis.length;
-  const completed = kpis.filter(k => k.status === 'approved').length;
-  const pending   = kpis.filter(k => ['pending','in-progress'].includes(k.status)).length;
-  const submitted = kpis.filter(k => k.status === 'submitted').length;
-  const rate      = total > 0 ? Math.round((completed / total) * 100) : 0;
+async function loadManagerDashboard() {
+  try {
+    const kpis = await getKpis();
+    const total = kpis.length;
+    const completed = kpis.filter(k => k.status === 'approved').length;
+    const pending = kpis.filter(k => ['pending', 'in-progress'].includes(k.status)).length;
+    const submitted = kpis.filter(k => k.status === 'submitted').length;
+    const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-  setText('statTotal',     total);
-  setText('statCompleted', completed);
-  setText('statPending',   pending);
-  setText('statRate',      rate + '%');
+    setText('statTotal', total);
+    setText('statCompleted', completed);
+    setText('statPending', pending);
+    setText('statRate', rate + '%');
 
-  // Pending verification alert
-  if (submitted > 0) {
     const badge = document.getElementById('pendingBadge');
-    if (badge) { badge.style.display = 'inline-flex'; badge.textContent = submitted; }
+    if (badge) {
+      if (submitted > 0) {
+        badge.style.display = 'inline-flex';
+        badge.textContent = submitted;
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
     const alertBtn = document.getElementById('verifyAlertBtn');
     if (alertBtn) {
-      alertBtn.style.display = 'inline-flex';
-      setText('pendingCount', submitted);
+      if (submitted > 0) {
+        alertBtn.style.display = 'inline-flex';
+        setText('pendingCount', submitted);
+      } else {
+        alertBtn.style.display = 'none';
+      }
     }
-  }
 
-  renderKpiTable();
-  renderStaffPerformance();
+    await renderKpiTable();
+    await renderStaffPerformance();
+    await renderKpiHistory(kpis);
+    setConnectionStatus(true);
+  } catch (error) {
+    console.error('Failed to load manager dashboard:', error);
+    setConnectionStatus(false);
+    flashAlert('Unable to fetch KPI data from Firestore right now.', 'error');
+  }
 }
 
 // ── KPI Table ────────────────────────────────────────────────────────────────
-function renderKpiTable() {
+async function renderKpiTable() {
   const tbody = document.getElementById('kpiTableBody');
   if (!tbody) return;
 
   const search = (document.getElementById('kpiSearch')?.value || '').toLowerCase();
   const status = document.getElementById('statusFilter')?.value || '';
 
-  let kpis = getKpis();
-  if (search)  kpis = kpis.filter(k => k.name.toLowerCase().includes(search) || (k.assignedToName || '').toLowerCase().includes(search));
-  if (status)  kpis = kpis.filter(k => k.status === status);
+  let kpis = await getKpis();
+  if (search) {
+    kpis = kpis.filter(k =>
+      (k.name || '').toLowerCase().includes(search) ||
+      (k.assignedToName || '').toLowerCase().includes(search)
+    );
+  }
+  if (status) {
+    kpis = kpis.filter(k => k.status === status);
+  }
 
   const empty = document.getElementById('kpiEmptyState');
   if (!kpis.length) {
@@ -91,9 +172,9 @@ function renderKpiTable() {
       <td style="min-width:130px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
-            <div style="height:100%;width:${k.progress||0}%;background:${pColor(k.progress)};border-radius:3px;transition:width 0.4s;"></div>
+            <div style="height:100%;width:${k.progress || 0}%;background:${pColor(k.progress)};border-radius:3px;transition:width 0.4s;"></div>
           </div>
-          <span style="font-size:0.75rem;font-weight:700;min-width:30px;">${k.progress||0}%</span>
+          <span style="font-size:0.75rem;font-weight:700;min-width:30px;">${k.progress || 0}%</span>
         </div>
       </td>
       <td>${sBadge(k.status)}</td>
@@ -110,27 +191,32 @@ function renderKpiTable() {
 
 function openDeleteKpi(id, name) {
   document.getElementById('deleteKpiName').textContent = name;
-  document.getElementById('confirmDeleteKpiBtn').onclick = function () {
-    saveKpis(getKpis().filter(k => k.id !== id));
+  document.getElementById('confirmDeleteKpiBtn').onclick = async function () {
+    await deleteKpi(id);
     closeModal('deleteModal');
-    loadManagerDashboard();
+    await loadManagerDashboard();
     flashAlert('KPI "' + name + '" deleted.');
   };
   document.getElementById('deleteModal').classList.add('open');
 }
 
-// ── Staff Performance Summary ─────────────────────────────────────────────────
-function renderStaffPerformance() {
+// ── Staff Performance Summary ────────────────────────────────────────────────
+async function renderStaffPerformance() {
   const tbody = document.getElementById('staffTableBody');
   if (!tbody) return;
 
-  const kpis = getKpis();
-  const map  = {};
+  const kpis = await getKpis();
+  const map = {};
 
   kpis.forEach(k => {
     if (!k.assignedTo) return;
     if (!map[k.assignedTo]) {
-      map[k.assignedTo] = { name: k.assignedToName || 'Unknown', dept: k.assignedToDept || 'General', total: 0, completed: 0 };
+      map[k.assignedTo] = {
+        name: k.assignedToName || 'Unknown',
+        dept: k.assignedToDept || 'General',
+        total: 0,
+        completed: 0,
+      };
     }
     map[k.assignedTo].total++;
     if (k.status === 'approved') map[k.assignedTo].completed++;
@@ -149,8 +235,9 @@ function renderStaffPerformance() {
   tbody.innerHTML = staff.map(s => {
     const rate = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
     const perf = rate >= 80 ? '<span class="badge badge-success">On Track</span>'
-               : rate >= 40 ? '<span class="badge badge-warning">Needs Attention</span>'
-               :              '<span class="badge badge-danger">At Risk</span>';
+      : rate >= 40 ? '<span class="badge badge-warning">Needs Attention</span>'
+      : '<span class="badge badge-danger">At Risk</span>';
+
     return `<tr>
       <td>
         <div style="display:flex;align-items:center;gap:10px;">
@@ -174,67 +261,104 @@ function renderStaffPerformance() {
   }).join('');
 }
 
-// ── KPI Form ─────────────────────────────────────────────────────────────────
-function initKpiForm() {
-  // Populate staff dropdown
-  const sel = document.getElementById('kpiAssignedTo');
-  if (sel) {
-    const staff = getStaffUsers();
-    if (!staff.length) {
-      sel.innerHTML = '<option value="">No staff accounts yet — register a staff user first</option>';
-    } else {
-      sel.innerHTML = '<option value="">Select staff member</option>' +
-        staff.map(s => `<option value="${s.id}">${esc(s.name)} (${esc(s.email)})</option>`).join('');
-    }
+// ── KPI History ───────────────────────────────────────────────────────────────
+async function renderKpiHistory(kpisArg) {
+  const list = document.getElementById('kpiHistoryList');
+  const emptyEl = document.getElementById('kpiHistoryEmpty');
+  if (!list) return;
+
+  const kpis = Array.isArray(kpisArg) ? kpisArg : await getKpis();
+  const historyItems = kpis
+    .slice()
+    .sort((a, b) => {
+      const bTime = Date.parse(b.updatedAt || b.createdAt || 0) || 0;
+      const aTime = Date.parse(a.updatedAt || a.createdAt || 0) || 0;
+      return bTime - aTime;
+    })
+    .slice(0, 12);
+
+  if (!historyItems.length) {
+    list.innerHTML = '';
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
   }
+  if (emptyEl) emptyEl.style.display = 'none';
 
-  // Check for edit mode via URL param
-  const params  = new URLSearchParams(window.location.search);
-  const editId  = params.get('id');
-  if (editId) {
-    const kpi = getKpiById(editId);
-    if (kpi) {
-      setText('formPageTitle', 'Edit KPI');
-      setVal('kpiId',         kpi.id);
-      setVal('kpiName',       kpi.name || '');
-      setVal('kpiCategory',   kpi.category || '');
-      setVal('kpiDescription',kpi.description || '');
-      setVal('kpiTarget',     kpi.target || '');
-      setVal('kpiUnit',       kpi.unit || '');
-      setVal('kpiDueDate',    kpi.dueDate || '');
-      setVal('kpiPriority',   kpi.priority || '');
-      setVal('kpiStatus',     kpi.status || 'pending');
-      if (sel) sel.value = kpi.assignedTo || '';
-
-      const btn = document.getElementById('submitKpiBtn');
-      if (btn) btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg> Update KPI`;
-
-      const badge = document.getElementById('kpiStatusBadge');
-      if (badge) { badge.style.display = 'inline-flex'; badge.textContent = 'Editing'; }
-    }
-  }
+  list.innerHTML = historyItems.map(k => {
+    const when = fmtDateTime(k.updatedAt || k.createdAt);
+    return `
+      <li style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div style="min-width:0;">
+          <div style="font-size:0.85rem;font-weight:700;color:var(--navy);line-height:1.35;">${esc(k.name || 'Untitled KPI')}</div>
+          <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;">
+            ${historyEventLabel(k)}${k.assignedToName ? ` · ${esc(k.assignedToName)}` : ''}
+          </div>
+        </div>
+        <div style="flex-shrink:0;text-align:right;">
+          <div style="font-size:0.72rem;color:var(--muted);">${esc(when)}</div>
+          <div style="margin-top:6px;">${sBadge(k.status)}</div>
+        </div>
+      </li>`;
+  }).join('');
 }
 
-function saveKpiForm() {
+// ── KPI Form ─────────────────────────────────────────────────────────────────
+async function initKpiForm() {
+  const sel = document.getElementById('kpiAssignedTo');
+
+  const staff = await getStaffUsers();
+
+  if (!staff.length) {
+    sel.innerHTML = '<option>No staff found</option>';
+    return;
+  }
+
+  sel.innerHTML =
+    '<option value="">Select staff member</option>' +
+    staff.map(s => `<option value="${s.id}">${s.name} (${s.email || ''})</option>`).join('');
+
+  const editId = new URLSearchParams(window.location.search).get('id');
+  if (!editId) return;
+
+  const kpi = await getKpiById(editId);
+  if (!kpi) return;
+
+  setVal('kpiId', kpi.id);
+  setVal('kpiName', kpi.name || '');
+  setVal('kpiCategory', kpi.category || '');
+  setVal('kpiDescription', kpi.description || '');
+  setVal('kpiTarget', kpi.target || '');
+  setVal('kpiUnit', kpi.unit || '');
+  setVal('kpiDueDate', kpi.dueDate || '');
+  setVal('kpiPriority', kpi.priority || '');
+  setVal('kpiAssignedTo', kpi.assignedTo || '');
+  setVal('kpiStatus', kpi.status || 'pending');
+  setText('formPageTitle', 'Edit KPI');
+
+  const badge = document.getElementById('kpiStatusBadge');
+  if (badge) badge.style.display = 'inline-flex';
+}
+
+async function saveKpiForm() {
   clearFieldErrors();
 
-  const name       = document.getElementById('kpiName')?.value.trim()       || '';
-  const category   = document.getElementById('kpiCategory')?.value          || '';
-  const description= document.getElementById('kpiDescription')?.value.trim()|| '';
-  const target     = document.getElementById('kpiTarget')?.value.trim()      || '';
-  const unit       = document.getElementById('kpiUnit')?.value.trim()        || '';
-  const dueDate    = document.getElementById('kpiDueDate')?.value            || '';
-  const priority   = document.getElementById('kpiPriority')?.value           || '';
-  const assignedTo = document.getElementById('kpiAssignedTo')?.value         || '';
-  const status     = document.getElementById('kpiStatus')?.value             || 'pending';
+  const name = document.getElementById('kpiName')?.value.trim() || '';
+  const category = document.getElementById('kpiCategory')?.value || '';
+  const description = document.getElementById('kpiDescription')?.value.trim() || '';
+  const target = document.getElementById('kpiTarget')?.value.trim() || '';
+  const unit = document.getElementById('kpiUnit')?.value.trim() || '';
+  const dueDate = document.getElementById('kpiDueDate')?.value || '';
+  const priority = document.getElementById('kpiPriority')?.value || '';
+  const assignedTo = document.getElementById('kpiAssignedTo')?.value || '';
+  const status = document.getElementById('kpiStatus')?.value || 'pending';
 
   let valid = true;
-  if (!name)       { fieldErr('kpiNameError',       'KPI name is required.');              valid = false; }
-  if (!category)   { fieldErr('kpiCategoryError',   'Category is required.');              valid = false; }
-  if (!target)     { fieldErr('kpiTargetError',     'Target value is required.');          valid = false; }
-  if (!unit)       { fieldErr('kpiUnitError',       'Unit / measure is required.');        valid = false; }
-  if (!dueDate)    { fieldErr('kpiDueDateError',    'Due date is required.');              valid = false; }
-  if (!priority)   { fieldErr('kpiPriorityError',   'Priority is required.');              valid = false; }
+  if (!name) { fieldErr('kpiNameError', 'KPI name is required.'); valid = false; }
+  if (!category) { fieldErr('kpiCategoryError', 'Category is required.'); valid = false; }
+  if (!target) { fieldErr('kpiTargetError', 'Target value is required.'); valid = false; }
+  if (!unit) { fieldErr('kpiUnitError', 'Unit / measure is required.'); valid = false; }
+  if (!dueDate) { fieldErr('kpiDueDateError', 'Due date is required.'); valid = false; }
+  if (!priority) { fieldErr('kpiPriorityError', 'Priority is required.'); valid = false; }
   if (!assignedTo) { fieldErr('kpiAssignedToError', 'Please assign this KPI to someone.'); valid = false; }
 
   if (!valid) {
@@ -243,48 +367,55 @@ function saveKpiForm() {
   }
   hide('errorAlert');
 
-  // Resolve staff name and department
-  const staffSel = document.getElementById('kpiAssignedTo');
-  const staffOpt = staffSel?.options[staffSel?.selectedIndex];
-  const assignedToName = staffOpt ? staffOpt.text.split(' (')[0] : '';
-  const staffRec = getStaffUsers().find(s => s.id === assignedTo);
+  const staff = await getStaffUsers();
+  const staffRec = staff.find(s => s.id === assignedTo);
+  const assignedToName = staffRec?.name || '';
   const assignedToDept = staffRec?.department || 'General';
 
-  const kpis  = getKpis();
   const editId = document.getElementById('kpiId')?.value || '';
-  const now    = new Date().toISOString();
+  const now = new Date().toISOString();
 
-  if (editId) {
-    const idx = kpis.findIndex(k => k.id === editId);
-    if (idx !== -1) {
-      kpis[idx] = { ...kpis[idx], name, category, description, target, unit, dueDate, priority, assignedTo, assignedToName, assignedToDept, status, updatedAt: now };
-      saveKpis(kpis);
-    }
-  } else {
-    kpis.push({
-      id: 'kpi_' + Math.random().toString(36).substr(2, 9),
-      name, category, description, target, unit, dueDate, priority,
-      assignedTo, assignedToName, assignedToDept, status,
-      progress: 0, currentValue: '', comments: '',
-      evidenceName: null, evidenceData: null,
-      rejectionReason: '', submittedAt: null,
-      createdAt: now, updatedAt: now,
-    });
-    saveKpis(kpis);
+  const payload = {
+    id: editId || undefined,
+    name,
+    category,
+    description,
+    target,
+    unit,
+    dueDate,
+    priority,
+    assignedTo,
+    assignedToName,
+    assignedToDept,
+    status,
+    updatedAt: now,
+  };
+
+  if (!editId) {
+    payload.progress = 0;
+    payload.currentValue = '';
+    payload.comments = '';
+    payload.evidenceName = null;
+    payload.evidenceData = null;
+    payload.rejectionReason = '';
+    payload.submittedAt = null;
+    payload.createdAt = now;
   }
+
+  await saveKpi(payload);
 
   show('successAlert');
   setText('successMsg', editId ? 'KPI updated successfully!' : 'KPI created and assigned successfully!');
   setTimeout(() => { window.location.href = 'manager-kpi.html'; }, 1400);
 }
 
-// ── Verification Page ─────────────────────────────────────────────────────────
-function renderVerifyList() {
+// ── Verification Page ────────────────────────────────────────────────────────
+async function renderVerifyList() {
   const container = document.getElementById('verifyList');
-  const emptyEl   = document.getElementById('verifyEmpty');
+  const emptyEl = document.getElementById('verifyEmpty');
   if (!container) return;
 
-  let kpis = getKpis();
+  let kpis = await getKpis();
   const f = typeof currentVerifyFilter !== 'undefined' ? currentVerifyFilter : 'all';
   if (f && f !== 'all') kpis = kpis.filter(k => k.status === f);
 
@@ -302,7 +433,7 @@ function renderVerifyList() {
       <div class="verify-card-header">
         <div>
           <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:1rem;color:var(--navy);">${esc(k.name)}</div>
-          <div style="font-size:0.8rem;color:var(--muted);margin-top:3px;">${esc(k.category||'')}${k.priority ? ' · ' + priorityHtml(k.priority) : ''}</div>
+          <div style="font-size:0.8rem;color:var(--muted);margin-top:3px;">${esc(k.category || '')}${k.priority ? ' · ' + priorityHtml(k.priority) : ''}</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;">
           ${overdue ? '<span style="font-size:0.72rem;color:#dc2626;font-weight:700;background:#fef2f2;padding:3px 8px;border-radius:20px;">Overdue</span>' : ''}
@@ -310,8 +441,8 @@ function renderVerifyList() {
         </div>
       </div>
       <div class="verify-card-meta">
-        <span>👤 <strong>${esc(k.assignedToName||'Unassigned')}</strong></span>
-        <span>🎯 Target: <strong>${esc(k.target||'—')} ${esc(k.unit||'')}</strong></span>
+        <span>👤 <strong>${esc(k.assignedToName || 'Unassigned')}</strong></span>
+        <span>🎯 Target: <strong>${esc(k.target || '—')} ${esc(k.unit || '')}</strong></span>
         <span>📅 Due: <strong>${k.dueDate ? fmtDate(k.dueDate) : '—'}</strong></span>
         ${k.submittedAt ? `<span>📤 Submitted: <strong>${fmtDate(k.submittedAt)}</strong></span>` : ''}
       </div>
@@ -319,9 +450,9 @@ function renderVerifyList() {
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
         <span style="font-size:0.8rem;color:var(--muted);min-width:68px;">Progress:</span>
         <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
-          <div style="height:100%;width:${k.progress||0}%;background:${pColor(k.progress)};border-radius:4px;transition:width 0.4s;"></div>
+          <div style="height:100%;width:${k.progress || 0}%;background:${pColor(k.progress)};border-radius:4px;transition:width 0.4s;"></div>
         </div>
-        <span style="font-size:0.8rem;font-weight:700;min-width:34px;">${k.progress||0}%</span>
+        <span style="font-size:0.8rem;font-weight:700;min-width:34px;">${k.progress || 0}%</span>
       </div>
 
       ${k.comments ? `<div style="background:var(--bg-secondary);border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.85rem;"><strong style="color:var(--navy);">Staff notes:</strong> ${esc(k.comments)}</div>` : ''}
@@ -342,18 +473,17 @@ function renderVerifyList() {
 
 function openApprove(id, name) {
   document.getElementById('approveKpiName').textContent = name;
-  document.getElementById('confirmApproveBtn').onclick = function () {
-    const kpis = getKpis();
-    const idx  = kpis.findIndex(k => k.id === id);
-    if (idx !== -1) {
-      kpis[idx].status    = 'approved';
-      kpis[idx].progress  = 100;
-      kpis[idx].updatedAt = new Date().toISOString();
-      saveKpis(kpis);
-    }
+  document.getElementById('confirmApproveBtn').onclick = async function () {
+    await _db().collection('kpi').doc(id).set({
+      status: 'approved',
+      progress: 100,
+      updatedAt: new Date().toISOString(),
+      rejectionReason: '',
+    }, { merge: true });
+
     closeModal('approveModal');
     flashAlert('KPI "' + name + '" approved! ✓');
-    renderVerifyList();
+    await renderVerifyList();
   };
   document.getElementById('approveModal').classList.add('open');
 }
@@ -362,26 +492,28 @@ function openReject(id, name) {
   document.getElementById('rejectKpiName').textContent = name;
   document.getElementById('rejectReason').value = '';
   document.getElementById('rejectReasonError').textContent = '';
-  document.getElementById('confirmRejectBtn').onclick = function () {
+  document.getElementById('confirmRejectBtn').onclick = async function () {
     const reason = document.getElementById('rejectReason').value.trim();
-    if (!reason) { document.getElementById('rejectReasonError').textContent = 'Rejection reason is required.'; return; }
-    const kpis = getKpis();
-    const idx  = kpis.findIndex(k => k.id === id);
-    if (idx !== -1) {
-      kpis[idx].status          = 'rejected';
-      kpis[idx].rejectionReason = reason;
-      kpis[idx].updatedAt       = new Date().toISOString();
-      saveKpis(kpis);
+    if (!reason) {
+      document.getElementById('rejectReasonError').textContent = 'Rejection reason is required.';
+      return;
     }
+
+    await _db().collection('kpi').doc(id).set({
+      status: 'rejected',
+      rejectionReason: reason,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+
     closeModal('rejectModal');
     flashAlert('KPI "' + name + '" rejected.', 'error');
-    renderVerifyList();
+    await renderVerifyList();
   };
   document.getElementById('rejectModal').classList.add('open');
 }
 
-function previewEvidence(id) {
-  const kpi     = getKpiById(id);
+async function previewEvidence(id) {
+  const kpi = await getKpiById(id);
   const content = document.getElementById('evidencePreviewContent');
   if (!kpi || !content) return;
 
@@ -398,14 +530,14 @@ function previewEvidence(id) {
   document.getElementById('evidenceModal').classList.add('open');
 }
 
-// ── Utilities ─────────────────────────────────────────────────────────────────
-function closeModal(id)        { document.getElementById(id)?.classList.remove('open'); }
-function show(id)              { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
-function hide(id)              { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
-function setText(id, val)      { const el = document.getElementById(id); if (el) el.textContent = val; }
-function setVal(id, val)       { const el = document.getElementById(id); if (el) el.value = val; }
-function fieldErr(id, msg)     { const el = document.getElementById(id); if (el) el.textContent = msg; }
-function clearFieldErrors()    { document.querySelectorAll('.form-hint.error').forEach(el => el.textContent = ''); hide('errorAlert'); }
+// ── Utilities ────────────────────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+function show(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
+function hide(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+function fieldErr(id, msg) { const el = document.getElementById(id); if (el) el.textContent = msg; }
+function clearFieldErrors() { document.querySelectorAll('.form-hint.error').forEach(el => el.textContent = ''); hide('errorAlert'); }
 
 function flashAlert(msg, type = 'success') {
   const el = document.getElementById('successAlert');
@@ -417,12 +549,44 @@ function flashAlert(msg, type = 'success') {
 }
 
 function esc(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function fmtDate(d) {
   if (!d) return '—';
-  return new Date(d).toLocaleDateString('en-MY', { day:'2-digit', month:'short', year:'numeric' });
+  return new Date(d).toLocaleDateString('en-MY', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function fmtDateTime(d) {
+  if (!d) return 'No timestamp';
+  return new Date(d).toLocaleString('en-MY', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function historyEventLabel(kpi) {
+  if (kpi.status === 'approved') return 'Approved by manager';
+  if (kpi.status === 'rejected') return 'Rejected by manager';
+  if (kpi.status === 'submitted') return 'Submitted for review';
+  if ((kpi.progress || 0) > 0) return `Progress updated to ${kpi.progress || 0}%`;
+  if (kpi.createdAt && kpi.updatedAt && kpi.createdAt === kpi.updatedAt) return 'KPI created';
+  return 'Updated by manager';
+}
+
+function setConnectionStatus(connected) {
+  const el = document.getElementById('kpiHistoryConnection');
+  if (!el) return;
+  if (connected && lastKpiSource === 'remote') {
+    el.textContent = 'Firestore connected';
+    el.style.color = 'var(--success)';
+  } else {
+    el.textContent = 'Firestore fetch failed';
+    el.style.color = 'var(--danger)';
+  }
 }
 
 function pColor(pct) {
@@ -434,20 +598,19 @@ function pColor(pct) {
 
 function sBadge(status) {
   const map = {
-    pending:       '<span class="badge badge-pending">Pending</span>',
+    pending: '<span class="badge badge-pending">Pending</span>',
     'in-progress': '<span class="badge badge-warning">In Progress</span>',
-    submitted:     '<span class="badge badge-info">Submitted</span>',
-    approved:      '<span class="badge badge-success">Approved</span>',
-    rejected:      '<span class="badge badge-danger">Rejected</span>',
+    submitted: '<span class="badge badge-info">Submitted</span>',
+    approved: '<span class="badge badge-success">Approved</span>',
+    rejected: '<span class="badge badge-danger">Rejected</span>',
   };
   return map[status] || '<span class="badge">—</span>';
 }
 
 function priorityHtml(p) {
-  return { high:'🔴 High', medium:'🟡 Medium', low:'🟢 Low' }[p] || (p || '—');
+  return { high: '🔴 High', medium: '🟡 Medium', low: '🟢 Low' }[p] || (p || '—');
 }
 
-// Close modals on backdrop click
 window.addEventListener('click', function (e) {
   if (e.target.classList.contains('modal')) e.target.classList.remove('open');
 });
