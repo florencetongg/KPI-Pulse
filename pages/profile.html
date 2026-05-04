@@ -10,6 +10,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap"
     rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+    rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <style>
     .pwd-strength {
@@ -100,7 +102,7 @@
 
 <body class="app-body">
 
-  <div class="app-shell">
+  <div class="app-shell d-flex">
 
     <!-- ═══ SIDEBAR (dynamically rendered by JS based on role) ═══ -->
     <aside class="app-sidebar" id="appSidebar">
@@ -129,15 +131,15 @@
     </aside>
 
     <!-- ═══ MAIN WRAPPER ═══ -->
-    <div class="app-main-wrapper">
+    <div class="app-main-wrapper flex-grow-1">
 
       <!-- Topbar -->
       <header class="app-topbar">
         <div class="topbar-left">
           <a href="#" id="backLink"
-            style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:0.85rem;text-decoration:none;">
+            class="d-flex align-items-center gap-2 text-muted small text-decoration-none">
             <svg viewBox="0 0 24 24"
-              style="width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round">
+              class="icon-sm">
               <path d="M19 12H5M12 5l-7 7 7 7" />
             </svg>
             Dashboard
@@ -213,7 +215,8 @@
           <div>
 
             <!-- ── VIEW PROFILE ── -->
-            <div id="viewTab" class="section-card" style="margin-bottom:0;">
+            <div id="viewTab" class="section-card" class="mb-3">
+              <!-- <div class="section-card-header"> -->
               <div class="section-card-header">
                 <h2 class="section-card-title">Account Information</h2>
                 <button class="btn btn-secondary btn-sm"
@@ -226,29 +229,30 @@
                   Edit
                 </button>
               </div>
+              <!-- <div class="section-card-body"> -->
               <div class="section-card-body">
-                <div class="grid grid-cols-2" style="gap:20px;">
-                  <div class="form-group" style="margin-bottom:0;">
+                <div class="row g-3">
+                  <div class="col-md-6">
                     <div class="form-label">Full Name</div>
                     <div class="profile-field-view" id="viewName">—</div>
                   </div>
-                  <div class="form-group" style="margin-bottom:0;">
+                  <div class="col-md-6">
                     <div class="form-label">Email Address</div>
                     <div class="profile-field-view" id="viewEmail">—</div>
                   </div>
-                  <div class="form-group" style="margin-bottom:0;">
+                  <div class="col-md-6">
                     <div class="form-label">Department</div>
                     <div class="profile-field-view" id="viewDept">—</div>
                   </div>
-                  <div class="form-group" style="margin-bottom:0;">
+                  <div class="col-md-6">
                     <div class="form-label">Role</div>
                     <div class="profile-field-view" id="viewRole">—</div>
                   </div>
-                  <div class="form-group" style="margin-bottom:0;">
+                  <div class="col-md-6">
                     <div class="form-label">Member Since</div>
                     <div class="profile-field-view" id="viewJoined">—</div>
                   </div>
-                  <div class="form-group" style="margin-bottom:0;">
+                  <div class="col-md-6">
                     <div class="form-label">Account ID</div>
                     <div class="profile-field-view" id="viewId" style="font-family:monospace;font-size:0.8rem;">—</div>
                   </div>
@@ -262,6 +266,7 @@
 
             <!-- ── EDIT PROFILE ── -->
             <div id="editTab" class="section-card" style="margin-bottom:0;display:none;">
+              <!-- <div class="section-card-header"> -->
               <div class="section-card-header">
                 <h2 class="section-card-title">Edit Profile</h2>
               </div>
@@ -274,19 +279,20 @@
                 <div class="alert-content"><span id="editErrorMsg">Please fix the errors below.</span></div>
               </div>
               <form id="editProfileForm" novalidate>
+                <!-- <div class="section-card-body"> -->
                 <div class="section-card-body">
-                  <div class="grid grid-cols-2" style="gap:20px;">
-                    <div class="form-group" style="margin-bottom:0;">
+                  <div class="row g-3">
+                    <div class="col-md-6">
                       <label class="form-label required" for="editName">Full Name</label>
                       <input type="text" id="editName" class="form-input" required placeholder="Your full name">
                       <div class="form-hint error" id="editNameError"></div>
                     </div>
-                    <div class="form-group" style="margin-bottom:0;">
+                    <div class="col-md-6">
                       <label class="form-label required" for="editEmail">Email Address</label>
                       <input type="email" id="editEmail" class="form-input" required placeholder="you@example.com">
                       <div class="form-hint error" id="editEmailError"></div>
                     </div>
-                    <div class="form-group" style="margin-bottom:0;">
+                    <div class="col-md-6">
                       <label class="form-label" for="editDept">Department</label>
                       <select id="editDept" class="form-select">
                         <option value="General">General</option>
@@ -299,7 +305,7 @@
                         <option value="Customer Service">Customer Service</option>
                       </select>
                     </div>
-                    <div class="form-group" style="margin-bottom:0;">
+                    <div class="col-md-6">
                       <label class="form-label">Role</label>
                       <div class="profile-field-view" id="editRoleDisplay"
                         style="display:flex;align-items:center;gap:8px;">—</div>
@@ -313,8 +319,8 @@
                       style="min-height:80px;"></textarea>
                   </div>
                 </div>
-                <div class="section-card-footer" style="display:flex;gap:12px;justify-content:flex-end;">
-                  <button type="button" class="btn btn-secondary"
+                <div class="d-flex gap-2 justify-content-end">
+                  <button type="button" class="btn btn-outline-secondary btn-sm"
                     onclick="showTab('viewTab', document.getElementById('btn-viewTab'))">Cancel</button>
                   <button type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
@@ -323,6 +329,7 @@
 
             <!-- ── CHANGE PASSWORD ── -->
             <div id="passwordTab" class="section-card" style="margin-bottom:0;display:none;">
+              <!-- <div class="section-card-header"> -->
               <div class="section-card-header">
                 <h2 class="section-card-title">Change Password</h2>
               </div>
@@ -335,6 +342,7 @@
                 <div class="alert-content"><span id="pwdErrorMsg">An error occurred.</span></div>
               </div>
               <form id="changePasswordForm" novalidate>
+                <!-- <div class="section-card-body"> -->
                 <div class="section-card-body">
                   <div class="form-group">
                     <label class="form-label required" for="currentPwd">Current Password</label>
@@ -375,7 +383,7 @@
                     <div class="form-hint error" id="newPwdError"></div>
                   </div>
 
-                  <div class="form-group" style="margin-bottom:0;">
+                  <div class="col-md-6">
                     <label class="form-label required" for="confirmPwd">Confirm New Password</label>
                     <div class="pwd-field-wrap">
                       <input type="password" id="confirmPwd" class="form-input" required
@@ -391,8 +399,8 @@
                     <div class="form-hint error" id="confirmPwdError"></div>
                   </div>
                 </div>
-                <div class="section-card-footer" style="display:flex;gap:12px;justify-content:flex-end;">
-                  <button type="button" class="btn btn-secondary"
+                <div class="d-flex gap-2 justify-content-end">
+                  <button type="button" class="btn btn-outline-secondary btn-sm"
                     onclick="document.getElementById('changePasswordForm').reset();clearPwdFields()">Clear</button>
                   <button type="submit" class="btn btn-primary">Update Password</button>
                 </div>
@@ -401,9 +409,11 @@
 
             <!-- ── DANGER ZONE ── -->
             <div id="dangerTab" class="section-card" style="margin-bottom:0;display:none;">
+              <!-- <div class="section-card-header"> -->
               <div class="section-card-header">
                 <h2 class="section-card-title" style="color:#dc2626;">⚠ Danger Zone</h2>
               </div>
+              <!-- <div class="section-card-body"> -->
               <div class="section-card-body">
                 <div class="danger-zone-card">
                   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;">
@@ -443,7 +453,7 @@
             Your account and all your KPI data will be permanently deleted.
           </div>
         </div>
-        <div class="form-group" style="margin-bottom:0;">
+        <div class="col-md-6">
           <label class="form-label required" for="deleteConfirmEmail">
             Type your email address to confirm: <strong id="deleteEmailHint" style="color:var(--navy);"></strong>
           </label>
@@ -452,7 +462,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal('deleteAccountModal')">Cancel, Keep Account</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="closeModal('deleteAccountModal')">Cancel, Keep Account</button>
         <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDeleteAccount()">Yes, Delete
           Everything</button>
       </div>
