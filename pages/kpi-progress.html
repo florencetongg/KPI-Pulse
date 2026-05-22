@@ -427,7 +427,15 @@
       zone.addEventListener('dragleave', () => zone.classList.remove('dragging'));
       zone.addEventListener('drop', e => {
         e.preventDefault(); zone.classList.remove('dragging');
-        if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
+        if (e.dataTransfer.files.length > 0) {
+          const check = validateEvidenceFile(e.dataTransfer.files[0]);
+          if (!check.valid) {
+            setEvidenceError(check.message);
+            return;
+          }
+          fileInput.files = e.dataTransfer.files;
+          handleFileSelect(e.dataTransfer.files[0]);
+        }
       });
 
       document.getElementById('progressForm').addEventListener('submit', function (e) {
@@ -460,6 +468,14 @@
     }
     function handleFileSelect(file) {
       if (!file) return;
+      const check = validateEvidenceFile(file);
+      if (!check.valid) {
+        setEvidenceError(check.message);
+        document.getElementById('evidenceFile').value = '';
+        document.getElementById('filePreview').style.display = 'none';
+        return;
+      }
+      setEvidenceError('');
       document.getElementById('filePreview').style.display = 'flex';
       document.getElementById('previewFileName').textContent = file.name;
       document.getElementById('previewFileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
@@ -467,6 +483,7 @@
     function removeFile() {
       document.getElementById('evidenceFile').value = '';
       document.getElementById('filePreview').style.display = 'none';
+      setEvidenceError('');
     }
   </script>
 </body>

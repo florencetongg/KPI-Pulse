@@ -2,7 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // NOTE: Current app uses custom session auth (not Firebase Auth),
-    // so request.auth is null. Keep scope limited to app collections.
+    // so request.auth is null and strict request.auth.uid rules would break
+    // the demo flow. TODO before production: migrate to Firebase Auth and
+    // restrict users/kpi reads and writes by authenticated uid and role.
     match /users/{userId} {
       allow read, write: if true;
     }
