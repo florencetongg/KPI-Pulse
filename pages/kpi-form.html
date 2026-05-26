@@ -187,10 +187,11 @@
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label" for="kpiDescription">Description / Objective</label>
+                  <label class="form-label required" for="kpiDescription">Description / Objective</label>
                   <textarea id="kpiDescription" class="form-textarea"
                     placeholder="Describe what this KPI measures and why it matters…"
-                    rows="4"></textarea>
+                    rows="4" required></textarea>
+                  <div class="form-hint error" id="kpiDescriptionError"></div>
                 </div>
               </div>
             </div>
@@ -207,7 +208,7 @@
                 <div class="row g-3">
                   <div class="col-md-6">
                     <label class="form-label required" for="kpiTarget">Target Value</label>
-                    <input type="text" id="kpiTarget" class="form-input" placeholder="e.g. 500,000 or 95%" required>
+                    <input type="number" id="kpiTarget" class="form-input" placeholder="e.g. 500000 or 95" min="0" step="any" required>
                     <div class="form-hint error" id="kpiTargetError"></div>
                   </div>
                   <div class="col-md-6">
@@ -283,10 +284,6 @@
       </main>
     </div>
   </div>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="../js/firebase.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/kpi-manager.js"></script>
   <script>

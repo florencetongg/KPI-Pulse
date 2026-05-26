@@ -1,34 +1,58 @@
 /**
  * KPI Staff Module
- * Powers dashboard.html, staff-kpi.html, kpi-progress.html
+ * Powers dashboard.html, staff-kpi.html, kpi-progress.html.
+ * Uses the Express + MongoDB backend only.
  */
 
-function _db() {
-  if (typeof db === 'undefined') {
-    throw new Error('Firestore is not initialized.');
-  }
-  return db;
+const KPI_API_BASE = 'http://localhost:3000/api';
+const ALLOWED_EVIDENCE_TYPES = [
+  '',
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+];
+const MAX_EVIDENCE_SIZE = 5 * 1024 * 1024;
+
+async function apiJson(url, options = {}) {
+  const response = await authenticatedFetch(url, options);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.message || `Request failed with status ${response.status}`);
+  return data;
+}
+
+function normalizeKpiRecord(record) {
+  const assigned = record.assignedTo && typeof record.assignedTo === 'object' ? record.assignedTo : null;
+  return {
+    ...record,
+    id: record._id || record.id,
+    assignedTo: assigned?._id || assigned?.id || record.assignedTo,
+    assignedToName: record.assignedToName || assigned?.name || '',
+    assignedToDept: record.assignedToDept || assigned?.department || '',
+  };
 }
 
 // ── Data Store ───────────────────────────────────────────────────────────────
 async function getKpis() {
-  const snapshot = await _db().collection('kpi').get();
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const result = await apiJson(`${KPI_API_BASE}/kpis`);
+  return (result.data || []).map(normalizeKpiRecord);
 }
 
 async function getMyKpis() {
-  const user = getCurrentUser();
-  if (!user) return [];
-
-  const allKpis = await getKpis();
-  return allKpis.filter(k => k.assignedTo === user.id || k.assignedTo === user.email);
+  return getKpis();
 }
 
 async function updateKpi(id, updates) {
-  await _db().collection('kpi').doc(id).set({
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  }, { merge: true });
+  await apiJson(`${KPI_API_BASE}/kpis/${id}/submit`, {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  });
 }
 
 // ── Staff Dashboard ──────────────────────────────────────────────────────────
@@ -260,20 +284,16 @@ async function submitProgress() {
     updatedAt: now,
   };
 
-  if (fileInput && fileInput.files.length > 0) {
+    if (fileInput && fileInput.files.length > 0) {
     const file = fileInput.files[0];
+    if (!isValidEvidenceFile(file)) {
+      alert('Evidence must be PDF, an image, or a common document (DOC/XLS/PPT) and cannot exceed 5MB.');
+      return;
+    }
     payload.evidenceName = file.name;
-
-    const reader = new FileReader();
-    reader.onload = async e => {
-      payload.evidenceData = e.target.result;
-      await updateKpi(id, payload);
-      closeModal('updateProgressModal');
-      await renderStaffKpis();
-      if (typeof loadStaffDashboard === 'function') await loadStaffDashboard();
-    };
-    reader.readAsDataURL(file);
-    return;
+    payload.evidenceMimeType = file.type || '';
+    payload.evidenceSize = file.size || 0;
+    payload.evidenceUrl = `evidence/${Date.now()}-${file.name}`;
   }
 
   await updateKpi(id, payload);
@@ -358,6 +378,10 @@ async function submitProgressPage() {
   let valid = true;
   if (!id) { if (kpiSelErr) kpiSelErr.textContent = 'Please select a KPI.'; valid = false; }
   if (progress < 0 || progress > 100) { if (progErr) progErr.textContent = 'Progress must be between 0 and 100%.'; valid = false; }
+  if (currentVal && (!Number.isFinite(Number(currentVal)) || Number(currentVal) < 0)) {
+    if (progErr) progErr.textContent = 'Current achievement value must be a valid number.';
+    valid = false;
+  }
 
   if (!valid) {
     if (errAlert) {
@@ -370,12 +394,12 @@ async function submitProgressPage() {
   const now = new Date().toISOString();
   const payload = {
     progress,
-    currentValue: currentVal,
     comments: notes,
     status: 'submitted',
     submittedAt: now,
     updatedAt: now,
   };
+  if (currentVal) payload.currentValue = Number(currentVal);
 
   const finish = async () => {
     await updateKpi(id, payload);
@@ -398,16 +422,20 @@ async function submitProgressPage() {
     setTimeout(() => { initProgressPage(); }, 120);
   };
 
-  if (fileInput && fileInput.files.length > 0) {
+    if (fileInput && fileInput.files.length > 0) {
     const file = fileInput.files[0];
+    if (!isValidEvidenceFile(file)) {
+      if (evidErr) evidErr.textContent = 'Evidence must be PDF, an image, or a common document (DOC/XLS/PPT) and cannot exceed 5MB.';
+      if (errAlert) {
+        errAlert.style.display = 'flex';
+        setText('errorMsg', 'Please fix the errors above.');
+      }
+      return;
+    }
     payload.evidenceName = file.name;
-    const reader = new FileReader();
-    reader.onload = async e => {
-      payload.evidenceData = e.target.result;
-      await finish();
-    };
-    reader.readAsDataURL(file);
-    return;
+    payload.evidenceMimeType = file.type || '';
+    payload.evidenceSize = file.size || 0;
+    payload.evidenceUrl = `evidence/${Date.now()}-${file.name}`;
   }
 
   await finish();
@@ -432,6 +460,11 @@ function pColor(pct) {
   if (pct >= 80) return '#16a34a';
   if (pct >= 50) return '#d97706';
   return '#dc2626';
+}
+
+function isValidEvidenceFile(file) {
+  if (!file) return true;
+  return ALLOWED_EVIDENCE_TYPES.includes(file.type || '') && file.size <= MAX_EVIDENCE_SIZE;
 }
 
 function sBadge(status) {

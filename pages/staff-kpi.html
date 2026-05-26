@@ -200,8 +200,8 @@
               <svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
             </div>
             <div class="upload-zone-title">Click to upload evidence</div>
-            <div class="upload-zone-hint">PDF, JPG, PNG up to 10MB</div>
-            <input type="file" id="evidenceFile" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+            <div class="upload-zone-hint">PDF, JPG, PNG, WEBP up to 5MB</div>
+            <input type="file" id="evidenceFile" accept=".pdf,.jpg,.jpeg,.png,.webp">
           </div>
           <div id="fileSelected" style="display:none;" class="file-pill">
             <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -221,10 +221,6 @@
     </form>
   </div>
 </div>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="../js/firebase.js"></script>
 <script src="../js/auth.js"></script>
 <script src="../js/kpi-staff.js"></script>
 <script>

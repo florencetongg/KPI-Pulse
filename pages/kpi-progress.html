@@ -271,8 +271,8 @@
                   <div class="form-group">
                     <label class="form-label" for="currentValue">Current Achievement Value <span
                         style="color:var(--muted);font-weight:400;">(optional)</span></label>
-                    <input type="text" id="currentValue" class="form-input"
-                      placeholder="e.g. 375,000 or 95 or 48 calls">
+                    <input type="number" id="currentValue" class="form-input" min="0" step="any"
+                      placeholder="e.g. 375000 or 95 or 48">
                     <div class="form-hint">Enter the actual value you've achieved so far.</div>
                   </div>
 
@@ -309,8 +309,8 @@
                       </svg>
                     </div>
                     <div class="upload-zone-title">Drag & drop or click to upload</div>
-                    <div class="upload-zone-hint">PDF, JPG, PNG, DOCX up to 10MB</div>
-                    <input type="file" id="evidenceFile" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                    <div class="upload-zone-hint">PDF, Image, or Office document (DOC/DOCX/XLS/XLSX/PPT/PPTX) up to 5MB</div>
+                    <input type="file" id="evidenceFile" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
                   </div>
                   <div id="filePreview"
                     style="display:none;margin-top:12px;padding:14px;background:var(--bg-secondary);border-radius:12px;display:none;align-items:center;gap:12px;">
@@ -404,10 +404,6 @@
       </main>
     </div>
   </div>
-
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="../js/firebase.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/kpi-staff.js"></script>
   <script>
