@@ -1,13 +1,41 @@
 /**
  * KPI Staff Module
- * Powers dashboard.html, staff-kpi.html, kpi-progress.html
+ * Powers dashboard.html, staff-kpi.html, kpi-progress.html.
+ * Uses the Express + MongoDB backend only.
  */
 
-function _db() {
-  if (typeof db === 'undefined') {
-    throw new Error('Firestore is not initialized.');
-  }
-  return db;
+const KPI_API_BASE = 'http://localhost:3000/api';
+const ALLOWED_EVIDENCE_TYPES = [
+  '',
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+];
+const MAX_EVIDENCE_SIZE = 5 * 1024 * 1024;
+
+async function apiJson(url, options = {}) {
+  const response = await authenticatedFetch(url, options);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.message || `Request failed with status ${response.status}`);
+  return data;
+}
+
+function normalizeKpiRecord(record) {
+  const assigned = record.assignedTo && typeof record.assignedTo === 'object' ? record.assignedTo : null;
+  return {
+    ...record,
+    id: record._id || record.id,
+    assignedTo: assigned?._id || assigned?.id || record.assignedTo,
+    assignedToName: record.assignedToName || assigned?.name || '',
+    assignedToDept: record.assignedToDept || assigned?.department || '',
+  };
 }
 
 // ── Data Store ───────────────────────────────────────────────────────────────
@@ -39,52 +67,33 @@ function isAssignedToCurrentStaff(kpi) {
 }
 
 async function getKpis() {
-  return getMyKpis();
+  const result = await apiJson(`${KPI_API_BASE}/kpis`);
+  return (result.data || []).map(normalizeKpiRecord);
 }
 
 async function getMyKpis() {
-  const { keys } = getCurrentStaffKpiKeys();
-  if (!keys.length) return [];
-
-  const resultMap = new Map();
-  for (const key of keys) {
-    const snapshot = await _db().collection('kpi')
-      .where('assignedTo', '==', key)
-      .get();
-
-    snapshot.docs.forEach(doc => {
-      resultMap.set(doc.id, { id: doc.id, ...doc.data() });
-    });
-  }
-
-  return Array.from(resultMap.values());
+  // In the new API-driven model, getKpis for a staff member will already be scoped.
+  return getKpis();
 }
 
 async function getStaffKpiById(id) {
   if (!id) return null;
-  const snap = await _db().collection('kpi').doc(id).get();
-  if (!snap.exists) return null;
+  const result = await apiJson(`${KPI_API_BASE}/kpis/${id}`);
+  const kpi = normalizeKpiRecord(result.data);
 
-  const kpi = { id: snap.id, ...snap.data() };
+  // The API should enforce this, but a client-side check is good practice.
   if (!isAssignedToCurrentStaff(kpi)) {
-    throw new Error('You are not allowed to update this KPI.');
+    throw new Error('You are not allowed to view or update this KPI.');
   }
-
   return kpi;
 }
 
 async function updateKpi(id, updates) {
-  const kpi = await getStaffKpiById(id);
-  if (!kpi) throw new Error('KPI not found.');
-  if (kpi.status === 'approved') {
-    throw new Error('Approved KPIs cannot be updated.');
-  }
-
-  await _db().collection('kpi').doc(id).set({
-    ...updates,
-    updatedAt: new Date().toISOString(),
-  }, { merge: true });
-}
+  // The backend handles merging and timestamps.
+  await apiJson(`${KPI_API_BASE}/kpis/${id}/submit`, {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  });
 
 function getStaffStatusForProgress(progress) {
   const pct = Math.min(Math.max(parseInt(progress, 10) || 0, 0), 100);
@@ -521,9 +530,15 @@ async function submitProgressPage() {
   let valid = true;
   if (!id) { if (kpiSelErr) kpiSelErr.textContent = 'Please select a KPI.'; valid = false; }
   if (progress < 0 || progress > 100) { if (progErr) progErr.textContent = 'Progress must be between 0 and 100%.'; valid = false; }
+  
   const evidenceCheck = validateEvidenceFile(file);
   if (!evidenceCheck.valid) {
     if (evidErr) evidErr.textContent = evidenceCheck.message;
+    valid = false;
+  }
+
+  if (currentVal && (!Number.isFinite(Number(currentVal)) || Number(currentVal) < 0)) {
+    if (progErr) progErr.textContent = 'Current achievement value must be a valid number.';
     valid = false;
   }
 
@@ -539,15 +554,18 @@ async function submitProgressPage() {
   const status = getStaffStatusForProgress(progress);
   const payload = {
     progress,
-    currentValue: currentVal,
     comments: notes,
     status,
     submittedAt: status === 'submitted' ? now : null,
     updatedAt: now,
   };
+  if (currentVal) payload.currentValue = Number(currentVal);
 
   const finish = async () => {
     try {
+      if (file) {
+        await addEvidenceToPayload(file, payload, now);
+      }
       await updateKpi(id, payload);
     } catch (err) {
       showStaffUpdateError(err.message || 'Could not submit progress. Please try again.');
@@ -574,17 +592,7 @@ async function submitProgressPage() {
     setTimeout(() => { initProgressPage(); }, 120);
   };
 
-  if (file) {
-    try {
-      await addEvidenceToPayload(file, payload, now);
-    } catch (err) {
-      showStaffUpdateError(err.message || 'Could not read the evidence file.');
-      return;
-    }
-  }
-
   await finish();
-}
 
 // ── Utilities ────────────────────────────────────────────────────────────────
 function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
@@ -605,6 +613,11 @@ function pColor(pct) {
   if (pct >= 80) return '#16a34a';
   if (pct >= 50) return '#d97706';
   return '#dc2626';
+}
+
+function isValidEvidenceFile(file) {
+  if (!file) return true;
+  return ALLOWED_EVIDENCE_TYPES.includes(file.type || '') && file.size <= MAX_EVIDENCE_SIZE;
 }
 
 function sBadge(status) {

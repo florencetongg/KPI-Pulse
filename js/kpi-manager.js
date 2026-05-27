@@ -1,13 +1,16 @@
 /**
  * KPI Manager Module
- * Powers manager-kpi.html, kpi-form.html, kpi-verify.html
+ * Powers manager-kpi.html, kpi-form.html, kpi-verify.html.
+ * Uses the Express + MongoDB backend only.
  */
 
-function _db() {
-  if (typeof db === 'undefined') {
-    throw new Error('Firestore is not initialized.');
-  }
-  return db;
+const KPI_API_BASE = 'http://localhost:3000/api';
+
+async function apiJson(url, options = {}) {
+  const response = await authenticatedFetch(url, options);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.message || `Request failed with status ${response.status}`);
+  return data;
 }
 
 let lastKpiSource = 'remote';
@@ -20,8 +23,16 @@ function normalizeMaybeTimestamp(value) {
 }
 
 function normalizeKpiRecord(record) {
+  const assigned = record.assignedTo && typeof record.assignedTo === 'object' ? record.assignedTo : null;
+  const createdBy = record.createdBy && typeof record.createdBy === 'object' ? record.createdBy : null;
+
   return {
     ...record,
+    id: record._id || record.id,
+    assignedTo: assigned?._id || assigned?.id || record.assignedTo,
+    assignedToName: record.assignedToName || assigned?.name || '',
+    assignedToDept: record.assignedToDept || assigned?.department || '',
+    createdBy: createdBy?._id || createdBy?.id || record.createdBy,
     createdAt: normalizeMaybeTimestamp(record.createdAt),
     updatedAt: normalizeMaybeTimestamp(record.updatedAt),
     submittedAt: normalizeMaybeTimestamp(record.submittedAt),
@@ -30,49 +41,46 @@ function normalizeKpiRecord(record) {
 
 // ── Data Store ───────────────────────────────────────────────────────────────
 async function getKpis() {
-  const snapshot = await _db().collection('kpi').get();
-  const kpis = snapshot.docs.map(doc => normalizeKpiRecord({ id: doc.id, ...doc.data() }));
+  const result = await apiJson(`${KPI_API_BASE}/kpis`);
+  const kpis = (result.data || []).map(normalizeKpiRecord);
   lastKpiSource = 'remote';
   return kpis;
 }
 
 async function getKpiById(id) {
   if (!id) return null;
-  const snap = await _db().collection('kpi').doc(id).get();
-  if (!snap.exists) return null;
-  return { id: snap.id, ...snap.data() };
+  const kpis = await getKpis();
+  return kpis.find(kpi => kpi.id === id) || null;
 }
 
 async function saveKpi(kpi) {
-  const now = new Date().toISOString();
-  const payload = { ...kpi, updatedAt: now };
+  const payload = { ...kpi };
 
   if (kpi.id) {
     const id = kpi.id;
     delete payload.id;
-    await _db().collection('kpi').doc(id).set(payload, { merge: true });
+    await apiJson(`${KPI_API_BASE}/kpis/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
     return id;
   }
 
-  payload.createdAt = payload.createdAt || now;
-  const docRef = await _db().collection('kpi').add(payload);
-  return docRef.id;
+  const result = await apiJson(`${KPI_API_BASE}/kpis`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return result.data?._id || result.data?.id;
 }
 
 async function deleteKpi(id) {
   if (!id) return;
-  await _db().collection('kpi').doc(id).delete();
+  await apiJson(`${KPI_API_BASE}/kpis/${id}`, { method: 'DELETE' });
 }
 
 async function getStaffUsers() {
-  const snapshot = await _db().collection('users')
-    .where('role', '==', 'staff')
-    .get();
-
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+  const result = await apiJson(`${KPI_API_BASE}/auth/staff`);
+  return (result.data || []).map(user => ({ id: user._id || user.id, ...user }));
 }
 
 // ── Manager Dashboard ────────────────────────────────────────────────────────
@@ -117,7 +125,7 @@ async function loadManagerDashboard() {
   } catch (error) {
     console.error('Failed to load manager dashboard:', error);
     setConnectionStatus(false);
-    flashAlert('Unable to fetch KPI data from Firestore right now.', 'error');
+    flashAlert('Unable to fetch KPI data from the backend right now.', 'error');
   }
 }
 
@@ -305,6 +313,7 @@ async function renderKpiHistory(kpisArg) {
 // ── KPI Form ─────────────────────────────────────────────────────────────────
 async function initKpiForm() {
   const sel = document.getElementById('kpiAssignedTo');
+  const statusSelect = document.getElementById('kpiStatus');
 
   const staff = await getStaffUsers();
 
@@ -318,7 +327,14 @@ async function initKpiForm() {
     staff.map(s => `<option value="${s.id}">${s.name} (${s.email || ''})</option>`).join('');
 
   const editId = new URLSearchParams(window.location.search).get('id');
-  if (!editId) return;
+  if (!editId) {
+    if (statusSelect) {
+      statusSelect.value = 'pending';
+      statusSelect.disabled = true;
+    }
+    return;
+  }
+  if (statusSelect) statusSelect.disabled = false;
 
   const kpi = await getKpiById(editId);
   if (!kpi) return;
@@ -329,7 +345,7 @@ async function initKpiForm() {
   setVal('kpiDescription', kpi.description || '');
   setVal('kpiTarget', kpi.target || '');
   setVal('kpiUnit', kpi.unit || '');
-  setVal('kpiDueDate', kpi.dueDate || '');
+  setVal('kpiDueDate', toDateInputValue(kpi.dueDate));
   setVal('kpiPriority', kpi.priority || '');
   setVal('kpiAssignedTo', kpi.assignedTo || '');
   setVal('kpiStatus', kpi.status || 'pending');
@@ -355,6 +371,7 @@ async function saveKpiForm() {
   let valid = true;
   if (!name) { fieldErr('kpiNameError', 'KPI name is required.'); valid = false; }
   if (!category) { fieldErr('kpiCategoryError', 'Category is required.'); valid = false; }
+  if (!description) { fieldErr('kpiDescriptionError', 'Description is required.'); valid = false; }
   if (!target) { fieldErr('kpiTargetError', 'Target value is required.'); valid = false; }
   if (!unit) { fieldErr('kpiUnitError', 'Unit / measure is required.'); valid = false; }
   if (!dueDate) { fieldErr('kpiDueDateError', 'Due date is required.'); valid = false; }
@@ -365,42 +382,30 @@ async function saveKpiForm() {
     show('errorAlert');
     return;
   }
+
+  const numericTarget = Number(target);
+  if (!Number.isFinite(numericTarget) || numericTarget < 0) {
+    fieldErr('kpiTargetError', 'Target must be a valid number.');
+    show('errorAlert');
+    return;
+  }
   hide('errorAlert');
 
-  const staff = await getStaffUsers();
-  const staffRec = staff.find(s => s.id === assignedTo);
-  const assignedToName = staffRec?.name || '';
-  const assignedToDept = staffRec?.department || 'General';
-
   const editId = document.getElementById('kpiId')?.value || '';
-  const now = new Date().toISOString();
 
   const payload = {
     id: editId || undefined,
     name,
     category,
     description,
-    target,
+    target: numericTarget,
     unit,
     dueDate,
     priority,
     assignedTo,
-    assignedToName,
-    assignedToDept,
-    status,
-    updatedAt: now,
   };
 
-  if (!editId) {
-    payload.progress = 0;
-    payload.currentValue = '';
-    payload.comments = '';
-    payload.evidenceName = null;
-    payload.evidenceData = null;
-    payload.rejectionReason = '';
-    payload.submittedAt = null;
-    payload.createdAt = now;
-  }
+  if (editId) payload.status = status;
 
   await saveKpi(payload);
 
@@ -474,12 +479,12 @@ async function renderVerifyList() {
 function openApprove(id, name) {
   document.getElementById('approveKpiName').textContent = name;
   document.getElementById('confirmApproveBtn').onclick = async function () {
-    await _db().collection('kpi').doc(id).set({
+    await apiJson(`${KPI_API_BASE}/kpis/${id}/review`, {
+      method: 'PUT',
+      body: JSON.stringify({
       status: 'approved',
-      progress: 100,
-      updatedAt: new Date().toISOString(),
-      rejectionReason: '',
-    }, { merge: true });
+      }),
+    });
 
     closeModal('approveModal');
     flashAlert('KPI "' + name + '" approved! ✓');
@@ -499,11 +504,13 @@ function openReject(id, name) {
       return;
     }
 
-    await _db().collection('kpi').doc(id).set({
+    await apiJson(`${KPI_API_BASE}/kpis/${id}/review`, {
+      method: 'PUT',
+      body: JSON.stringify({
       status: 'rejected',
       rejectionReason: reason,
-      updatedAt: new Date().toISOString(),
-    }, { merge: true });
+      }),
+    });
 
     closeModal('rejectModal');
     flashAlert('KPI "' + name + '" rejected.', 'error');
@@ -517,14 +524,15 @@ async function previewEvidence(id) {
   const content = document.getElementById('evidencePreviewContent');
   if (!kpi || !content) return;
 
-  if (kpi.evidenceData && kpi.evidenceData.startsWith('data:image')) {
-    content.innerHTML = `<img src="${kpi.evidenceData}" alt="Evidence" style="max-width:100%;border-radius:8px;display:block;">`;
+  if (kpi.evidenceUrl && /^https?:\/\//i.test(kpi.evidenceUrl) && /^image\//i.test(kpi.evidenceMimeType || '')) {
+    content.innerHTML = `<img src="${esc(kpi.evidenceUrl)}" alt="Evidence" style="max-width:100%;border-radius:8px;display:block;">`;
   } else {
     content.innerHTML = `
       <div style="text-align:center;padding:24px;">
         <svg viewBox="0 0 24 24" style="width:52px;height:52px;margin:0 auto 12px;display:block;stroke:var(--primary);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         <p style="font-weight:700;color:var(--navy);margin:0 0 4px;">${esc(kpi.evidenceName || 'evidence file')}</p>
         <p style="color:var(--muted);font-size:0.85rem;margin:0;">Evidence file attached by ${esc(kpi.assignedToName || 'staff member')}.</p>
+        ${kpi.evidenceUrl ? `<p style="color:var(--muted);font-size:0.78rem;margin:8px 0 0;">${esc(kpi.evidenceUrl)}</p>` : ''}
       </div>`;
   }
   document.getElementById('evidenceModal').classList.add('open');
@@ -568,6 +576,13 @@ function fmtDateTime(d) {
   });
 }
 
+function toDateInputValue(d) {
+  if (!d) return '';
+  const date = new Date(d);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toISOString().slice(0, 10);
+}
+
 function historyEventLabel(kpi) {
   if (kpi.status === 'approved') return 'Approved by manager';
   if (kpi.status === 'rejected') return 'Rejected by manager';
@@ -581,10 +596,10 @@ function setConnectionStatus(connected) {
   const el = document.getElementById('kpiHistoryConnection');
   if (!el) return;
   if (connected && lastKpiSource === 'remote') {
-    el.textContent = 'Firestore connected';
+    el.textContent = 'MongoDB backend connected';
     el.style.color = 'var(--success)';
   } else {
-    el.textContent = 'Firestore fetch failed';
+    el.textContent = 'Backend fetch failed';
     el.style.color = 'var(--danger)';
   }
 }
