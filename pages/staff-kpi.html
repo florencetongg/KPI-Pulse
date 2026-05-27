@@ -207,6 +207,8 @@
             <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             <span id="fileName"></span>
           </div>
+          <div id="evidenceUploadStatus" style="display:none;margin-top:10px;font-size:0.85rem;color:var(--muted);"></div>
+          <button type="button" id="retryUploadBtn" class="btn btn-outline-secondary btn-sm" style="display:none;margin-top:10px;">Retry upload</button>
           <div class="form-hint error" id="evidenceError"></div>
         </div>
 
@@ -232,7 +234,11 @@
     const user = getCurrentUser();
     populateNavUser(user);
     initDarkMode();
-    renderStaffKpis();
+    try {
+      renderStaffKpis();
+    } catch (err) {
+      console.error('renderStaffKpis error on page load:', err);
+    }
 
     document.getElementById('searchKpi').addEventListener('input', renderStaffKpis);
 
@@ -250,11 +256,22 @@
         setEvidenceError('');
         document.getElementById('fileSelected').style.display = 'inline-flex';
         document.getElementById('fileName').textContent = this.files[0].name;
+        handleFileSelect(this.files[0]);
       } else {
         setEvidenceError('');
         document.getElementById('fileSelected').style.display = 'none';
+        resetEvidenceUploadState();
       }
     });
+
+    const retryBtn = document.getElementById('retryUploadBtn');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', function () {
+        if (pendingEvidenceFile) {
+          startEvidenceUpload(pendingEvidenceFile, document.getElementById('updateKpiId')?.value || '');
+        }
+      });
+    }
 
     // Upload zone drag events
     const zone = document.getElementById('uploadZone');
@@ -272,13 +289,9 @@
         evidenceFile.files = e.dataTransfer.files;
         document.getElementById('fileSelected').style.display = 'inline-flex';
         document.getElementById('fileName').textContent = e.dataTransfer.files[0].name;
+        handleFileSelect(e.dataTransfer.files[0]);
+        submitProgress();
       }
-    });
-
-    // Form submit
-    document.getElementById('updateProgressForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      submitProgress();
     });
   });
 

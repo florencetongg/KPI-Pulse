@@ -27,6 +27,106 @@ async function apiJson(url, options = {}) {
   return data;
 }
 
+let pendingEvidenceFile = null;
+let pendingEvidenceMeta = null;
+let evidenceUploadState = 'idle';
+let evidenceUploadError = '';
+
+async function uploadEvidenceFile(file, kpiId = '') {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (kpiId) formData.append('kpiId', kpiId);
+
+  const response = await authenticatedFetch(`${KPI_API_BASE}/evidence/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.message || 'Evidence upload failed');
+  return result.data || {};
+}
+
+function updateEvidenceUploadUI() {
+  const statusEl = document.getElementById('evidenceUploadStatus');
+  const retryBtn = document.getElementById('retryUploadBtn');
+  if (statusEl) {
+    statusEl.style.display = evidenceUploadState === 'idle' ? 'none' : 'block';
+    if (evidenceUploadState === 'uploading') {
+      statusEl.textContent = 'Uploading evidence...';
+      statusEl.className = 'upload-status uploading';
+    } else if (evidenceUploadState === 'success') {
+      statusEl.textContent = 'Evidence uploaded and ready to submit.';
+      statusEl.className = 'upload-status success';
+    } else if (evidenceUploadState === 'failed') {
+      statusEl.textContent = `Evidence upload failed: ${evidenceUploadError}`;
+      statusEl.className = 'upload-status failed';
+    } else {
+      statusEl.textContent = '';
+      statusEl.className = 'upload-status';
+    }
+  }
+  if (retryBtn) {
+    retryBtn.style.display = evidenceUploadState === 'failed' ? 'inline-flex' : 'none';
+  }
+}
+
+function resetEvidenceUploadState() {
+  pendingEvidenceFile = null;
+  pendingEvidenceMeta = null;
+  evidenceUploadState = 'idle';
+  evidenceUploadError = '';
+  updateEvidenceUploadUI();
+}
+
+async function startEvidenceUpload(file, kpiId = '') {
+  if (!file) return null;
+  pendingEvidenceFile = file;
+  pendingEvidenceMeta = null;
+  evidenceUploadState = 'uploading';
+  evidenceUploadError = '';
+  updateEvidenceUploadUI();
+
+  try {
+    const uploaded = await uploadEvidenceFile(file, kpiId);
+    pendingEvidenceMeta = uploaded;
+    evidenceUploadState = 'success';
+    updateEvidenceUploadUI();
+    return uploaded;
+  } catch (err) {
+    evidenceUploadState = 'failed';
+    evidenceUploadError = err.message || 'Upload failed';
+    updateEvidenceUploadUI();
+    throw err;
+  }
+}
+
+function handleFileSelect(file, kpiId = '') {
+  const fileInput = document.getElementById('evidenceFile');
+  const filePreview = document.getElementById('filePreview');
+  if (!file) return;
+
+  if (fileInput) {
+    fileInput.files = createFileList(file);
+  }
+
+  if (filePreview) {
+    filePreview.style.display = 'flex';
+    const previewNameEl = document.getElementById('previewFileName');
+    if (previewNameEl) previewNameEl.textContent = file.name;
+    const previewSizeEl = document.getElementById('previewFileSize');
+    if (previewSizeEl) previewSizeEl.textContent = (file.size / 1024).toFixed(1) + ' KB';
+  }
+
+  startEvidenceUpload(file, kpiId);
+}
+
+function createFileList(file) {
+  const dataTransfer = new DataTransfer();
+  dataTransfer.items.add(file);
+  return dataTransfer.files;
+}
+
 function normalizeKpiRecord(record) {
   const assigned = record.assignedTo && typeof record.assignedTo === 'object' ? record.assignedTo : null;
   return {
@@ -67,8 +167,20 @@ function isAssignedToCurrentStaff(kpi) {
 }
 
 async function getKpis() {
-  const result = await apiJson(`${KPI_API_BASE}/kpis`);
-  return (result.data || []).map(normalizeKpiRecord);
+  // Debug: print stored session token/user and log API response
+  try {
+    console.debug('[kpi-staff] session authToken:', sessionStorage.getItem('authToken'));
+    console.debug('[kpi-staff] session userData:', sessionStorage.getItem('userData'));
+  } catch (e) { }
+
+  try {
+    const result = await apiJson(`${KPI_API_BASE}/kpis`);
+    try { console.debug('[kpi-staff] GET /api/kpis result:', result); } catch (e) { }
+    return (result.data || []).map(normalizeKpiRecord);
+  } catch (err) {
+    console.error('[kpi-staff] getKpis failed:', err);
+    throw err;
+  }
 }
 
 async function getMyKpis() {
@@ -95,147 +207,147 @@ async function updateKpi(id, updates) {
     body: JSON.stringify(updates),
   });
 
-function getStaffStatusForProgress(progress) {
-  const pct = Math.min(Math.max(parseInt(progress, 10) || 0, 0), 100);
-  if (pct === 0) return 'pending';
-  if (pct === 100) return 'submitted';
-  return 'in-progress';
-}
-
-function getReviewFeedback(kpi) {
-  return kpi?.rejectionReason || kpi?.reviewComment || '';
-}
-
-function rejectedFeedbackHtml(kpi) {
-  const feedback = getReviewFeedback(kpi);
-  if (kpi?.status !== 'rejected' || !feedback) return '';
-
-  return `<div style="background:#fef2f2;border-radius:8px;padding:10px;margin-top:10px;font-size:0.8rem;color:#991b1b;border:1px solid #fecaca;"><strong>Manager feedback:</strong> ${esc(feedback)}</div>`;
-}
-
-function validateEvidenceFile(file) {
-  if (!file) return { valid: true };
-
-  const lowerName = String(file.name || '').toLowerCase();
-  const hasAllowedExtension = EVIDENCE_ALLOWED_EXTENSIONS.some(ext => lowerName.endsWith(ext));
-  const hasAllowedType = EVIDENCE_ALLOWED_TYPES.includes(file.type);
-
-  if (!hasAllowedExtension || (file.type && !hasAllowedType)) {
-    return {
-      valid: false,
-      message: 'Invalid file type. Please upload JPG, PNG, PDF, DOC, or DOCX.',
-    };
+  function getStaffStatusForProgress(progress) {
+    const pct = Math.min(Math.max(parseInt(progress, 10) || 0, 0), 100);
+    if (pct === 0) return 'pending';
+    if (pct === 100) return 'submitted';
+    return 'in-progress';
   }
 
-  if (file.size > EVIDENCE_MAX_BYTES) {
-    return {
-      valid: false,
-      message: 'File size must not exceed 10MB.',
-    };
+  function getReviewFeedback(kpi) {
+    return kpi?.rejectionReason || kpi?.reviewComment || '';
   }
 
-  return { valid: true };
-}
+  function rejectedFeedbackHtml(kpi) {
+    const feedback = getReviewFeedback(kpi);
+    if (kpi?.status !== 'rejected' || !feedback) return '';
 
-function setEvidenceError(message) {
-  const el = document.getElementById('evidenceError');
-  if (el) el.textContent = message || '';
-
-  const alert = document.getElementById('errorAlert');
-  const msg = document.getElementById('errorMsg');
-  if (message && alert && msg) {
-    msg.textContent = message;
-    alert.style.display = 'flex';
+    return `<div style="background:#fef2f2;border-radius:8px;padding:10px;margin-top:10px;font-size:0.8rem;color:#991b1b;border:1px solid #fecaca;"><strong>Manager feedback:</strong> ${esc(feedback)}</div>`;
   }
-}
 
-function addEvidenceToPayload(file, payload, uploadedAt) {
-  return new Promise((resolve, reject) => {
-    if (!file) {
-      resolve(payload);
-      return;
+  function validateEvidenceFile(file) {
+    if (!file) return { valid: true };
+
+    const lowerName = String(file.name || '').toLowerCase();
+    const hasAllowedExtension = EVIDENCE_ALLOWED_EXTENSIONS.some(ext => lowerName.endsWith(ext));
+    const hasAllowedType = EVIDENCE_ALLOWED_TYPES.includes(file.type);
+
+    if (!hasAllowedExtension || (file.type && !hasAllowedType)) {
+      return {
+        valid: false,
+        message: 'Invalid file type. Please upload JPG, PNG, PDF, DOC, or DOCX.',
+      };
     }
 
-    payload.evidenceName = file.name;
-    payload.evidenceFileType = file.type || '';
-    payload.evidenceFileSize = file.size;
-    payload.evidenceUploadedAt = uploadedAt;
+    if (file.size > EVIDENCE_MAX_BYTES) {
+      return {
+        valid: false,
+        message: 'File size must not exceed 10MB.',
+      };
+    }
 
-    // Demo-level evidence storage: keep using Base64 to match the existing project style.
-    const reader = new FileReader();
-    reader.onload = e => {
-      payload.evidenceData = e.target.result;
-      resolve(payload);
-    };
-    reader.onerror = () => reject(new Error('Could not read the evidence file.'));
-    reader.readAsDataURL(file);
-  });
-}
-
-function showStaffUpdateError(message) {
-  setEvidenceError(message);
-  const alert = document.getElementById('errorAlert');
-  const msg = document.getElementById('errorMsg');
-  if (alert && msg) {
-    msg.textContent = message;
-    alert.style.display = 'flex';
-  } else {
-    window.alert(message);
+    return { valid: true };
   }
-}
 
-// ── Staff Dashboard ──────────────────────────────────────────────────────────
-async function loadStaffDashboard() {
-  const kpis = await getMyKpis();
-  const assigned = kpis.length;
-  const completed = kpis.filter(k => k.status === 'approved').length;
-  const pending = kpis.filter(k => ['pending', 'in-progress'].includes(k.status)).length;
-  const avgProg = assigned > 0
-    ? Math.round(kpis.reduce((sum, k) => sum + (k.progress || 0), 0) / assigned)
-    : 0;
+  function setEvidenceError(message) {
+    const el = document.getElementById('evidenceError');
+    if (el) el.textContent = message || '';
 
-  setText('statAssigned', assigned);
-  setText('statCompleted', completed);
-  setText('statPending', pending);
-  setText('statProgress', avgProg + '%');
-
-  const ring = document.getElementById('progressRing');
-  if (ring) {
-    const c = 2 * Math.PI * 50;
-    ring.setAttribute('stroke-dasharray', c);
-    setTimeout(() => {
-      ring.setAttribute('stroke-dashoffset', c - (c * avgProg / 100));
-    }, 200);
+    const alert = document.getElementById('errorAlert');
+    const msg = document.getElementById('errorMsg');
+    if (message && alert && msg) {
+      msg.textContent = message;
+      alert.style.display = 'flex';
+    }
   }
-  setText('progressRingText', avgProg + '%');
 
-  await renderMyKpiTable(kpis);
-  renderActivity(kpis);
-}
+  function addEvidenceToPayload(file, payload, uploadedAt) {
+    return new Promise((resolve, reject) => {
+      if (!file) {
+        resolve(payload);
+        return;
+      }
 
-// ── My KPI Table (dashboard overview) ───────────────────────────────────────
-async function renderMyKpiTable(kpis) {
-  const tbody = document.getElementById('myKpiTableBody');
-  if (!tbody) return;
+      payload.evidenceName = file.name;
+      payload.evidenceFileType = file.type || '';
+      payload.evidenceFileSize = file.size;
+      payload.evidenceUploadedAt = uploadedAt;
 
-  let data = kpis || await getMyKpis();
-  const search = (document.getElementById('dashSearch')?.value || '').toLowerCase();
-  const statusF = document.getElementById('dashStatusFilter')?.value || '';
+      // Demo-level evidence storage: keep using Base64 to match the existing project style.
+      const reader = new FileReader();
+      reader.onload = e => {
+        payload.evidenceData = e.target.result;
+        resolve(payload);
+      };
+      reader.onerror = () => reject(new Error('Could not read the evidence file.'));
+      reader.readAsDataURL(file);
+    });
+  }
 
-  if (search) data = data.filter(k => (k.name || '').toLowerCase().includes(search) || (k.category || '').toLowerCase().includes(search));
-  if (statusF) data = data.filter(k => k.status === statusF);
+  function showStaffUpdateError(message) {
+    setEvidenceError(message);
+    const alert = document.getElementById('errorAlert');
+    const msg = document.getElementById('errorMsg');
+    if (alert && msg) {
+      msg.textContent = message;
+      alert.style.display = 'flex';
+    } else {
+      window.alert(message);
+    }
+  }
 
-  const empty = document.getElementById('dashEmptyState');
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted);">No KPIs match your search.</td></tr>';
+  // ── Staff Dashboard ──────────────────────────────────────────────────────────
+  async function loadStaffDashboard() {
+    const kpis = await getMyKpis();
+    const assigned = kpis.length;
+    const completed = kpis.filter(k => k.status === 'approved').length;
+    const pending = kpis.filter(k => ['pending', 'in-progress'].includes(k.status)).length;
+    const avgProg = assigned > 0
+      ? Math.round(kpis.reduce((sum, k) => sum + (k.progress || 0), 0) / assigned)
+      : 0;
+
+    setText('statAssigned', assigned);
+    setText('statCompleted', completed);
+    setText('statPending', pending);
+    setText('statProgress', avgProg + '%');
+
+    const ring = document.getElementById('progressRing');
+    if (ring) {
+      const c = 2 * Math.PI * 50;
+      ring.setAttribute('stroke-dasharray', c);
+      setTimeout(() => {
+        ring.setAttribute('stroke-dashoffset', c - (c * avgProg / 100));
+      }, 200);
+    }
+    setText('progressRingText', avgProg + '%');
+
+    await renderMyKpiTable(kpis);
+    renderActivity(kpis);
+  }
+
+  // ── My KPI Table (dashboard overview) ───────────────────────────────────────
+  async function renderMyKpiTable(kpis) {
+    const tbody = document.getElementById('myKpiTableBody');
+    if (!tbody) return;
+
+    let data = kpis || await getMyKpis();
+    const search = (document.getElementById('dashSearch')?.value || '').toLowerCase();
+    const statusF = document.getElementById('dashStatusFilter')?.value || '';
+
+    if (search) data = data.filter(k => (k.name || '').toLowerCase().includes(search) || (k.category || '').toLowerCase().includes(search));
+    if (statusF) data = data.filter(k => k.status === statusF);
+
+    const empty = document.getElementById('dashEmptyState');
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted);">No KPIs match your search.</td></tr>';
+      if (empty) empty.style.display = 'none';
+      return;
+    }
     if (empty) empty.style.display = 'none';
-    return;
-  }
-  if (empty) empty.style.display = 'none';
 
-  tbody.innerHTML = data.slice(0, 10).map(k => {
-    const overdue = k.dueDate && k.status !== 'approved' && new Date(k.dueDate) < new Date();
-    return `<tr>
+    tbody.innerHTML = data.slice(0, 10).map(k => {
+      const overdue = k.dueDate && k.status !== 'approved' && new Date(k.dueDate) < new Date();
+      return `<tr>
       <td>
         <div style="font-weight:600;color:var(--navy);">${esc(k.name)}</div>
         <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">${esc(k.category || '')}${overdue ? ' · <span style="color:#dc2626;font-weight:700;">Overdue</span>' : ''}</div>
@@ -257,28 +369,28 @@ async function renderMyKpiTable(kpis) {
           : '<span style="font-size:0.8rem;font-weight:700;color:var(--success);">✓ Done</span>'}
       </td>
     </tr>`;
-  }).join('');
-}
+    }).join('');
+  }
 
-function goUpdateKpi(id) {
-  window.location.href = 'kpi-progress.html?id=' + id;
-}
+  function goUpdateKpi(id) {
+    window.location.href = 'kpi-progress.html?id=' + id;
+  }
 
-// ── Recent Activity Feed ─────────────────────────────────────────────────────
-function renderActivity(kpis) {
-  const list = document.getElementById('activityList');
-  if (!list) return;
+  // ── Recent Activity Feed ─────────────────────────────────────────────────────
+  function renderActivity(kpis) {
+    const list = document.getElementById('activityList');
+    if (!list) return;
 
-  const sorted = [...(kpis || [])]
-    .filter(k => k.updatedAt)
-    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-    .slice(0, 6);
+    const sorted = [...(kpis || [])]
+      .filter(k => k.updatedAt)
+      .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+      .slice(0, 6);
 
-  if (!sorted.length) return;
+    if (!sorted.length) return;
 
-  const dotMap = { approved: 'success', rejected: 'danger', submitted: 'primary', 'in-progress': 'warning', pending: 'primary' };
+    const dotMap = { approved: 'success', rejected: 'danger', submitted: 'primary', 'in-progress': 'warning', pending: 'primary' };
 
-  list.innerHTML = sorted.map(k => `
+    list.innerHTML = sorted.map(k => `
     <div class="activity-item">
       <div class="activity-dot ${dotMap[k.status] || 'primary'}"></div>
       <div>
@@ -288,42 +400,43 @@ function renderActivity(kpis) {
       </div>
     </div>
   `).join('');
-}
-
-// ── Staff KPI Cards (staff-kpi.html) ────────────────────────────────────────
-async function renderStaffKpis() {
-  const grid = document.getElementById('kpiCardGrid');
-  const empty = document.getElementById('kpiEmptyState');
-  if (!grid) return;
-
-  let kpis = await getMyKpis();
-
-  const search = (document.getElementById('searchKpi')?.value || '').toLowerCase();
-  const filter = (typeof activeFilter !== 'undefined') ? activeFilter : '';
-
-  if (search) kpis = kpis.filter(k => (k.name || '').toLowerCase().includes(search) || (k.category || '').toLowerCase().includes(search));
-  if (filter) kpis = kpis.filter(k => k.status === filter);
-
-  const countEl = document.getElementById('kpiCountText');
-  if (countEl) countEl.textContent = kpis.length;
-
-  if (!kpis.length) {
-    grid.innerHTML = '';
-    if (empty) {
-      empty.style.display = 'block';
-      const msg = document.getElementById('emptyMsg');
-      if (msg) msg.textContent = filter || search
-        ? 'No KPIs match your current filter or search.'
-        : 'Your manager hasn\'t assigned any KPIs to you yet.';
-    }
-    return;
   }
-  if (empty) empty.style.display = 'none';
 
-  grid.innerHTML = kpis.map((k, i) => {
-    const overdue = k.dueDate && k.status !== 'approved' && new Date(k.dueDate) < new Date();
-    const canUpdate = !['approved'].includes(k.status);
-    return `
+  // ── Staff KPI Cards (staff-kpi.html) ────────────────────────────────────────
+  async function renderStaffKpis() {
+    try { console.debug('[kpi-staff] renderStaffKpis called'); } catch (e) { }
+    const grid = document.getElementById('kpiCardGrid');
+    const empty = document.getElementById('kpiEmptyState');
+    if (!grid) return;
+
+    let kpis = await getMyKpis();
+
+    const search = (document.getElementById('searchKpi')?.value || '').toLowerCase();
+    const filter = (typeof activeFilter !== 'undefined') ? activeFilter : '';
+
+    if (search) kpis = kpis.filter(k => (k.name || '').toLowerCase().includes(search) || (k.category || '').toLowerCase().includes(search));
+    if (filter) kpis = kpis.filter(k => k.status === filter);
+
+    const countEl = document.getElementById('kpiCountText');
+    if (countEl) countEl.textContent = kpis.length;
+
+    if (!kpis.length) {
+      grid.innerHTML = '';
+      if (empty) {
+        empty.style.display = 'block';
+        const msg = document.getElementById('emptyMsg');
+        if (msg) msg.textContent = filter || search
+          ? 'No KPIs match your current filter or search.'
+          : 'Your manager hasn\'t assigned any KPIs to you yet.';
+      }
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    grid.innerHTML = kpis.map((k, i) => {
+      const overdue = k.dueDate && k.status !== 'approved' && new Date(k.dueDate) < new Date();
+      const canUpdate = !['approved'].includes(k.status);
+      return `
     <div class="kpi-item-card fade-in-up" style="animation-delay:${i * 0.05}s;">
       <div class="kpi-item-card-header">
         <div style="flex:1;min-width:0;">
@@ -357,7 +470,7 @@ async function renderStaffKpis() {
         ${rejectedFeedbackHtml(k)}
 
         ${canUpdate
-          ? `<button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="openKpiUpdateModal('${k.id}')">
+          ? `<button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="goUpdateKpi('${k.id}')">
                <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
                ${k.status === 'rejected' ? 'Resubmit' : 'Update Progress'}
              </button>`
@@ -367,290 +480,310 @@ async function renderStaffKpis() {
              </div>`}
       </div>
     </div>`;
-  }).join('');
-}
-
-// ── Update Progress Modal (staff-kpi.html) ──────────────────────────────────
-async function openKpiUpdateModal(id) {
-  let kpi;
-  try {
-    kpi = await getStaffKpiById(id);
-  } catch (err) {
-    showStaffUpdateError(err.message || 'You are not allowed to update this KPI.');
-    return;
-  }
-  if (!kpi) return;
-  if (kpi.status === 'approved') {
-    showStaffUpdateError('Approved KPIs cannot be updated.');
-    return;
+    }).join('');
   }
 
-  setVal('updateKpiId', id);
-  setText('updateKpiNameDisplay', kpi.name);
-  setText('updateKpiTarget', 'Target: ' + (kpi.target || '—') + (kpi.unit ? ' ' + kpi.unit : ''));
+  // ── Update Progress Modal (staff-kpi.html) ──────────────────────────────────
+  async function openKpiUpdateModal(id) {
+    let kpi;
+    try {
+      kpi = await getStaffKpiById(id);
+    } catch (err) {
+      showStaffUpdateError(err.message || 'You are not allowed to update this KPI.');
+      return;
+    }
+    if (!kpi) return;
+    if (kpi.status === 'approved') {
+      showStaffUpdateError('Approved KPIs cannot be updated.');
+      return;
+    }
 
-  const val = kpi.progress || 0;
-  const slider = document.getElementById('progressSlider');
-  const input = document.getElementById('progressInput');
-  if (slider) slider.value = val;
-  if (input) input.value = val;
+    setVal('updateKpiId', id);
+    setText('updateKpiNameDisplay', kpi.name);
+    setText('updateKpiTarget', 'Target: ' + (kpi.target || '—') + (kpi.unit ? ' ' + kpi.unit : ''));
 
-  setVal('progressComment', kpi.comments || '');
-  const fileSelected = document.getElementById('fileSelected');
-  const fileInput = document.getElementById('evidenceFile');
-  setEvidenceError('');
-  if (fileSelected) fileSelected.style.display = 'none';
-  if (fileInput) fileInput.value = '';
+    const val = kpi.progress || 0;
+    const slider = document.getElementById('progressSlider');
+    const input = document.getElementById('progressInput');
+    if (slider) slider.value = val;
+    if (input) input.value = val;
 
-  document.getElementById('updateProgressModal').classList.add('open');
-}
+    setVal('progressComment', kpi.comments || '');
+    const fileSelected = document.getElementById('fileSelected');
+    const fileInput = document.getElementById('evidenceFile');
+    setEvidenceError('');
+    if (fileSelected) fileSelected.style.display = 'none';
+    if (fileInput) fileInput.value = '';
 
-async function submitProgress() {
-  const id = document.getElementById('updateKpiId')?.value || '';
-  const progress = parseInt(document.getElementById('progressInput')?.value) || 0;
-  const comment = document.getElementById('progressComment')?.value.trim() || '';
-  const fileInput = document.getElementById('evidenceFile');
-  const file = fileInput?.files?.[0] || null;
-
-  if (!id) return;
-  setEvidenceError('');
-
-  const evidenceCheck = validateEvidenceFile(file);
-  if (!evidenceCheck.valid) {
-    setEvidenceError(evidenceCheck.message);
-    return;
+    document.getElementById('updateProgressModal').classList.add('open');
   }
 
-  const now = new Date().toISOString();
-  const status = getStaffStatusForProgress(progress);
-  const payload = {
-    progress,
-    comments: comment,
-    status,
-    submittedAt: status === 'submitted' ? now : null,
-    updatedAt: now,
-  };
+  async function submitProgress() {
+    const id = document.getElementById('updateKpiId')?.value || '';
+    const progress = parseInt(document.getElementById('progressInput')?.value) || 0;
+    const comment = document.getElementById('progressComment')?.value.trim() || '';
+    const fileInput = document.getElementById('evidenceFile');
+    const file = fileInput?.files?.[0] || null;
 
-  try {
-    await addEvidenceToPayload(file, payload, now);
+    if (!id) return;
+    setEvidenceError('');
+
+    const evidenceCheck = validateEvidenceFile(file);
+    if (!evidenceCheck.valid) {
+      setEvidenceError(evidenceCheck.message);
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const status = getStaffStatusForProgress(progress);
+    const payload = {
+      progress,
+      comments: comment,
+      status,
+      submittedAt: status === 'submitted' ? now : null,
+      updatedAt: now,
+    };
+
+    if (fileInput && fileInput.files.length > 0 && !pendingEvidenceMeta) {
+      alert('Please upload the selected evidence file before submitting.');
+      return;
+    }
+
+    if (pendingEvidenceMeta) {
+      payload.evidenceRef = pendingEvidenceMeta.id;
+    }
+
     await updateKpi(id, payload);
     closeModal('updateProgressModal');
     await renderStaffKpis();
     if (typeof loadStaffDashboard === 'function') await loadStaffDashboard();
-  } catch (err) {
-    showStaffUpdateError(err.message || 'Could not submit progress. Please try again.');
-  }
-}
-
-// ── Progress Page (kpi-progress.html) ───────────────────────────────────────
-async function initProgressPage() {
-  const sel = document.getElementById('kpiSelect');
-  if (!sel) return;
-
-  const kpis = (await getMyKpis()).filter(k => k.status !== 'approved');
-  sel.innerHTML = '<option value="">— Choose a KPI —</option>' +
-    kpis.map(k => `<option value="${k.id}">${esc(k.name)} (${k.progress || 0}% complete)</option>`).join('');
-
-  const urlId = new URLSearchParams(window.location.search).get('id');
-  if (urlId && kpis.find(k => k.id === urlId)) {
-    sel.value = urlId;
-    await onKpiSelect();
-  }
-}
-
-async function onKpiSelect() {
-  const id = document.getElementById('kpiSelect')?.value || '';
-  const infoCard = document.getElementById('kpiInfoCard');
-  if (!id) {
-    if (infoCard) infoCard.style.display = 'none';
-    return;
   }
 
-  let kpi;
-  try {
-    kpi = await getStaffKpiById(id);
-  } catch (err) {
-    showStaffUpdateError(err.message || 'You are not allowed to update this KPI.');
-    if (infoCard) infoCard.style.display = 'none';
-    return;
-  }
-  if (!kpi) return;
+  // ── Progress Page (kpi-progress.html) ───────────────────────────────────────
+  async function initProgressPage() {
+    const sel = document.getElementById('kpiSelect');
+    if (!sel) return;
 
-  if (infoCard) infoCard.style.display = 'block';
+    const kpis = (await getMyKpis()).filter(k => k.status !== 'approved');
+    sel.innerHTML = '<option value="">— Choose a KPI —</option>' +
+      kpis.map(k => `<option value="${k.id}">${esc(k.name)} (${k.progress || 0}% complete)</option>`).join('');
 
-  const pct = kpi.progress || 0;
-  setText('infoKpiName', kpi.name || '—');
-  setText('infoTarget', (kpi.target || '—') + (kpi.unit ? ' ' + kpi.unit : ''));
-  setText('infoDue', kpi.dueDate ? fmtDate(kpi.dueDate) : '—');
-  setText('infoCat', kpi.category || '—');
-  const statusEl = document.getElementById('infoStatus');
-  if (statusEl) {
-    statusEl.innerHTML = sBadge(kpi.status) +
-      (kpi.status === 'rejected' && getReviewFeedback(kpi)
-        ? `<div style="font-size:0.78rem;color:#991b1b;margin-top:6px;"><strong>Manager feedback:</strong> ${esc(getReviewFeedback(kpi))}</div>`
-        : '');
-  }
-
-  const c = 2 * Math.PI * 56;
-  const ring = document.getElementById('kpiInfoRing');
-  if (ring) {
-    ring.setAttribute('stroke-dasharray', c);
-    setTimeout(() => ring.setAttribute('stroke-dashoffset', c - (c * pct / 100)), 100);
-  }
-  setText('ringPct', pct + '%');
-
-  const slider = document.getElementById('progressSlider');
-  const input = document.getElementById('progressInput');
-  const bar = document.getElementById('progressBar');
-  if (slider) slider.value = pct;
-  if (input) input.value = pct;
-  if (bar) bar.style.width = pct + '%';
-
-  setVal('currentValue', kpi.currentValue || '');
-  setVal('progressNotes', kpi.comments || '');
-}
-
-async function submitProgressPage() {
-  const id = document.getElementById('kpiSelect')?.value || '';
-  const progress = parseInt(document.getElementById('progressInput')?.value) || 0;
-  const notes = document.getElementById('progressNotes')?.value.trim() || '';
-  const currentVal = document.getElementById('currentValue')?.value.trim() || '';
-  const fileInput = document.getElementById('evidenceFile');
-  const file = fileInput?.files?.[0] || null;
-
-  const kpiSelErr = document.getElementById('kpiSelectError');
-  const progErr = document.getElementById('progressError');
-  const evidErr = document.getElementById('evidenceError');
-  const errAlert = document.getElementById('errorAlert');
-  if (kpiSelErr) kpiSelErr.textContent = '';
-  if (progErr) progErr.textContent = '';
-  if (evidErr) evidErr.textContent = '';
-  if (errAlert) errAlert.style.display = 'none';
-
-  let valid = true;
-  if (!id) { if (kpiSelErr) kpiSelErr.textContent = 'Please select a KPI.'; valid = false; }
-  if (progress < 0 || progress > 100) { if (progErr) progErr.textContent = 'Progress must be between 0 and 100%.'; valid = false; }
-  
-  const evidenceCheck = validateEvidenceFile(file);
-  if (!evidenceCheck.valid) {
-    if (evidErr) evidErr.textContent = evidenceCheck.message;
-    valid = false;
-  }
-
-  if (currentVal && (!Number.isFinite(Number(currentVal)) || Number(currentVal) < 0)) {
-    if (progErr) progErr.textContent = 'Current achievement value must be a valid number.';
-    valid = false;
-  }
-
-  if (!valid) {
-    if (errAlert) {
-      errAlert.style.display = 'flex';
-      setText('errorMsg', evidenceCheck.valid ? 'Please fix the errors above.' : evidenceCheck.message);
+    const urlId = new URLSearchParams(window.location.search).get('id');
+    if (urlId && kpis.find(k => k.id === urlId)) {
+      sel.value = urlId;
+      await onKpiSelect();
     }
-    return;
   }
 
-  const now = new Date().toISOString();
-  const status = getStaffStatusForProgress(progress);
-  const payload = {
-    progress,
-    comments: notes,
-    status,
-    submittedAt: status === 'submitted' ? now : null,
-    updatedAt: now,
-  };
-  if (currentVal) payload.currentValue = Number(currentVal);
-
-  const finish = async () => {
-    try {
-      if (file) {
-        await addEvidenceToPayload(file, payload, now);
-      }
-      await updateKpi(id, payload);
-    } catch (err) {
-      showStaffUpdateError(err.message || 'Could not submit progress. Please try again.');
+  async function onKpiSelect() {
+    const id = document.getElementById('kpiSelect')?.value || '';
+    const infoCard = document.getElementById('kpiInfoCard');
+    if (!id) {
+      if (infoCard) infoCard.style.display = 'none';
       return;
     }
 
-    const sa = document.getElementById('successAlert');
-    if (sa) {
-      sa.style.display = 'flex';
-      setText('successMsg', status === 'submitted'
-        ? 'Progress submitted! Your manager will review it soon.'
-        : 'Progress saved successfully.');
+    let kpi;
+    try {
+      kpi = await getStaffKpiById(id);
+    } catch (err) {
+      showStaffUpdateError(err.message || 'You are not allowed to update this KPI.');
+      if (infoCard) infoCard.style.display = 'none';
+      return;
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!kpi) return;
 
-    document.getElementById('progressForm')?.reset();
-    const ic = document.getElementById('kpiInfoCard');
-    if (ic) ic.style.display = 'none';
-    const pb = document.getElementById('progressBar');
-    if (pb) pb.style.width = '0%';
-    const fp = document.getElementById('filePreview');
-    if (fp) fp.style.display = 'none';
+    if (infoCard) infoCard.style.display = 'block';
 
-    setTimeout(() => { initProgressPage(); }, 120);
-  };
+    const pct = kpi.progress || 0;
+    setText('infoKpiName', kpi.name || '—');
+    setText('infoTarget', (kpi.target || '—') + (kpi.unit ? ' ' + kpi.unit : ''));
+    setText('infoDue', kpi.dueDate ? fmtDate(kpi.dueDate) : '—');
+    setText('infoCat', kpi.category || '—');
+    const statusEl = document.getElementById('infoStatus');
+    if (statusEl) {
+      statusEl.innerHTML = sBadge(kpi.status) +
+        (kpi.status === 'rejected' && getReviewFeedback(kpi)
+          ? `<div style="font-size:0.78rem;color:#991b1b;margin-top:6px;"><strong>Manager feedback:</strong> ${esc(getReviewFeedback(kpi))}</div>`
+          : '');
+    }
 
-  await finish();
+    const c = 2 * Math.PI * 56;
+    const ring = document.getElementById('kpiInfoRing');
+    if (ring) {
+      ring.setAttribute('stroke-dasharray', c);
+      setTimeout(() => ring.setAttribute('stroke-dashoffset', c - (c * pct / 100)), 100);
+    }
+    setText('ringPct', pct + '%');
 
-// ── Utilities ────────────────────────────────────────────────────────────────
-function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
-function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
-function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+    const slider = document.getElementById('progressSlider');
+    const input = document.getElementById('progressInput');
+    const bar = document.getElementById('progressBar');
+    if (slider) slider.value = pct;
+    if (input) input.value = pct;
+    if (bar) bar.style.width = pct + '%';
 
-function esc(str) {
-  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    setVal('currentValue', kpi.currentValue || '');
+    setVal('progressNotes', kpi.comments || '');
+  }
+
+  async function submitProgressPage() {
+    const id = document.getElementById('kpiSelect')?.value || '';
+    const progress = parseInt(document.getElementById('progressInput')?.value) || 0;
+    const notes = document.getElementById('progressNotes')?.value.trim() || '';
+    const currentVal = document.getElementById('currentValue')?.value.trim() || '';
+    const fileInput = document.getElementById('evidenceFile');
+    const file = fileInput?.files?.[0] || null;
+
+    const kpiSelErr = document.getElementById('kpiSelectError');
+    const progErr = document.getElementById('progressError');
+    const evidErr = document.getElementById('evidenceError');
+    const errAlert = document.getElementById('errorAlert');
+    if (kpiSelErr) kpiSelErr.textContent = '';
+    if (progErr) progErr.textContent = '';
+    if (evidErr) evidErr.textContent = '';
+    if (errAlert) errAlert.style.display = 'none';
+
+    let valid = true;
+    if (!id) { if (kpiSelErr) kpiSelErr.textContent = 'Please select a KPI.'; valid = false; }
+    if (progress < 0 || progress > 100) { if (progErr) progErr.textContent = 'Progress must be between 0 and 100%.'; valid = false; }
+
+    const evidenceCheck = validateEvidenceFile(file);
+    if (!evidenceCheck.valid) {
+      if (evidErr) evidErr.textContent = evidenceCheck.message;
+      valid = false;
+    }
+
+    if (currentVal && (!Number.isFinite(Number(currentVal)) || Number(currentVal) < 0)) {
+      if (progErr) progErr.textContent = 'Current achievement value must be a valid number.';
+      valid = false;
+    }
+
+    if (!valid) {
+      if (errAlert) {
+        errAlert.style.display = 'flex';
+        setText('errorMsg', evidenceCheck.valid ? 'Please fix the errors above.' : evidenceCheck.message);
+      }
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const status = getStaffStatusForProgress(progress);
+    const payload = {
+      progress,
+      comments: notes,
+      status,
+      submittedAt: status === 'submitted' ? now : null,
+      updatedAt: now,
+    };
+    if (currentVal) payload.currentValue = Number(currentVal);
+
+    const finish = async () => {
+      try {
+        if (file) {
+          await addEvidenceToPayload(file, payload, now);
+        }
+        await updateKpi(id, payload);
+      } catch (err) {
+        showStaffUpdateError(err.message || 'Could not submit progress. Please try again.');
+        return;
+      }
+
+      const sa = document.getElementById('successAlert');
+      if (sa) {
+        sa.style.display = 'flex';
+        setText('successMsg', status === 'submitted'
+          ? 'Progress submitted! Your manager will review it soon.'
+          : 'Progress saved successfully.');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      document.getElementById('progressForm')?.reset();
+      const ic = document.getElementById('kpiInfoCard');
+      if (ic) ic.style.display = 'none';
+      const pb = document.getElementById('progressBar');
+      if (pb) pb.style.width = '0%';
+      const fp = document.getElementById('filePreview');
+      if (fp) fp.style.display = 'none';
+      resetEvidenceUploadState();
+
+      setTimeout(() => { initProgressPage(); }, 120);
+    };
+
+    if (fileInput && fileInput.files.length > 0 && !pendingEvidenceMeta) {
+      if (evidErr) evidErr.textContent = 'Please upload the selected evidence file before submitting.';
+      if (errAlert) {
+        errAlert.style.display = 'flex';
+        setText('errorMsg', 'Please fix the errors above.');
+      }
+      return;
+    }
+
+    if (pendingEvidenceMeta) {
+      payload.evidenceRef = pendingEvidenceMeta.id;
+    }
+
+    await finish();
+
+    // ── Utilities ────────────────────────────────────────────────────────────────
+    function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+    function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+    function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+
+    function esc(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function fmtDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('en-MY', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function pColor(pct) {
+      pct = pct || 0;
+      if (pct >= 80) return '#16a34a';
+      if (pct >= 50) return '#d97706';
+      return '#dc2626';
+    }
+
+    function isValidEvidenceFile(file) {
+      if (!file) return true;
+      return ALLOWED_EVIDENCE_TYPES.includes(file.type || '') && file.size <= MAX_EVIDENCE_SIZE;
+    }
+
+    function sBadge(status) {
+      const map = {
+        pending: '<span class="badge badge-pending">Pending</span>',
+        'in-progress': '<span class="badge badge-warning">In Progress</span>',
+        submitted: '<span class="badge badge-info">Submitted</span>',
+        approved: '<span class="badge badge-success">Approved</span>',
+        rejected: '<span class="badge badge-danger">Rejected</span>',
+      };
+      return map[status] || '<span class="badge">—</span>';
+    }
+
+    function sLabel(s) {
+      return { pending: 'Pending', 'in-progress': 'In Progress', submitted: 'Submitted for Review', approved: 'Approved by Manager', rejected: 'Rejected' }[s] || s;
+    }
+
+    function priorityHtml(p) {
+      return { high: '🔴 High', medium: '🟡 Medium', low: '🟢 Low' }[p] || (p || '');
+    }
+
+    function timeAgo(dateStr) {
+      if (!dateStr) return '';
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + 'h ago';
+      const d = Math.floor(hrs / 24);
+      return d + 'd ago';
+    }
+
+    window.addEventListener('click', function (e) {
+      if (e.target.classList && e.target.classList.contains('modal')) e.target.classList.remove('open');
+    });
+  }
 }
-
-function fmtDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('en-MY', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function pColor(pct) {
-  pct = pct || 0;
-  if (pct >= 80) return '#16a34a';
-  if (pct >= 50) return '#d97706';
-  return '#dc2626';
-}
-
-function isValidEvidenceFile(file) {
-  if (!file) return true;
-  return ALLOWED_EVIDENCE_TYPES.includes(file.type || '') && file.size <= MAX_EVIDENCE_SIZE;
-}
-
-function sBadge(status) {
-  const map = {
-    pending: '<span class="badge badge-pending">Pending</span>',
-    'in-progress': '<span class="badge badge-warning">In Progress</span>',
-    submitted: '<span class="badge badge-info">Submitted</span>',
-    approved: '<span class="badge badge-success">Approved</span>',
-    rejected: '<span class="badge badge-danger">Rejected</span>',
-  };
-  return map[status] || '<span class="badge">—</span>';
-}
-
-function sLabel(s) {
-  return { pending: 'Pending', 'in-progress': 'In Progress', submitted: 'Submitted for Review', approved: 'Approved by Manager', rejected: 'Rejected' }[s] || s;
-}
-
-function priorityHtml(p) {
-  return { high: '🔴 High', medium: '🟡 Medium', low: '🟢 Low' }[p] || (p || '');
-}
-
-function timeAgo(dateStr) {
-  if (!dateStr) return '';
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return mins + 'm ago';
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return hrs + 'h ago';
-  const d = Math.floor(hrs / 24);
-  return d + 'd ago';
-}
-
-window.addEventListener('click', function (e) {
-  if (e.target.classList && e.target.classList.contains('modal')) e.target.classList.remove('open');
-});

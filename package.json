@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "firebase": "^12.12.1"
+    "firebase": "^12.12.1",
+    "nodemailer": "^8.0.9"
   },
   "devDependencies": {
     "live-server": "^1.2.2"

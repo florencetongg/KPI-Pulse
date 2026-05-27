@@ -19,7 +19,6 @@ const kpiHistorySchema = new mongoose.Schema({
     target: { type: String, required: true }, // Logs the contextual target info
     value: { type: Number, default: 0 },  // The specific value submitted during this record
     progress: { type: Number, min: 0, max: 100, default: 0 },
-    evidenceUrl: { type: String, default: "" },
     evidenceName: { type: String, default: "" },
     evidenceMimeType: { type: String, default: "" },
     evidenceSize: { type: Number, default: 0 },

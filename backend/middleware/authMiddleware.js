@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('./models/user');
+const User = require('../models/user');
 
 // Verify standard JWT session
 const protect = async (req, res, next) => {

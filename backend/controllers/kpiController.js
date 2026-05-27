@@ -29,7 +29,6 @@ const createHistory = (kpi, req, action, overrides = {}) => KpiHistory.create({
     target: `${kpi.target} ${kpi.unit}`,
     value: overrides.value ?? kpi.currentValue ?? 0,
     progress: overrides.progress ?? kpi.progress ?? 0,
-    evidenceUrl: overrides.evidenceUrl ?? kpi.evidenceUrl ?? '',
     evidenceName: overrides.evidenceName ?? kpi.evidenceName ?? '',
     evidenceMimeType: overrides.evidenceMimeType ?? kpi.evidenceMimeType ?? '',
     evidenceSize: overrides.evidenceSize ?? kpi.evidenceSize ?? 0,
@@ -43,12 +42,10 @@ const validateRequired = (fields, body) => {
     return missing.length ? `Missing required field(s): ${missing.join(', ')}` : null;
 };
 
-const validateEvidence = ({ evidenceUrl = '', evidenceName = '', evidenceMimeType = '', evidenceSize = 0 }) => {
-    if (!evidenceUrl && !evidenceName && !evidenceMimeType && !evidenceSize) return null;
-    if (!evidenceUrl || /^data:/i.test(evidenceUrl)) return 'Evidence must be a stored file URL, not raw base64 data.';
-    if (!ALLOWED_EVIDENCE_MIME_TYPES.includes(evidenceMimeType)) return 'Evidence must be a PDF, image, or common Office document.';
-    if (Number(evidenceSize) > MAX_EVIDENCE_SIZE) return 'Evidence file cannot exceed 5MB.';
-    return null;
+const validateEvidence = ({ evidenceRef = null, evidenceName = '', evidenceMimeType = '', evidenceSize = 0 }) => {
+    if (evidenceRef) return null;
+    if (!evidenceName && !evidenceMimeType && !evidenceSize) return null;
+    return 'Evidence must be uploaded through the evidence endpoint and referenced by evidenceRef.';
 };
 
 const canManagerAccessKpi = (manager, kpi) => (
@@ -94,7 +91,10 @@ exports.getKpis = async (req, res) => {
             query.createdBy = req.user._id;
         }
         query.isDeleted = false;
-        const kpis = await Kpi.find(query).populate('assignedTo', 'name email department').populate('createdBy', 'name');
+        const kpis = await Kpi.find(query)
+            .populate('assignedTo', 'name email department')
+            .populate('createdBy', 'name')
+            .lean();
         res.json({ success: true, data: kpis });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -104,8 +104,8 @@ exports.getKpis = async (req, res) => {
 // Staff Updates Incremental Progress + Evidential Links
 exports.submitProgress = async (req, res) => {
     try {
-        const { currentValue, progress, evidenceUrl, evidenceName, evidenceMimeType, evidenceSize, comments } = req.body;
-        const evidenceMessage = validateEvidence({ evidenceUrl, evidenceName, evidenceMimeType, evidenceSize });
+        const { currentValue, progress, evidenceRef, evidenceName, evidenceMimeType, evidenceSize, comments } = req.body;
+        const evidenceMessage = validateEvidence({ evidenceRef, evidenceName, evidenceMimeType, evidenceSize });
         if (evidenceMessage) return res.status(400).json({ success: false, message: evidenceMessage });
 
         const kpi = await Kpi.findOne({ _id: req.params.id, isDeleted: false });
@@ -133,25 +133,17 @@ exports.submitProgress = async (req, res) => {
         kpi.status = 'submitted';
         kpi.submittedAt = Date.now();
 
-        // If evidence metadata provided, create an Evidence document and attach reference
-        if (evidenceUrl) {
-            try {
-                const evidenceDoc = await Evidence.create({
-                    kpi: kpi._id,
-                    uploadedBy: req.user._id,
-                    name: evidenceName || '',
-                    url: evidenceUrl,
-                    mimeType: evidenceMimeType || '',
-                    size: evidenceSize || 0,
-                    storage: 'url'
-                });
-                kpi.evidenceUrl = evidenceUrl; // keep metadata on KPI for quick access
-                kpi.evidenceName = evidenceName || '';
-                kpi.evidenceMimeType = evidenceMimeType || '';
-                kpi.evidenceSize = evidenceSize || 0;
-                kpi.evidenceRef = evidenceDoc._id;
-            } catch (e) {
-                return res.status(500).json({ success: false, message: 'Failed to store evidence metadata.' });
+        // Attach evidence by reference if provided (upload endpoint returns id)
+        if (evidenceRef) {
+            const ev = await Evidence.findById(evidenceRef).select('_id name mimeType size kpi uploadedBy');
+            if (!ev) return res.status(400).json({ success: false, message: 'Invalid evidence reference provided.' });
+            kpi.evidenceRef = ev._id;
+            kpi.evidenceName = ev.name || '';
+            kpi.evidenceMimeType = ev.mimeType || '';
+            kpi.evidenceSize = ev.size || 0;
+            if (!ev.kpi) {
+                ev.kpi = kpi._id;
+                await ev.save();
             }
         }
 
@@ -162,7 +154,6 @@ exports.submitProgress = async (req, res) => {
             value: currentValueNumber || 0,
             progress: progressValue,
             comment: comments,
-            evidenceUrl: kpi.evidenceUrl || '',
             evidenceName: kpi.evidenceName || '',
             evidenceMimeType: kpi.evidenceMimeType || '',
             evidenceSize: kpi.evidenceSize || 0,
