@@ -27,6 +27,106 @@ async function apiJson(url, options = {}) {
   return data;
 }
 
+let pendingEvidenceFile = null;
+let pendingEvidenceMeta = null;
+let evidenceUploadState = 'idle';
+let evidenceUploadError = '';
+
+async function uploadEvidenceFile(file, kpiId = '') {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (kpiId) formData.append('kpiId', kpiId);
+
+  const response = await authenticatedFetch(`${KPI_API_BASE}/evidence/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.message || 'Evidence upload failed');
+  return result.data || {};
+}
+
+function updateEvidenceUploadUI() {
+  const statusEl = document.getElementById('evidenceUploadStatus');
+  const retryBtn = document.getElementById('retryUploadBtn');
+  if (statusEl) {
+    statusEl.style.display = evidenceUploadState === 'idle' ? 'none' : 'block';
+    if (evidenceUploadState === 'uploading') {
+      statusEl.textContent = 'Uploading evidence...';
+      statusEl.className = 'upload-status uploading';
+    } else if (evidenceUploadState === 'success') {
+      statusEl.textContent = 'Evidence uploaded and ready to submit.';
+      statusEl.className = 'upload-status success';
+    } else if (evidenceUploadState === 'failed') {
+      statusEl.textContent = `Evidence upload failed: ${evidenceUploadError}`;
+      statusEl.className = 'upload-status failed';
+    } else {
+      statusEl.textContent = '';
+      statusEl.className = 'upload-status';
+    }
+  }
+  if (retryBtn) {
+    retryBtn.style.display = evidenceUploadState === 'failed' ? 'inline-flex' : 'none';
+  }
+}
+
+function resetEvidenceUploadState() {
+  pendingEvidenceFile = null;
+  pendingEvidenceMeta = null;
+  evidenceUploadState = 'idle';
+  evidenceUploadError = '';
+  updateEvidenceUploadUI();
+}
+
+async function startEvidenceUpload(file, kpiId = '') {
+  if (!file) return null;
+  pendingEvidenceFile = file;
+  pendingEvidenceMeta = null;
+  evidenceUploadState = 'uploading';
+  evidenceUploadError = '';
+  updateEvidenceUploadUI();
+
+  try {
+    const uploaded = await uploadEvidenceFile(file, kpiId);
+    pendingEvidenceMeta = uploaded;
+    evidenceUploadState = 'success';
+    updateEvidenceUploadUI();
+    return uploaded;
+  } catch (err) {
+    evidenceUploadState = 'failed';
+    evidenceUploadError = err.message || 'Upload failed';
+    updateEvidenceUploadUI();
+    throw err;
+  }
+}
+
+function handleFileSelect(file, kpiId = '') {
+  const fileInput = document.getElementById('evidenceFile');
+  const filePreview = document.getElementById('filePreview');
+  if (!file) return;
+
+  if (fileInput) {
+    fileInput.files = createFileList(file);
+  }
+
+  if (filePreview) {
+    filePreview.style.display = 'flex';
+    const previewNameEl = document.getElementById('previewFileName');
+    if (previewNameEl) previewNameEl.textContent = file.name;
+    const previewSizeEl = document.getElementById('previewFileSize');
+    if (previewSizeEl) previewSizeEl.textContent = (file.size / 1024).toFixed(1) + ' KB';
+  }
+
+  startEvidenceUpload(file, kpiId);
+}
+
+function createFileList(file) {
+  const dataTransfer = new DataTransfer();
+  dataTransfer.items.add(file);
+  return dataTransfer.files;
+}
+
 function normalizeKpiRecord(record) {
   const assigned = record.assignedTo && typeof record.assignedTo === 'object' ? record.assignedTo : null;
   return {
@@ -40,8 +140,20 @@ function normalizeKpiRecord(record) {
 
 // ── Data Store ───────────────────────────────────────────────────────────────
 async function getKpis() {
-  const result = await apiJson(`${KPI_API_BASE}/kpis`);
-  return (result.data || []).map(normalizeKpiRecord);
+  // Debug: print stored session token/user and log API response
+  try {
+    console.debug('[kpi-staff] session authToken:', sessionStorage.getItem('authToken'));
+    console.debug('[kpi-staff] session userData:', sessionStorage.getItem('userData'));
+  } catch (e) {}
+
+  try {
+    const result = await apiJson(`${KPI_API_BASE}/kpis`);
+    try { console.debug('[kpi-staff] GET /api/kpis result:', result); } catch (e) {}
+    return (result.data || []).map(normalizeKpiRecord);
+  } catch (err) {
+    console.error('[kpi-staff] getKpis failed:', err);
+    throw err;
+  }
 }
 
 async function getMyKpis() {
@@ -162,6 +274,7 @@ function renderActivity(kpis) {
 
 // ── Staff KPI Cards (staff-kpi.html) ────────────────────────────────────────
 async function renderStaffKpis() {
+  try { console.debug('[kpi-staff] renderStaffKpis called'); } catch (e) {}
   const grid = document.getElementById('kpiCardGrid');
   const empty = document.getElementById('kpiEmptyState');
   if (!grid) return;
@@ -229,7 +342,7 @@ async function renderStaffKpis() {
           : ''}
 
         ${canUpdate
-          ? `<button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="openKpiUpdateModal('${k.id}')">
+          ? `<button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="goUpdateKpi('${k.id}')">
                <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
                ${k.status === 'rejected' ? 'Resubmit' : 'Update Progress'}
              </button>`
@@ -284,16 +397,13 @@ async function submitProgress() {
     updatedAt: now,
   };
 
-    if (fileInput && fileInput.files.length > 0) {
-    const file = fileInput.files[0];
-    if (!isValidEvidenceFile(file)) {
-      alert('Evidence must be PDF, an image, or a common document (DOC/XLS/PPT) and cannot exceed 5MB.');
-      return;
-    }
-    payload.evidenceName = file.name;
-    payload.evidenceMimeType = file.type || '';
-    payload.evidenceSize = file.size || 0;
-    payload.evidenceUrl = `evidence/${Date.now()}-${file.name}`;
+  if (fileInput && fileInput.files.length > 0 && !pendingEvidenceMeta) {
+    alert('Please upload the selected evidence file before submitting.');
+    return;
+  }
+
+  if (pendingEvidenceMeta) {
+    payload.evidenceRef = pendingEvidenceMeta.id;
   }
 
   await updateKpi(id, payload);
@@ -418,24 +528,22 @@ async function submitProgressPage() {
     if (pb) pb.style.width = '0%';
     const fp = document.getElementById('filePreview');
     if (fp) fp.style.display = 'none';
+    resetEvidenceUploadState();
 
     setTimeout(() => { initProgressPage(); }, 120);
   };
 
-    if (fileInput && fileInput.files.length > 0) {
-    const file = fileInput.files[0];
-    if (!isValidEvidenceFile(file)) {
-      if (evidErr) evidErr.textContent = 'Evidence must be PDF, an image, or a common document (DOC/XLS/PPT) and cannot exceed 5MB.';
-      if (errAlert) {
-        errAlert.style.display = 'flex';
-        setText('errorMsg', 'Please fix the errors above.');
-      }
-      return;
+  if (fileInput && fileInput.files.length > 0 && !pendingEvidenceMeta) {
+    if (evidErr) evidErr.textContent = 'Please upload the selected evidence file before submitting.';
+    if (errAlert) {
+      errAlert.style.display = 'flex';
+      setText('errorMsg', 'Please fix the errors above.');
     }
-    payload.evidenceName = file.name;
-    payload.evidenceMimeType = file.type || '';
-    payload.evidenceSize = file.size || 0;
-    payload.evidenceUrl = `evidence/${Date.now()}-${file.name}`;
+    return;
+  }
+
+  if (pendingEvidenceMeta) {
+    payload.evidenceRef = pendingEvidenceMeta.id;
   }
 
   await finish();

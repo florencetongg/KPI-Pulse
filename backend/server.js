@@ -5,6 +5,8 @@ const connectDB = require('./db');
 
 const authRoutes = require('./routes/authRoutes');
 const kpiRoutes = require('./routes/kpiRoutes');
+const evidenceRoutes = require('./routes/evidenceRoutes');
+const path = require('path');
 
 const app = express();
 
@@ -15,6 +17,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/kpis', kpiRoutes);
+app.use('/api/evidence', evidenceRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

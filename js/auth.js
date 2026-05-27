@@ -146,13 +146,26 @@ async function deleteAccount(password) {
 
 async function authenticatedFetch(url, options = {}) {
   const token = getAuthToken();
+  const headers = {
+    ...options.headers,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  // Debug: log token and request info to help diagnose missing Authorization headers
+  try {
+    console.debug('[auth] authenticatedFetch token:', token);
+    console.debug('[auth] request url:', url);
+  } catch (e) {
+    // ignore if console isn't available
+  }
+
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   return fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+    headers,
   });
 }
 

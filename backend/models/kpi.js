@@ -9,7 +9,7 @@ const kpiSchema = new mongoose.Schema({
         enum: ['low', 'medium', 'high'], 
         default: 'medium' 
     },
-    weight: { type: Number, required: true, min: 0, max: 100, default: 0 },
+    weight: { type: Number, min: 0, max: 100, default: 0 },
     
     // Relationships (References User ID)
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -28,7 +28,6 @@ const kpiSchema = new mongoose.Schema({
     },
     
     // Safe Evidence Configuration
-    evidenceUrl: { type: String, trim: true, default: "" },  // Path or URL string, NOT raw base64
     evidenceName: { type: String, trim: true, maxlength: 180, default: "" },
     evidenceMimeType: {
         type: String,

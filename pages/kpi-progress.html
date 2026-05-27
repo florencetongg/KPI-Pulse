@@ -312,6 +312,8 @@
                     <div class="upload-zone-hint">PDF, Image, or Office document (DOC/DOCX/XLS/XLSX/PPT/PPTX) up to 5MB</div>
                     <input type="file" id="evidenceFile" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
                   </div>
+                  <div id="evidenceUploadStatus" style="display:none;margin-top:10px;font-size:0.85rem;color:var(--muted);"></div>
+                  <button type="button" id="retryUploadBtn" class="btn btn-outline-secondary btn-sm" style="display:none;margin-top:10px;">Retry upload</button>
                   <div id="filePreview"
                     style="display:none;margin-top:12px;padding:14px;background:var(--bg-secondary);border-radius:12px;display:none;align-items:center;gap:12px;">
                     <svg viewBox="0 0 24 24"
@@ -407,16 +409,18 @@
   <script src="../js/auth.js"></script>
   <script src="../js/kpi-staff.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', async function () {
       if (!requireAuth('staff')) return;
       const user = getCurrentUser();
       populateNavUser(user);
       initDarkMode();
-      initProgressPage();
+      await initProgressPage();
+      await restoreProgressDraft();
 
       // File upload events
       const fileInput = document.getElementById('evidenceFile');
       const zone = document.getElementById('uploadZone');
+      const retryBtn = document.getElementById('retryUploadBtn');
 
       fileInput.addEventListener('change', function () { handleFileSelect(this.files[0]); });
       zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragging'); });
@@ -425,6 +429,20 @@
         e.preventDefault(); zone.classList.remove('dragging');
         if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]);
       });
+      if (retryBtn) {
+        retryBtn.addEventListener('click', () => {
+          if (pendingEvidenceFile) startEvidenceUpload(pendingEvidenceFile, document.getElementById('kpiSelect')?.value || '');
+        });
+      }
+
+      // Draft persistence (prevents losing fields if page reloads/flashes)
+      const draftInputs = ['kpiSelect', 'progressSlider', 'progressInput', 'currentValue', 'progressNotes'];
+      draftInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', persistProgressDraft);
+        el.addEventListener('change', persistProgressDraft);
+      });
 
       document.getElementById('progressForm').addEventListener('submit', function (e) {
         e.preventDefault();
@@ -432,10 +450,76 @@
       });
     });
 
+    const PROGRESS_DRAFT_KEY = 'kpiProgressDraft:v1';
+
+    function persistProgressDraft() {
+      try {
+        const draft = {
+          kpiId: document.getElementById('kpiSelect')?.value || '',
+          progress: document.getElementById('progressInput')?.value || '',
+          currentValue: document.getElementById('currentValue')?.value || '',
+          notes: document.getElementById('progressNotes')?.value || '',
+          evidenceMeta: pendingEvidenceMeta || null,
+          updatedAt: Date.now(),
+        };
+        sessionStorage.setItem(PROGRESS_DRAFT_KEY, JSON.stringify(draft));
+      } catch (e) {}
+    }
+
+    async function restoreProgressDraft() {
+      try {
+        const raw = sessionStorage.getItem(PROGRESS_DRAFT_KEY);
+        if (!raw) return;
+        const draft = JSON.parse(raw);
+        if (!draft || typeof draft !== 'object') return;
+
+        // restore values
+        if (draft.kpiId) {
+          const sel = document.getElementById('kpiSelect');
+          if (sel && [...sel.options].some(o => o.value === draft.kpiId)) {
+            sel.value = draft.kpiId;
+            await onKpiSelect();
+          }
+        }
+
+        if (draft.progress !== '') {
+          syncInput(draft.progress);
+        }
+        if (draft.currentValue !== '') {
+          const cv = document.getElementById('currentValue');
+          if (cv) cv.value = draft.currentValue;
+        }
+        if (draft.notes !== '') {
+          const pn = document.getElementById('progressNotes');
+          if (pn) pn.value = draft.notes;
+        }
+
+        // restore uploaded evidence reference (file can't be reattached, but we can keep the ref)
+        if (draft.evidenceMeta && draft.evidenceMeta.id) {
+          pendingEvidenceMeta = draft.evidenceMeta;
+          evidenceUploadState = 'success';
+          evidenceUploadError = '';
+          updateEvidenceUploadUI();
+
+          // Restore UI preview from server-returned metadata
+          const fp = document.getElementById('filePreview');
+          const nameEl = document.getElementById('previewFileName');
+          const sizeEl = document.getElementById('previewFileSize');
+          if (fp) fp.style.display = 'flex';
+          if (nameEl) nameEl.textContent = draft.evidenceMeta.name || 'Evidence uploaded';
+          if (sizeEl) {
+            const size = Number(draft.evidenceMeta.size || 0);
+            sizeEl.textContent = size > 0 ? (size / 1024).toFixed(1) + ' KB (stored)' : 'Stored';
+          }
+        }
+      } catch (e) {}
+    }
+
     function syncSlider(v) {
       document.getElementById('progressInput').value = v;
       document.getElementById('progressBar').style.width = v + '%';
       updateInfoRing(parseInt(v));
+      persistProgressDraft();
     }
     function syncInput(v) {
       v = Math.min(Math.max(parseInt(v) || 0, 0), 100);
@@ -443,6 +527,7 @@
       document.getElementById('progressInput').value = v;
       document.getElementById('progressBar').style.width = v + '%';
       updateInfoRing(v);
+      persistProgressDraft();
     }
     function updateInfoRing(pct) {
       const ring = document.getElementById('kpiInfoRing');
@@ -456,13 +541,24 @@
     }
     function handleFileSelect(file) {
       if (!file) return;
-      document.getElementById('filePreview').style.display = 'flex';
+      const statusEl = document.getElementById('evidenceUploadStatus');
+      const filePreview = document.getElementById('filePreview');
+      if (filePreview) filePreview.style.display = 'flex';
       document.getElementById('previewFileName').textContent = file.name;
       document.getElementById('previewFileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+      pendingEvidenceFile = file;
+      evidenceUploadState = 'uploading';
+      evidenceUploadError = '';
+      updateEvidenceUploadUI();
+      startEvidenceUpload(file, document.getElementById('kpiSelect')?.value || '')
+        .then(() => persistProgressDraft())
+        .catch(() => {});
     }
     function removeFile() {
       document.getElementById('evidenceFile').value = '';
       document.getElementById('filePreview').style.display = 'none';
+      resetEvidenceUploadState();
+      persistProgressDraft();
     }
   </script>
 </body>

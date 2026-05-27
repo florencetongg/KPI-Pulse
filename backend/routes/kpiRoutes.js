@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { createKpi, getKpis, updateKpi, submitProgress, reviewKpi, getKpiHistory, deleteKpi } = require('../controllers/kpiController');
-const { protect, authorizeManager } = require('../authMiddleware');
+const { protect, authorizeManager } = require('../middleware/authMiddleware');
 
 router.route('/')
     .post(protect, authorizeManager, createKpi)

@@ -347,6 +347,7 @@ async function initKpiForm() {
   setVal('kpiUnit', kpi.unit || '');
   setVal('kpiDueDate', toDateInputValue(kpi.dueDate));
   setVal('kpiPriority', kpi.priority || '');
+  setVal('kpiWeight', kpi.weight || 0);
   setVal('kpiAssignedTo', kpi.assignedTo || '');
   setVal('kpiStatus', kpi.status || 'pending');
   setText('formPageTitle', 'Edit KPI');
@@ -365,6 +366,7 @@ async function saveKpiForm() {
   const unit = document.getElementById('kpiUnit')?.value.trim() || '';
   const dueDate = document.getElementById('kpiDueDate')?.value || '';
   const priority = document.getElementById('kpiPriority')?.value || '';
+  const weight = document.getElementById('kpiWeight')?.value || '0';
   const assignedTo = document.getElementById('kpiAssignedTo')?.value || '';
   const status = document.getElementById('kpiStatus')?.value || 'pending';
 
@@ -389,6 +391,13 @@ async function saveKpiForm() {
     show('errorAlert');
     return;
   }
+  
+  const numericWeight = Number(weight);
+  if (!Number.isFinite(numericWeight) || numericWeight < 0 || numericWeight > 100) {
+    fieldErr('kpiWeightError', 'Weight must be between 0 and 100.');
+    show('errorAlert');
+    return;
+  }
   hide('errorAlert');
 
   const editId = document.getElementById('kpiId')?.value || '';
@@ -402,6 +411,7 @@ async function saveKpiForm() {
     unit,
     dueDate,
     priority,
+    weight: numericWeight,
     assignedTo,
   };
 
@@ -524,15 +534,31 @@ async function previewEvidence(id) {
   const content = document.getElementById('evidencePreviewContent');
   if (!kpi || !content) return;
 
-  if (kpi.evidenceUrl && /^https?:\/\//i.test(kpi.evidenceUrl) && /^image\//i.test(kpi.evidenceMimeType || '')) {
-    content.innerHTML = `<img src="${esc(kpi.evidenceUrl)}" alt="Evidence" style="max-width:100%;border-radius:8px;display:block;">`;
+  const evidenceLink = kpi.evidenceRef ? `${KPI_API_BASE}/evidence/${kpi.evidenceRef}/download` : null;
+  const isImage = evidenceLink && /^image\//i.test(kpi.evidenceMimeType || '');
+  const isPdf = evidenceLink && /\.pdf(?:\?|$)/i.test(kpi.evidenceName || '');
+  const downloadButton = evidenceLink
+    ? `<div style="margin-top:16px;"><a href="${esc(evidenceLink)}" target="_blank" rel="noreferrer noopener" class="btn btn-primary btn-sm">Download evidence</a></div>`
+    : '';
+
+  if (!evidenceLink) {
+    content.innerHTML = `
+      <div style="text-align:center;padding:24px;">
+        <svg viewBox="0 0 24 24" style="width:52px;height:52px;margin:0 auto 12px;display:block;stroke:var(--muted);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <p style="font-weight:700;color:var(--navy);margin:0 0 4px;">No evidence attached</p>
+        <p style="color:var(--muted);font-size:0.85rem;margin:0;">This KPI has no evidence reference available for preview.</p>
+      </div>`;
+  } else if (isImage) {
+    content.innerHTML = `<div style="text-align:center;"><img src="${esc(evidenceLink)}" alt="Evidence" style="max-width:100%;border-radius:8px;display:block;">${downloadButton}</div>`;
+  } else if (isPdf) {
+    content.innerHTML = `<div style="width:100%;height:520px;"><iframe src="${esc(evidenceLink)}" style="width:100%;height:100%;border:none;border-radius:12px;" title="Evidence PDF preview"></iframe>${downloadButton}</div>`;
   } else {
     content.innerHTML = `
       <div style="text-align:center;padding:24px;">
         <svg viewBox="0 0 24 24" style="width:52px;height:52px;margin:0 auto 12px;display:block;stroke:var(--primary);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         <p style="font-weight:700;color:var(--navy);margin:0 0 4px;">${esc(kpi.evidenceName || 'evidence file')}</p>
         <p style="color:var(--muted);font-size:0.85rem;margin:0;">Evidence file attached by ${esc(kpi.assignedToName || 'staff member')}.</p>
-        ${kpi.evidenceUrl ? `<p style="color:var(--muted);font-size:0.78rem;margin:8px 0 0;">${esc(kpi.evidenceUrl)}</p>` : ''}
+        ${downloadButton}
       </div>`;
   }
   document.getElementById('evidenceModal').classList.add('open');
