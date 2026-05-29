@@ -14,6 +14,14 @@ async function apiJson(url, options = {}) {
 }
 
 let lastKpiSource = 'remote';
+let activeStaffFilter = null;
+let cachedHistoryEntries = [];
+let cachedDashboardKpis = [];
+
+const KPI_RECORDS_API = `${KPI_API_BASE}/kpi-records`;
+const KPI_HISTORY_API = `${KPI_API_BASE}/kpi-history`;
+
+let cachedStaffUsers = [];
 
 function normalizeMaybeTimestamp(value) {
   if (value && typeof value.toDate === 'function') {
@@ -39,6 +47,14 @@ function normalizeKpiRecord(record) {
   };
 }
 
+function hasEvidenceUploaded(kpi) {
+  return Boolean(kpi.evidenceRef || String(kpi.evidenceName || '').trim());
+}
+
+function isOpenKpi(kpi) {
+  return !['approved', 'rejected'].includes(kpi.status);
+}
+
 // ── Data Store ───────────────────────────────────────────────────────────────
 async function getKpis() {
   const result = await apiJson(`${KPI_API_BASE}/kpis`);
@@ -49,8 +65,9 @@ async function getKpis() {
 
 async function getKpiById(id) {
   if (!id) return null;
+  const normalizedId = normalizeKpiId(id);
   const kpis = await getKpis();
-  return kpis.find(kpi => kpi.id === id) || null;
+  return kpis.find(kpi => normalizeKpiId(kpi.id) === normalizedId) || null;
 }
 
 async function saveKpi(kpi) {
@@ -80,47 +97,127 @@ async function deleteKpi(id) {
 
 async function getStaffUsers() {
   const result = await apiJson(`${KPI_API_BASE}/auth/staff`);
-  return (result.data || []).map(user => ({ id: user._id || user.id, ...user }));
+  cachedStaffUsers = (result.data || []).map(user => ({ id: user._id || user.id, ...user }));
+  return cachedStaffUsers;
+}
+
+function resolveStaffName(entry, staffUsers = cachedStaffUsers) {
+  const populated = entry.staffId && typeof entry.staffId === 'object' ? entry.staffId : null;
+  if (populated?.name) return populated.name;
+
+  const staffId = String(populated?._id || entry.staffId || '');
+  if (!staffId) return '';
+
+  const match = staffUsers.find(user => String(user.id) === staffId);
+  return match?.name || '';
+}
+
+function resolveStaffDepartment(entry, staffUsers = cachedStaffUsers) {
+  const populated = entry.staffId && typeof entry.staffId === 'object' ? entry.staffId : null;
+  if (populated?.department) return populated.department;
+
+  const staffId = String(populated?._id || entry.staffId || '');
+  if (!staffId) return '';
+
+  const match = staffUsers.find(user => String(user.id) === staffId);
+  return match?.department || '';
+}
+
+function buildCycleHistoryUrl({ kpiId, name, assignedTo, department }) {
+  const params = new URLSearchParams();
+  params.set('kpi_id', normalizeKpiId(kpiId));
+  if (name) params.set('name', name);
+  if (assignedTo) params.set('assignedTo', assignedTo);
+  if (department) params.set('department', department);
+  return `kpi-cycle-history.html?${params.toString()}`;
+}
+
+function decodeUrlParam(value) {
+  if (!value) return '';
+  try {
+    return decodeURIComponent(value.replace(/\+/g, ' '));
+  } catch {
+    return value;
+  }
+}
+
+function fmtCycleMonthYear(value) {
+  if (!value) return '—';
+  return new Date(value).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+}
+
+function updateVerifyNavBadge(count) {
+  const badge = document.getElementById('pendingBadge');
+  if (!badge) return;
+
+  if (count > 0) {
+    badge.style.display = 'inline-flex';
+    badge.textContent = count;
+  } else {
+    badge.style.display = 'none';
+    badge.textContent = '0';
+  }
+}
+
+async function refreshVerifyNavBadge(kpisArg) {
+  try {
+    const kpis = Array.isArray(kpisArg) ? kpisArg : await getKpis();
+    const submittedCount = kpis.filter(k => k.status === 'submitted').length;
+    updateVerifyNavBadge(submittedCount);
+    return submittedCount;
+  } catch (error) {
+    updateVerifyNavBadge(0);
+    return 0;
+  }
 }
 
 // ── Manager Dashboard ────────────────────────────────────────────────────────
 async function loadManagerDashboard() {
   try {
-    const kpis = await getKpis();
+    activeStaffFilter = new URLSearchParams(window.location.search).get('staff') || null;
+    cachedDashboardKpis = await getKpis();
+    const kpis = cachedDashboardKpis;
     const total = kpis.length;
     const completed = kpis.filter(k => k.status === 'approved').length;
-    const pending = kpis.filter(k => ['pending', 'in-progress'].includes(k.status)).length;
-    const submitted = kpis.filter(k => k.status === 'submitted').length;
+    const openKpis = kpis.filter(isOpenKpi);
+    const needsReview = openKpis.filter(k => hasEvidenceUploaded(k)).length;
+    const inProgress = openKpis.filter(k => !hasEvidenceUploaded(k)).length;
+    const pending = needsReview + inProgress;
+    const submittedCount = kpis.filter(k => k.status === 'submitted').length;
+    const overdue = kpis.filter(k => k.isOverdue).length;
     const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     setText('statTotal', total);
     setText('statCompleted', completed);
     setText('statPending', pending);
+    setText('statNeedsReview', needsReview);
+    setText('statInProgress', inProgress);
     setText('statRate', rate + '%');
+    setText('statOverdue', overdue);
+    const overdueEl = document.getElementById('statOverdue');
+    if (overdueEl) overdueEl.style.color = overdue > 0 ? '#dc2626' : '';
 
-    const badge = document.getElementById('pendingBadge');
-    if (badge) {
-      if (submitted > 0) {
-        badge.style.display = 'inline-flex';
-        badge.textContent = submitted;
-      } else {
-        badge.style.display = 'none';
-      }
-    }
+    updateVerifyNavBadge(submittedCount);
 
     const alertBtn = document.getElementById('verifyAlertBtn');
     if (alertBtn) {
-      if (submitted > 0) {
+      if (submittedCount > 0) {
         alertBtn.style.display = 'inline-flex';
-        setText('pendingCount', submitted);
+        setText('pendingCount', submittedCount);
       } else {
         alertBtn.style.display = 'none';
       }
     }
 
-    await renderKpiTable();
-    await renderStaffPerformance();
-    await renderKpiHistory(kpis);
+    await renderKpiTable(kpis);
+    await renderStaffPerformance(kpis);
+    cachedHistoryEntries = [];
+    try {
+      await renderKpiHistory(kpis);
+    } catch (historyError) {
+      console.error('Failed to load KPI history section:', historyError);
+    }
+    updateStaffFilterUi(kpis);
     setConnectionStatus(true);
   } catch (error) {
     console.error('Failed to load manager dashboard:', error);
@@ -130,14 +227,18 @@ async function loadManagerDashboard() {
 }
 
 // ── KPI Table ────────────────────────────────────────────────────────────────
-async function renderKpiTable() {
+async function renderKpiTable(kpisArg) {
   const tbody = document.getElementById('kpiTableBody');
   if (!tbody) return;
 
   const search = (document.getElementById('kpiSearch')?.value || '').toLowerCase();
   const status = document.getElementById('statusFilter')?.value || '';
 
-  let kpis = await getKpis();
+  let kpis = Array.isArray(kpisArg) ? kpisArg : await getKpis();
+  const staffFilter = getActiveStaffFilter();
+  if (staffFilter) {
+    kpis = kpis.filter(k => String(k.assignedTo) === String(staffFilter));
+  }
   if (search) {
     kpis = kpis.filter(k =>
       (k.name || '').toLowerCase().includes(search) ||
@@ -157,7 +258,6 @@ async function renderKpiTable() {
   if (empty) empty.style.display = 'none';
 
   tbody.innerHTML = kpis.map(k => {
-    const overdue = k.dueDate && k.status !== 'approved' && new Date(k.dueDate) < new Date();
     return `<tr>
       <td>
         <div style="font-weight:600;color:var(--navy);">${esc(k.name)}</div>
@@ -173,22 +273,12 @@ async function renderKpiTable() {
           <span style="font-size:0.85rem;">${esc(k.assignedToName || 'Unassigned')}</span>
         </div>
       </td>
-      <td>
-        <div style="font-size:0.85rem;">${k.dueDate ? fmtDate(k.dueDate) : '—'}</div>
-        ${overdue ? '<div style="font-size:0.7rem;color:#dc2626;font-weight:600;margin-top:2px;">⚠ Overdue</div>' : ''}
-      </td>
-      <td style="min-width:130px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
-            <div style="height:100%;width:${k.progress || 0}%;background:${pColor(k.progress)};border-radius:3px;transition:width 0.4s;"></div>
-          </div>
-          <span style="font-size:0.75rem;font-weight:700;min-width:30px;">${k.progress || 0}%</span>
-        </div>
-      </td>
+      <td>${dueDateCellHtml(k)}</td>
+      <td style="min-width:130px;">${progressCellHtml(k)}</td>
       <td>${sBadge(k.status)}</td>
       <td style="text-align:right;">
         <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
-          ${k.status === 'submitted' ? `<a href="kpi-verify.html" style="background:#fef3c7;color:#92400e;font-size:0.72rem;padding:5px 10px;border-radius:8px;text-decoration:none;font-weight:700;">Review</a>` : ''}
+          ${k.status === 'submitted' ? `<a href="kpi-verify.html?id=${k.id}" style="background:#2563eb;color:#fff;font-size:0.72rem;padding:5px 10px;border-radius:8px;text-decoration:none;font-weight:700;">Review</a>` : ''}
           <a href="kpi-form.html?id=${k.id}" style="background:var(--bg-secondary);color:var(--navy);font-size:0.72rem;padding:5px 10px;border-radius:8px;text-decoration:none;border:1px solid var(--border);font-weight:600;">Edit</a>
           <button onclick="openDeleteKpi('${k.id}','${esc(k.name)}')" style="background:#fef2f2;color:#dc2626;font-size:0.72rem;padding:5px 10px;border-radius:8px;border:none;cursor:pointer;font-weight:700;">Delete</button>
         </div>
@@ -209,28 +299,32 @@ function openDeleteKpi(id, name) {
 }
 
 // ── Staff Performance Summary ────────────────────────────────────────────────
-async function renderStaffPerformance() {
+async function renderStaffPerformance(kpisArg) {
   const tbody = document.getElementById('staffTableBody');
   if (!tbody) return;
 
-  const kpis = await getKpis();
+  const kpis = Array.isArray(kpisArg) ? kpisArg : await getKpis();
   const map = {};
 
   kpis.forEach(k => {
     if (!k.assignedTo) return;
     if (!map[k.assignedTo]) {
       map[k.assignedTo] = {
+        id: k.assignedTo,
         name: k.assignedToName || 'Unknown',
         dept: k.assignedToDept || 'General',
         total: 0,
         completed: 0,
+        hasOverdue: false,
       };
     }
     map[k.assignedTo].total++;
     if (k.status === 'approved') map[k.assignedTo].completed++;
+    if (k.isOverdue) map[k.assignedTo].hasOverdue = true;
   });
 
   const staff = Object.values(map);
+  const selectedStaffId = getActiveStaffFilter();
   const emptyEl = document.getElementById('staffEmptyState');
 
   if (!staff.length) {
@@ -242,11 +336,15 @@ async function renderStaffPerformance() {
 
   tbody.innerHTML = staff.map(s => {
     const rate = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
-    const perf = rate >= 80 ? '<span class="badge badge-success">On Track</span>'
-      : rate >= 40 ? '<span class="badge badge-warning">Needs Attention</span>'
-      : '<span class="badge badge-danger">At Risk</span>';
+    const perf = staffPerformanceBadge(rate, s.hasOverdue);
+    const completedColor = completedCountColor(s.completed, rate);
+    const isSelected = selectedStaffId && String(selectedStaffId) === String(s.id);
+    const rowStyle = [
+      'cursor:pointer',
+      isSelected ? 'background:var(--bg-secondary)' : '',
+    ].filter(Boolean).join(';');
 
-    return `<tr>
+    return `<tr class="staff-performance-row" data-staff-id="${esc(s.id)}" style="${rowStyle}" onclick="filterKpisByStaff('${s.id}')" title="Click to view this staff member's KPIs">
       <td>
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#a5b4fc);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.8rem;font-weight:700;flex-shrink:0;">${s.name.charAt(0).toUpperCase()}</div>
@@ -255,7 +353,7 @@ async function renderStaffPerformance() {
       </td>
       <td style="color:var(--muted);font-size:0.85rem;">${esc(s.dept)}</td>
       <td style="font-weight:700;">${s.total}</td>
-      <td style="font-weight:700;color:var(--success);">${s.completed}</td>
+      <td style="font-weight:700;color:${completedColor};">${s.completed}</td>
       <td style="min-width:140px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
@@ -269,44 +367,244 @@ async function renderStaffPerformance() {
   }).join('');
 }
 
-// ── KPI History ───────────────────────────────────────────────────────────────
-async function renderKpiHistory(kpisArg) {
-  const list = document.getElementById('kpiHistoryList');
-  const emptyEl = document.getElementById('kpiHistoryEmpty');
-  if (!list) return;
+// ── KPI History (completed KPIs from kpiHistory) ────────────────────────────
+function normalizeKpiId(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  if (value._id) return String(value._id);
+  if (typeof value.toString === 'function') return value.toString();
+  return String(value);
+}
 
-  const kpis = Array.isArray(kpisArg) ? kpisArg : await getKpis();
-  const historyItems = kpis
+async function fetchHistoryFeed() {
+  let result;
+  try {
+    result = await apiJson(`${KPI_HISTORY_API}/feed`);
+  } catch (primaryError) {
+    console.warn('KPI history feed unavailable at /api/kpi-history/feed, falling back to /api/kpis/history/feed', primaryError);
+    result = await apiJson(`${KPI_API_BASE}/kpis/history/feed`);
+  }
+
+  cachedHistoryEntries = (result.data || []).map(normalizeHistoryEntry);
+  cachedHistoryEntries = enrichManagerHistoryEntries(cachedHistoryEntries);
+  return cachedHistoryEntries;
+}
+
+function enrichManagerHistoryEntries(entries) {
+  const grouped = new Map();
+
+  entries.forEach(entry => {
+    const kpiId = normalizeKpiId(entry.kpi_id || entry.kpiId);
+    if (!kpiId) return;
+    if (!grouped.has(kpiId)) grouped.set(kpiId, []);
+    grouped.get(kpiId).push(entry);
+  });
+
+  const enriched = [];
+  grouped.forEach(kpiEntries => {
+    enriched.push(...enrichSingleKpiHistoryClient(kpiEntries));
+  });
+
+  return enriched.sort(
+    (a, b) => (Date.parse(b.recordedAt || 0) || 0) - (Date.parse(a.recordedAt || 0) || 0)
+  );
+}
+
+function enrichSingleKpiHistoryClient(entries) {
+  const sorted = [...entries].sort(
+    (a, b) => (Date.parse(a.recordedAt || 0) || 0) - (Date.parse(b.recordedAt || 0) || 0)
+  );
+
+  return sorted.map((entry, index, all) => {
+    if (entry.displayProgress != null && entry.displayProgress !== '') {
+      return { ...entry, displayProgress: Number(entry.displayProgress) || 0 };
+    }
+
+    const progress = Number(entry.progress) || 0;
+
+    if (entry.action === 'approved') {
+      let lastApprovedBefore = -1;
+      for (let i = index - 1; i >= 0; i -= 1) {
+        if (all[i].action === 'approved') {
+          lastApprovedBefore = i;
+          break;
+        }
+      }
+
+      const cycleSubmitted = all
+        .slice(lastApprovedBefore + 1, index)
+        .filter(item => item.action === 'submitted');
+      const lastSubmitted = cycleSubmitted[cycleSubmitted.length - 1];
+      const displayProgress = lastSubmitted
+        ? Number(lastSubmitted.progress) || 0
+        : progress;
+
+      return { ...entry, displayProgress };
+    }
+
+    return { ...entry, displayProgress: progress };
+  });
+}
+
+function getKpiCycleSummaries(entries) {
+  const grouped = new Map();
+
+  entries.forEach(entry => {
+    const kpiId = normalizeKpiId(entry.kpi_id || entry.kpiId);
+    if (!kpiId) return;
+    if (!grouped.has(kpiId)) grouped.set(kpiId, []);
+    grouped.get(kpiId).push(entry);
+  });
+
+  const summaries = [];
+
+  grouped.forEach((kpiEntries, kpiId) => {
+    const perKpiEnriched = enrichSingleKpiHistoryClient(kpiEntries);
+    const approvedEntries = perKpiEnriched
+      .filter(entry => entry.action === 'approved')
+      .sort((a, b) => (Date.parse(b.recordedAt || 0) || 0) - (Date.parse(a.recordedAt || 0) || 0));
+
+    if (!approvedEntries.length) return;
+
+    const latestApproved = approvedEntries[0];
+    const progress = Number(latestApproved.displayProgress ?? latestApproved.progress) || 0;
+    const staff = latestApproved.staffId && typeof latestApproved.staffId === 'object'
+      ? latestApproved.staffId
+      : null;
+
+    summaries.push({
+      ...latestApproved,
+      kpi_id: kpiId,
+      kpiId,
+      progress,
+      completedAt: latestApproved.recordedAt,
+      cycleCount: approvedEntries.length,
+      department: staff?.department || resolveStaffDepartment(latestApproved),
+    });
+  });
+
+  return summaries;
+}
+
+function normalizeHistoryEntry(entry) {
+  const staff = entry.staffId && typeof entry.staffId === 'object' ? entry.staffId : null;
+  const kpiId = normalizeKpiId(entry.kpi_id || entry.kpiId);
+
+  return {
+    ...entry,
+    id: entry._id || entry.id,
+    kpi_id: kpiId,
+    kpiId,
+    name: entry.name || entry.kpiName || 'Untitled KPI',
+    staffName: entry.staffName || staff?.name || resolveStaffName(entry),
+    staffId: staff?._id || entry.staffId,
+    action: entry.action || '',
+    recordedAt: entry.recordedAt,
+    progress: Number(entry.displayProgress ?? entry.progress) || 0,
+    displayProgress: entry.displayProgress != null ? Number(entry.displayProgress) || 0 : null,
+    target: entry.target || '—',
+    comment: entry.comment || '',
+    status: entry.status || 'approved',
+  };
+}
+
+function populateHistoryStaffFilter(entries) {
+  const select = document.getElementById('historyStaffFilter');
+  if (!select) return;
+
+  const current = select.value;
+  const names = [...new Set(entries.map(entry => entry.staffName).filter(Boolean))].sort();
+  select.innerHTML = '<option value="">All Staff</option>' +
+    names.map(name => `<option value="${escAttr(name)}">${esc(name)}</option>`).join('');
+  if (current && names.includes(current)) select.value = current;
+}
+
+function filterHistoryEntries(entries) {
+  const staffName = document.getElementById('historyStaffFilter')?.value || '';
+  if (!staffName) return entries;
+  return entries.filter(entry => entry.staffName === staffName);
+}
+
+async function renderKpiHistory(kpisArg) {
+  const tbody = document.getElementById('kpiHistoryList');
+  const emptyEl = document.getElementById('kpiHistoryEmpty');
+  if (!tbody) return;
+
+  try {
+    if (!cachedStaffUsers.length) {
+      await getStaffUsers();
+    }
+    await fetchHistoryFeed();
+  } catch (error) {
+    console.error('Failed to load KPI history:', error);
+    tbody.innerHTML = '';
+    if (emptyEl) emptyEl.style.display = 'block';
+    const connectionEl = document.getElementById('kpiHistoryConnection');
+    if (connectionEl) {
+      connectionEl.textContent = 'Unable to load KPI history';
+      connectionEl.style.color = 'var(--danger)';
+    }
+    return;
+  }
+
+  const cycleSummaries = getKpiCycleSummaries(cachedHistoryEntries);
+  populateHistoryStaffFilter(cycleSummaries);
+
+  const historyItems = filterHistoryEntries(cycleSummaries)
     .slice()
     .sort((a, b) => {
-      const bTime = Date.parse(b.updatedAt || b.createdAt || 0) || 0;
-      const aTime = Date.parse(a.updatedAt || a.createdAt || 0) || 0;
+      const bTime = Date.parse(b.completedAt || b.recordedAt || 0) || 0;
+      const aTime = Date.parse(a.completedAt || a.recordedAt || 0) || 0;
       return bTime - aTime;
-    })
-    .slice(0, 12);
+    });
 
   if (!historyItems.length) {
-    list.innerHTML = '';
+    tbody.innerHTML = '';
     if (emptyEl) emptyEl.style.display = 'block';
     return;
   }
   if (emptyEl) emptyEl.style.display = 'none';
 
-  list.innerHTML = historyItems.map(k => {
-    const when = fmtDateTime(k.updatedAt || k.createdAt);
-    return `
-      <li style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);">
-        <div style="min-width:0;">
-          <div style="font-size:0.85rem;font-weight:700;color:var(--navy);line-height:1.35;">${esc(k.name || 'Untitled KPI')}</div>
-          <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;">
-            ${historyEventLabel(k)}${k.assignedToName ? ` · ${esc(k.assignedToName)}` : ''}
+  let kpiLookup = new Map();
+  try {
+    const kpis = Array.isArray(kpisArg) ? kpisArg : cachedDashboardKpis.length ? cachedDashboardKpis : await getKpis();
+    kpiLookup = new Map(kpis.map(kpi => [normalizeKpiId(kpi.id || kpi._id), kpi]));
+  } catch (lookupError) {
+    console.warn('Could not load live KPI metadata for history links', lookupError);
+  }
+
+  tbody.innerHTML = historyItems.map(entry => {
+    const kpiId = normalizeKpiId(entry.kpi_id || entry.kpiId);
+    const liveKpi = kpiLookup.get(kpiId);
+    const staffName = liveKpi?.assignedToName || resolveStaffName(entry);
+    const department = liveKpi?.assignedToDept || entry.department || resolveStaffDepartment(entry);
+    const name = liveKpi?.name || entry.name;
+    const progress = entry.progress || 0;
+    const cycleUrl = buildCycleHistoryUrl({
+      kpiId,
+      name,
+      assignedTo: staffName,
+      department,
+    });
+    const statusBadge = progress >= 100
+      ? '<span class="badge badge-success">Completed</span>'
+      : `<span class="badge badge-warning">${entry.cycleCount} cycle${entry.cycleCount === 1 ? '' : 's'}</span>`;
+
+    return `<tr>
+      <td style="font-weight:600;color:var(--navy);">${esc(name)}</td>
+      <td>${esc(staffName || '—')}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px;min-width:140px;">
+          <span style="font-weight:700;min-width:36px;">${progress}%</span>
+          <div style="flex:1;height:6px;background:var(--bg-secondary);border-radius:999px;overflow:hidden;min-width:60px;">
+            <div style="height:100%;width:${progress}%;background:linear-gradient(90deg,#4f46e5,#818cf8);border-radius:999px;"></div>
           </div>
         </div>
-        <div style="flex-shrink:0;text-align:right;">
-          <div style="font-size:0.72rem;color:var(--muted);">${esc(when)}</div>
-          <div style="margin-top:6px;">${sBadge(k.status)}</div>
-        </div>
-      </li>`;
+      </td>
+      <td>${esc(fmtDate(entry.completedAt || entry.recordedAt))}</td>
+      <td>${statusBadge}</td>
+      <td><a href="${escAttr(cycleUrl)}" class="btn btn-secondary btn-sm">View cycles</a></td>
+    </tr>`;
   }).join('');
 }
 
@@ -431,8 +729,13 @@ async function renderVerifyList() {
   if (!container) return;
 
   let kpis = await getKpis();
+  const focusId = new URLSearchParams(window.location.search).get('id');
   const f = typeof currentVerifyFilter !== 'undefined' ? currentVerifyFilter : 'all';
-  if (f && f !== 'all') kpis = kpis.filter(k => k.status === f);
+  if (focusId) {
+    kpis = kpis.filter(k => String(k.id) === String(focusId));
+  } else if (f && f !== 'all') {
+    kpis = kpis.filter(k => k.status === f);
+  }
 
   if (!kpis.length) {
     container.innerHTML = '';
@@ -444,7 +747,7 @@ async function renderVerifyList() {
   container.innerHTML = kpis.map(k => {
     const overdue = k.dueDate && k.status !== 'approved' && new Date(k.dueDate) < new Date();
     return `
-    <div class="verify-card fade-in-up">
+    <div class="verify-card fade-in-up" id="verify-kpi-${k.id}">
       <div class="verify-card-header">
         <div>
           <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:1rem;color:var(--navy);">${esc(k.name)}</div>
@@ -484,6 +787,11 @@ async function renderVerifyList() {
       </div>
     </div>`;
   }).join('');
+
+  if (focusId) {
+    const card = document.getElementById(`verify-kpi-${focusId}`);
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function openApprove(id, name) {
@@ -498,7 +806,9 @@ function openApprove(id, name) {
 
     closeModal('approveModal');
     flashAlert('KPI "' + name + '" approved! ✓');
+    cachedHistoryEntries = [];
     await renderVerifyList();
+    await refreshVerifyNavBadge();
   };
   document.getElementById('approveModal').classList.add('open');
 }
@@ -525,6 +835,7 @@ function openReject(id, name) {
     closeModal('rejectModal');
     flashAlert('KPI "' + name + '" rejected.', 'error');
     await renderVerifyList();
+    await refreshVerifyNavBadge();
   };
   document.getElementById('rejectModal').classList.add('open');
 }
@@ -568,6 +879,110 @@ async function previewEvidence(id) {
 function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
 function show(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
 function hide(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+function getActiveStaffFilter() {
+  return activeStaffFilter || new URLSearchParams(window.location.search).get('staff') || null;
+}
+
+function staffPerformanceBadge(rate, hasOverdue) {
+  if (hasOverdue || rate < 30) {
+    return '<span class="badge badge-danger">Critical</span>';
+  }
+  if (rate >= 70) {
+    return '<span class="badge badge-success">On Track</span>';
+  }
+  return '<span class="badge badge-warning">At Risk</span>';
+}
+
+function completedCountColor(completed, rate) {
+  if (completed === 0) return '#dc2626';
+  if (rate >= 70) return '#16a34a';
+  return '#d97706';
+}
+
+function updateStaffFilterUi(kpisArg) {
+  const banner = document.getElementById('staffFilterBanner');
+  const nameEl = document.getElementById('staffFilterName');
+  const staffFilter = getActiveStaffFilter();
+  if (!banner || !nameEl) return;
+
+  if (!staffFilter) {
+    banner.style.display = 'none';
+    nameEl.textContent = '';
+    return;
+  }
+
+  const kpis = Array.isArray(kpisArg) ? kpisArg : [];
+  const match = kpis.find(k => String(k.assignedTo) === String(staffFilter));
+  nameEl.textContent = match?.assignedToName || 'Selected staff';
+  banner.style.display = 'inline-flex';
+}
+
+function filterKpisByStaff(staffId) {
+  activeStaffFilter = staffId;
+  const url = new URL(window.location.href);
+  url.searchParams.set('staff', staffId);
+  window.history.pushState({}, '', url);
+  renderKpiTable();
+  renderStaffPerformance();
+  getKpis().then(updateStaffFilterUi);
+  document.getElementById('kpi-management')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clearStaffFilter() {
+  activeStaffFilter = null;
+  const url = new URL(window.location.href);
+  url.searchParams.delete('staff');
+  window.history.pushState({}, '', url);
+  renderKpiTable();
+  renderStaffPerformance();
+  updateStaffFilterUi([]);
+}
+
+function dueDateCellHtml(k) {
+  if (!k.dueDate) return '—';
+
+  const dateText = fmtDate(k.dueDate);
+  if (k.isOverdue) {
+    return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <span style="font-size:0.85rem;color:#dc2626;font-weight:600;">${dateText}</span>
+      <span style="font-size:0.7rem;color:#dc2626;font-weight:600;">Overdue</span>
+    </div>`;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dueDay = new Date(k.dueDate);
+  dueDay.setHours(0, 0, 0, 0);
+  const diffDays = (dueDay - today) / 86400000;
+  const dueSoon = diffDays >= 0 && diffDays <= 7;
+  const style = dueSoon ? 'font-size:0.85rem;color:#d97706;font-weight:600;' : 'font-size:0.85rem;';
+
+  return `<div style="${style}">${dateText}</div>`;
+}
+
+function shouldShowProgressBar(kpi) {
+  const progress = Number(kpi.progress) || 0;
+  if (kpi.status === 'pending' && progress === 0) return false;
+  return progress > 0 || ['in-progress', 'submitted', 'approved', 'rejected'].includes(kpi.status);
+}
+
+function progressCellHtml(k) {
+  const progress = Number(k.progress) || 0;
+  if (k.status === 'pending' && progress === 0) {
+    return '<span style="font-size:0.8rem;color:var(--muted);">Not started</span>';
+  }
+  if (!shouldShowProgressBar(k)) {
+    return '<span style="font-size:0.8rem;color:var(--muted);">Not started</span>';
+  }
+
+  return `<div style="display:flex;align-items:center;gap:8px;">
+    <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+      <div style="height:100%;width:${progress}%;background:${pColor(progress)};border-radius:3px;transition:width 0.4s;"></div>
+    </div>
+    <span style="font-size:0.75rem;font-weight:700;min-width:30px;">${progress}%</span>
+  </div>`;
+}
+
 function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
 function fieldErr(id, msg) { const el = document.getElementById(id); if (el) el.textContent = msg; }
@@ -584,6 +999,10 @@ function flashAlert(msg, type = 'success') {
 
 function esc(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escAttr(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
 function fmtDate(d) {
@@ -609,13 +1028,14 @@ function toDateInputValue(d) {
   return date.toISOString().slice(0, 10);
 }
 
-function historyEventLabel(kpi) {
-  if (kpi.status === 'approved') return 'Approved by manager';
-  if (kpi.status === 'rejected') return 'Rejected by manager';
-  if (kpi.status === 'submitted') return 'Submitted for review';
-  if ((kpi.progress || 0) > 0) return `Progress updated to ${kpi.progress || 0}%`;
-  if (kpi.createdAt && kpi.updatedAt && kpi.createdAt === kpi.updatedAt) return 'KPI created';
-  return 'Updated by manager';
+function historyEventLabel(entry) {
+  const map = {
+    submitted: 'Submitted for review',
+    approved: 'Approved by manager',
+    rejected: 'Rejected by manager',
+    updated: 'Updated by manager',
+  };
+  return map[entry.action] || 'KPI updated';
 }
 
 function setConnectionStatus(connected) {
@@ -646,6 +1066,18 @@ function sBadge(status) {
     rejected: '<span class="badge badge-danger">Rejected</span>',
   };
   return map[status] || '<span class="badge">—</span>';
+}
+
+function historyActionBadge(action) {
+  const map = {
+    created: '<span class="badge badge-pending">Created</span>',
+    submitted: '<span class="badge badge-info">Submitted</span>',
+    approved: '<span class="badge badge-success">Approved</span>',
+    rejected: '<span class="badge badge-danger">Rejected</span>',
+    updated: '<span class="badge badge-warning">Updated</span>',
+    'soft-deleted': '<span class="badge badge-danger">Deleted</span>',
+  };
+  return map[action] || `<span class="badge">${esc(action || '—')}</span>`;
 }
 
 function priorityHtml(p) {

@@ -5,6 +5,8 @@ const connectDB = require('./db');
 
 const authRoutes = require('./routes/authRoutes');
 const kpiRoutes = require('./routes/kpiRoutes');
+const kpiRecordRoutes = require('./routes/kpiRecordRoutes');
+const kpiHistoryRoutes = require('./routes/kpiHistoryRoutes');
 const evidenceRoutes = require('./routes/evidenceRoutes');
 const path = require('path');
 
@@ -14,9 +16,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve frontend from project root (http://localhost:3000/pages/login.html)
+app.use(express.static(path.join(__dirname, '..')));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/kpis', kpiRoutes);
+app.use('/api/kpi-records', kpiRecordRoutes);
+app.use('/api/kpi-history', kpiHistoryRoutes);
 app.use('/api/evidence', evidenceRoutes);
 
 // Global Error Handler

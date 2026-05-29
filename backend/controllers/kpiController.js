@@ -1,7 +1,12 @@
 const Kpi = require('../models/kpi');
 const KpiHistory = require('../models/kpiHistory');
+const KpiRecord = require('../models/kpiRecord');
 const Evidence = require('../models/evidence');
 const User = require('../models/user');
+const mongoose = require('mongoose');
+const { getMergedManagerHistoryKpiIds } = require('../utils/mergedHistory');
+
+const NOT_DELETED = { isDeleted: { $ne: true } };
 
 const ALLOWED_EVIDENCE_MIME_TYPES = [
     '',
@@ -21,6 +26,7 @@ const MAX_EVIDENCE_SIZE = 5 * 1024 * 1024;
 const createHistory = (kpi, req, action, overrides = {}) => KpiHistory.create({
     kpi_id: kpi._id,
     staffId: kpi.assignedTo,
+    managerId: kpi.createdBy,
     actorId: req.user._id,
     actorRole: req.user.role,
     action,
@@ -34,7 +40,9 @@ const createHistory = (kpi, req, action, overrides = {}) => KpiHistory.create({
     evidenceSize: overrides.evidenceSize ?? kpi.evidenceSize ?? 0,
     evidenceRef: overrides.evidenceRef ?? kpi.evidenceRef ?? null,
     rejectionReason: overrides.rejectionReason ?? kpi.rejectionReason ?? '',
-    comment: overrides.comment ?? kpi.comments ?? ''
+    comment: overrides.comment ?? kpi.comments ?? '',
+    submittedAt: overrides.submittedAt ?? null,
+    deadline: overrides.deadline ?? null,
 });
 
 const validateRequired = (fields, body) => {
@@ -51,6 +59,12 @@ const validateEvidence = ({ evidenceRef = null, evidenceName = '', evidenceMimeT
 const canManagerAccessKpi = (manager, kpi) => (
     kpi.createdBy.toString() === manager._id.toString()
 );
+
+const computeIsOverdue = (kpi) => {
+    const deadline = kpi.deadline || kpi.dueDate;
+    if (!deadline) return false;
+    return new Date(deadline) < new Date() && ['pending', 'in-progress'].includes(kpi.status);
+};
 
 // Create KPI (Manager Only)
 exports.createKpi = async (req, res) => {
@@ -83,19 +97,31 @@ exports.createKpi = async (req, res) => {
 // Read KPIs (Scoped to Role context)
 exports.getKpis = async (req, res) => {
     try {
-        let query = {};
-        // Staff can only read their own assigned KPIs (Server-side scoping)
+        let query = { ...NOT_DELETED };
+
         if (req.user.role === 'staff') {
             query.assignedTo = req.user._id;
         } else if (req.user.role === 'manager') {
-            query.createdBy = req.user._id;
+            const managerId = req.user._id;
+            const historyKpiIds = await getMergedManagerHistoryKpiIds(managerId);
+
+            const orConditions = [{ createdBy: managerId }];
+            if (historyKpiIds.length) {
+                orConditions.push({ _id: { $in: historyKpiIds } });
+            }
+
+            query.$or = orConditions;
         }
-        query.isDeleted = false;
+
         const kpis = await Kpi.find(query)
             .populate('assignedTo', 'name email department')
             .populate('createdBy', 'name')
             .lean();
-        res.json({ success: true, data: kpis });
+        const kpisWithOverdue = kpis.map(kpi => ({
+            ...kpi,
+            isOverdue: computeIsOverdue(kpi),
+        }));
+        res.json({ success: true, data: kpisWithOverdue });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -108,7 +134,7 @@ exports.submitProgress = async (req, res) => {
         const evidenceMessage = validateEvidence({ evidenceRef, evidenceName, evidenceMimeType, evidenceSize });
         if (evidenceMessage) return res.status(400).json({ success: false, message: evidenceMessage });
 
-        const kpi = await Kpi.findOne({ _id: req.params.id, isDeleted: false });
+        const kpi = await Kpi.findOne({ _id: req.params.id, ...NOT_DELETED });
 
         if (!kpi) return res.status(404).json({ message: 'KPI record not found' });
         if (kpi.assignedTo.toString() !== req.user._id.toString()) {
@@ -174,7 +200,7 @@ exports.reviewKpi = async (req, res) => {
             return res.status(400).json({ message: 'Invalid review validation status' });
         }
 
-        const kpi = await Kpi.findOne({ _id: req.params.id, isDeleted: false });
+        const kpi = await Kpi.findOne({ _id: req.params.id, ...NOT_DELETED });
         if (!kpi) return res.status(404).json({ message: 'KPI not found' });
         if (!canManagerAccessKpi(req.user, kpi)) {
             return res.status(403).json({ success: false, message: 'You can only review KPIs you created.' });
@@ -186,12 +212,86 @@ exports.reviewKpi = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Rejection reason is required.' });
         }
 
-        kpi.status = status;
         if (status === 'approved') {
-            kpi.progress = 100;
-            kpi.rejectionReason = '';
+            const staff = await User.findById(kpi.assignedTo).select('department');
+            const department = staff?.department || req.user.department || '';
+            const evidenceUrl = kpi.evidenceRef ? `/api/evidence/${kpi.evidenceRef}/download` : '';
+            const reviewNote = String(req.body.reviewNote || '').trim();
+            const reviewedAt = new Date();
+            const approvalSnapshot = {
+                currentValue: kpi.currentValue,
+                progress: kpi.progress ?? 0,
+                evidenceName: kpi.evidenceName || '',
+                evidenceMimeType: kpi.evidenceMimeType || '',
+                evidenceSize: kpi.evidenceSize || 0,
+                evidenceRef: kpi.evidenceRef || null,
+            };
+
+            const session = await mongoose.startSession();
+            try {
+                await session.withTransaction(async () => {
+                    const existingCount = await KpiRecord.countDocuments({ kpiId: kpi._id }).session(session);
+                    const cycleLabel = `Cycle ${existingCount + 1}`;
+
+                    await KpiRecord.create([{
+                        kpiId: kpi._id,
+                        kpiTitle: kpi.name,
+                        managerId: req.user._id,
+                        assignedTo: kpi.assignedTo,
+                        department,
+                        cycleLabel,
+                        targetValue: kpi.target,
+                        actualValue: kpi.currentValue,
+                        evidenceUrl,
+                        deadline: kpi.dueDate,
+                        submittedAt: kpi.submittedAt,
+                        reviewedAt,
+                        status: 'approved',
+                        reviewNote,
+                    }], { session });
+
+                    await Kpi.updateOne(
+                        { _id: kpi._id },
+                        {
+                            $set: {
+                                status: 'pending',
+                                progress: 0,
+                                currentValue: 0,
+                                evidenceRef: null,
+                                evidenceName: '',
+                                evidenceMimeType: '',
+                                evidenceSize: 0,
+                                submittedAt: null,
+                                comments: '',
+                                rejectionReason: '',
+                            },
+                        },
+                        { session }
+                    );
+                });
+            } finally {
+                session.endSession();
+            }
+
+            await createHistory(kpi, req, 'approved', {
+                status: 'approved',
+                progress: approvalSnapshot.progress,
+                value: approvalSnapshot.currentValue,
+                comment: reviewNote,
+                evidenceName: approvalSnapshot.evidenceName,
+                evidenceMimeType: approvalSnapshot.evidenceMimeType,
+                evidenceSize: approvalSnapshot.evidenceSize,
+                evidenceRef: approvalSnapshot.evidenceRef,
+                submittedAt: kpi.submittedAt,
+                deadline: kpi.dueDate,
+            });
+
+            const updatedKpi = await Kpi.findById(kpi._id);
+            return res.json({ success: true, data: updatedKpi });
         }
-        if (status === 'rejected') kpi.rejectionReason = rejectionReason;
+
+        kpi.status = status;
+        kpi.rejectionReason = rejectionReason;
         await kpi.save();
 
         await createHistory(kpi, req, status, { rejectionReason });
@@ -204,7 +304,7 @@ exports.reviewKpi = async (req, res) => {
 
 exports.updateKpi = async (req, res) => {
     try {
-        const kpi = await Kpi.findOne({ _id: req.params.id, isDeleted: false });
+        const kpi = await Kpi.findOne({ _id: req.params.id, ...NOT_DELETED });
         if (!kpi) return res.status(404).json({ success: false, message: 'KPI not found' });
         if (!canManagerAccessKpi(req.user, kpi)) {
             return res.status(403).json({ success: false, message: 'You can only update KPIs you created.' });
@@ -242,7 +342,7 @@ exports.updateKpi = async (req, res) => {
 
 exports.getKpiHistory = async (req, res) => {
     try {
-        const kpi = await Kpi.findOne({ _id: req.params.id, isDeleted: false });
+        const kpi = await Kpi.findOne({ _id: req.params.id, ...NOT_DELETED });
         if (!kpi) return res.status(404).json({ success: false, message: 'KPI not found' });
 
         const isAssignedStaff = kpi.assignedTo.toString() === req.user._id.toString();
@@ -253,9 +353,53 @@ exports.getKpiHistory = async (req, res) => {
 
         const history = await KpiHistory.find({ kpi_id: kpi._id })
             .populate('actorId', 'name role department')
+            .populate('staffId', 'name email department')
             .sort({ recordedAt: -1 });
 
-        res.json({ success: true, data: history });
+        res.json({
+            success: true,
+            data: history.map(entry => ({
+                ...entry.toObject(),
+                kpiId: entry.kpi_id,
+                staffName: entry.staffId?.name || '',
+                timestamp: entry.recordedAt,
+            })),
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.getManagerHistoryFeed = async (req, res) => {
+    try {
+        let kpiQuery = { ...NOT_DELETED };
+        if (req.user.role === 'staff') {
+            kpiQuery.assignedTo = req.user._id;
+        } else if (req.user.role === 'manager') {
+            kpiQuery.createdBy = req.user._id;
+        }
+
+        const kpiIds = await Kpi.find(kpiQuery).distinct('_id');
+        if (!kpiIds.length) {
+            return res.json({ success: true, data: [] });
+        }
+
+        const history = await KpiHistory.find({ kpi_id: { $in: kpiIds } })
+            .populate('staffId', 'name email department')
+            .populate('actorId', 'name role department')
+            .sort({ recordedAt: -1 })
+            .limit(500)
+            .lean();
+
+        res.json({
+            success: true,
+            data: history.map(entry => ({
+                ...entry,
+                kpiId: entry.kpi_id,
+                staffName: entry.staffId?.name || '',
+                timestamp: entry.recordedAt,
+            })),
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -264,7 +408,7 @@ exports.getKpiHistory = async (req, res) => {
 // Soft Delete Implementation instead of permanent drops
 exports.deleteKpi = async (req, res) => {
     try {
-        const kpi = await Kpi.findOne({ _id: req.params.id, isDeleted: false });
+        const kpi = await Kpi.findOne({ _id: req.params.id, ...NOT_DELETED });
         if (!kpi) return res.status(404).json({ message: 'KPI record not found' });
         if (!canManagerAccessKpi(req.user, kpi)) {
             return res.status(403).json({ success: false, message: 'You can only archive KPIs you created.' });

@@ -59,10 +59,14 @@ const kpiSchema = new mongoose.Schema({
     deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
 }, { 
     timestamps: true,
-    collection: 'kpi'
+    collection: 'kpirecords'
 });
 
 kpiSchema.index({ assignedTo: 1, status: 1, isDeleted: 1 });
 kpiSchema.index({ createdBy: 1, isDeleted: 1 });
 
-module.exports = mongoose.models.Kpi || mongoose.model('Kpi', kpiSchema);
+if (mongoose.models.Kpi) {
+    delete mongoose.models.Kpi;
+}
+
+module.exports = mongoose.model('Kpi', kpiSchema);
