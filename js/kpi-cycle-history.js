@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+// API_BASE_URL is defined in auth.js (loaded first on this page).
 
 let cycleChart = null;
 let chartJsPromise = null;
@@ -28,6 +28,17 @@ function normalizeKpiId(value) {
   if (value._id) return String(value._id);
   if (typeof value.toString === 'function') return value.toString();
   return String(value);
+}
+
+function cycleApiUrl(path) {
+  const base = typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'http://localhost:3000/api';
+  return `${base}${path.startsWith('/') ? path : `/${path}`}`;
+}
+
+function destroyChartInstance(instance) {
+  if (instance && typeof Chart !== 'undefined' && instance instanceof Chart) {
+    instance.destroy();
+  }
 }
 
 async function apiJson(url, options = {}) {
@@ -243,7 +254,7 @@ async function fetchCycleHistoryData(kpiId) {
   if (!normalizedId) return { kpi: {}, entries: [], error: 'Missing KPI id.' };
 
   try {
-    const result = await apiJson(`${API_BASE_URL}/kpi-history/${encodeURIComponent(normalizedId)}/cycles`);
+    const result = await apiJson(cycleApiUrl(`/kpi-history/${encodeURIComponent(normalizedId)}/cycles`));
     const entries = prepareCycleEntries(result.data?.cycles || []);
     if (entries.length) {
       return { kpi: result.data?.kpi || {}, entries, error: '' };
@@ -253,7 +264,7 @@ async function fetchCycleHistoryData(kpiId) {
   }
 
   try {
-    const feedResult = await apiJson(`${API_BASE_URL}/kpi-history/feed`);
+    const feedResult = await apiJson(cycleApiUrl('/kpi-history/feed'));
     const filtered = (feedResult.data || []).filter(
       entry => normalizeKpiId(entry.kpi_id || entry.kpiId) === normalizedId
     );
@@ -462,10 +473,8 @@ function renderCompletionChartInner(cycles, canvas, card) {
 
   const completed = cycles.filter(cycle => cycle.isComplete);
 
-  if (window.cycleCompletionChart instanceof Chart) {
-    window.cycleCompletionChart.destroy();
-    window.cycleCompletionChart = null;
-  }
+  destroyChartInstance(window.cycleCompletionChart);
+  window.cycleCompletionChart = null;
 
   if (!completed.length) {
     if (card) card.style.display = 'none';
@@ -639,14 +648,10 @@ function showEmptyState(message) {
     strip.innerHTML = '';
   }
 
-  if (cycleChart) {
-    cycleChart.destroy();
-    cycleChart = null;
-  }
-  if (window.cycleCompletionChart instanceof Chart) {
-    window.cycleCompletionChart.destroy();
-    window.cycleCompletionChart = null;
-  }
+  destroyChartInstance(cycleChart);
+  cycleChart = null;
+  destroyChartInstance(window.cycleCompletionChart);
+  window.cycleCompletionChart = null;
 }
 
 function showContent(entries) {

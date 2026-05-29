@@ -298,32 +298,65 @@ function openDeleteKpi(id, name) {
   document.getElementById('deleteModal').classList.add('open');
 }
 
+function kpiProgressValue(kpi) {
+  const progress = Number(kpi?.progress);
+  return Number.isFinite(progress) ? Math.min(Math.max(progress, 0), 100) : 0;
+}
+
+function kpiWeightValue(kpi) {
+  const weight = Number(kpi?.weight);
+  return Number.isFinite(weight) && weight > 0 ? weight : 0;
+}
+
+function calculateWeightedProgress(kpis) {
+  if (!kpis.length) return 0;
+
+  const totalWeight = kpis.reduce((sum, kpi) => sum + kpiWeightValue(kpi), 0);
+  if (totalWeight > 0) {
+    const weightedSum = kpis.reduce(
+      (sum, kpi) => sum + kpiProgressValue(kpi) * kpiWeightValue(kpi),
+      0
+    );
+    return Math.round(weightedSum / totalWeight);
+  }
+
+  const average = kpis.reduce((sum, kpi) => sum + kpiProgressValue(kpi), 0) / kpis.length;
+  return Math.round(average);
+}
+
 // ── Staff Performance Summary ────────────────────────────────────────────────
 async function renderStaffPerformance(kpisArg) {
   const tbody = document.getElementById('staffTableBody');
   if (!tbody) return;
 
   const kpis = Array.isArray(kpisArg) ? kpisArg : await getKpis();
-  const map = {};
+  const staffGroups = new Map();
 
   kpis.forEach(k => {
     if (!k.assignedTo) return;
-    if (!map[k.assignedTo]) {
-      map[k.assignedTo] = {
+    const staffId = String(k.assignedTo);
+    if (!staffGroups.has(staffId)) {
+      staffGroups.set(staffId, {
         id: k.assignedTo,
         name: k.assignedToName || 'Unknown',
         dept: k.assignedToDept || 'General',
+        kpis: [],
         total: 0,
         completed: 0,
         hasOverdue: false,
-      };
+      });
     }
-    map[k.assignedTo].total++;
-    if (k.status === 'approved') map[k.assignedTo].completed++;
-    if (k.isOverdue) map[k.assignedTo].hasOverdue = true;
+    const entry = staffGroups.get(staffId);
+    entry.kpis.push(k);
+    entry.total++;
+    if (k.status === 'approved') entry.completed++;
+    if (k.isOverdue) entry.hasOverdue = true;
   });
 
-  const staff = Object.values(map);
+  const staff = [...staffGroups.values()].map(s => ({
+    ...s,
+    rate: calculateWeightedProgress(s.kpis),
+  }));
   const selectedStaffId = getActiveStaffFilter();
   const emptyEl = document.getElementById('staffEmptyState');
 
@@ -335,7 +368,7 @@ async function renderStaffPerformance(kpisArg) {
   if (emptyEl) emptyEl.style.display = 'none';
 
   tbody.innerHTML = staff.map(s => {
-    const rate = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
+    const rate = s.rate;
     const perf = staffPerformanceBadge(rate, s.hasOverdue);
     const completedColor = completedCountColor(s.completed, rate);
     const isSelected = selectedStaffId && String(selectedStaffId) === String(s.id);
