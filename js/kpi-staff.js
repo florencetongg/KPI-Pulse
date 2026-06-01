@@ -118,7 +118,8 @@ function handleFileSelect(file, kpiId = '') {
     if (previewSizeEl) previewSizeEl.textContent = (file.size / 1024).toFixed(1) + ' KB';
   }
 
-  startEvidenceUpload(file, kpiId);
+  const resolvedKpiId = kpiId || document.getElementById('updateKpiId')?.value || document.getElementById('kpiSelect')?.value || '';
+  if (resolvedKpiId) startEvidenceUpload(file, resolvedKpiId);
 }
 
 function createFileList(file) {
@@ -139,15 +140,20 @@ function normalizeKpiRecord(record) {
 }
 
 // ── Data Store ───────────────────────────────────────────────────────────────
-const EVIDENCE_MAX_BYTES = 10 * 1024 * 1024;
+const EVIDENCE_MAX_BYTES = 5 * 1024 * 1024;
 const EVIDENCE_ALLOWED_TYPES = [
   'image/jpeg',
   'image/png',
+  'image/webp',
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 ];
-const EVIDENCE_ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.pdf', '.doc', '.docx'];
+const EVIDENCE_ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'];
 
 function getCurrentStaffKpiKeys() {
   const user = getCurrentUser();
@@ -206,6 +212,7 @@ async function updateKpi(id, updates) {
     method: 'PUT',
     body: JSON.stringify(updates),
   });
+}
 
   function getStaffStatusForProgress(progress) {
     const pct = Math.min(Math.max(parseInt(progress, 10) || 0, 0), 100);
@@ -724,6 +731,7 @@ async function updateKpi(id, updates) {
     }
 
     await finish();
+  }
 
     // ── Utilities ────────────────────────────────────────────────────────────────
     function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
@@ -785,5 +793,3 @@ async function updateKpi(id, updates) {
     window.addEventListener('click', function (e) {
       if (e.target.classList && e.target.classList.contains('modal')) e.target.classList.remove('open');
     });
-  }
-}

@@ -127,10 +127,34 @@ exports.getKpis = async (req, res) => {
     }
 };
 
+exports.getKpiById = async (req, res) => {
+    try {
+        const kpi = await Kpi.findOne({ _id: req.params.id, ...NOT_DELETED })
+            .populate('assignedTo', 'name email department')
+            .populate('createdBy', 'name')
+            .lean();
+
+        if (!kpi) return res.status(404).json({ success: false, message: 'KPI not found' });
+
+        const assignedToId = kpi.assignedTo?._id || kpi.assignedTo;
+        const createdById = kpi.createdBy?._id || kpi.createdBy;
+        const isAssignedStaff = req.user.role === 'staff' && String(assignedToId) === String(req.user._id);
+        const isOwnerManager = req.user.role === 'manager' && String(createdById) === String(req.user._id);
+
+        if (!isAssignedStaff && !isOwnerManager) {
+            return res.status(403).json({ success: false, message: 'You cannot view this KPI.' });
+        }
+
+        res.json({ success: true, data: { ...kpi, isOverdue: computeIsOverdue(kpi) } });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 // Staff Updates Incremental Progress + Evidential Links
 exports.submitProgress = async (req, res) => {
     try {
-        const { currentValue, progress, evidenceRef, evidenceName, evidenceMimeType, evidenceSize, comments } = req.body;
+        const { currentValue, progress, status, evidenceRef, evidenceName, evidenceMimeType, evidenceSize, comments } = req.body;
         const evidenceMessage = validateEvidence({ evidenceRef, evidenceName, evidenceMimeType, evidenceSize });
         if (evidenceMessage) return res.status(400).json({ success: false, message: evidenceMessage });
 
@@ -153,11 +177,15 @@ exports.submitProgress = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Current value must be a valid number.' });
         }
 
+        const statusValue = ['pending', 'in-progress', 'submitted'].includes(status)
+            ? status
+            : (progressValue === 100 ? 'submitted' : progressValue > 0 ? 'in-progress' : 'pending');
+
         kpi.currentValue = currentValueNumber || 0;
         kpi.progress = progressValue;
         kpi.comments = comments;
-        kpi.status = 'submitted';
-        kpi.submittedAt = Date.now();
+        kpi.status = statusValue;
+        kpi.submittedAt = statusValue === 'submitted' ? Date.now() : null;
 
         // Attach evidence by reference if provided (upload endpoint returns id)
         if (evidenceRef) {
@@ -176,7 +204,8 @@ exports.submitProgress = async (req, res) => {
         await kpi.save();
 
         // Write immutable transaction into History Logs collection
-        await createHistory(kpi, req, 'submitted', {
+        await createHistory(kpi, req, statusValue === 'submitted' ? 'submitted' : 'updated', {
+            status: statusValue,
             value: currentValueNumber || 0,
             progress: progressValue,
             comment: comments,
