@@ -33,6 +33,7 @@ const ALLOWED_MIMES = [
   'image/png',
   'image/jpeg',
   'image/jpg',
+  'image/webp',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-excel',
