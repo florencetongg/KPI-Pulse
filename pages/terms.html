@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms and Conditions — KPI Pulse</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --navy:#0f172a;
+  --primary:#4f46e5;
+  --border:#e2e8f0;
+  --muted:#64748b;
+  --bg:#f8fafc;
+  --surface:#ffffff;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--navy);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* TOP NAV */
+
+.top-nav{
+  position:sticky;
+  top:0;
+  z-index:1000;
+
+  height:72px;
+  background:#fff;
+  border-bottom:1px solid var(--border);
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:0 40px;
+}
+
+.logo{
+  text-decoration:none;
+  font-family:'Sora',sans-serif;
+  font-size:1.4rem;
+  font-weight:800;
+  color:var(--navy);
+}
+
+.logo span{
+  color:var(--primary);
+}
+
+.nav-back{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  padding:12px 20px;
+
+  border:1px solid var(--border);
+  border-radius:14px;
+
+  text-decoration:none;
+  color:var(--muted);
+  font-weight:500;
+
+  transition:.2s;
+}
+
+.nav-back:hover{
+  background:#f8fafc;
+  color:var(--navy);
+}
+
+.nav-back svg{
+  width:16px;
+  height:16px;
+}
+
+/* PAGE HEADER */
+
+.page-header{
+  position:relative;
+  overflow:hidden;
+  background:var(--navy);
+  text-align:center;
+  padding:80px 24px;
+}
+
+.page-header::before{
+  content:'';
+  position:absolute;
+  top:-120px;
+  left:50%;
+  transform:translateX(-50%);
+  width:300px;
+  height:300px;
+  border-radius:50%;
+  background:radial-gradient(circle,
+    rgba(79,70,229,.3),
+    transparent 70%);
+}
+
+.page-header h1{
+  position:relative;
+  z-index:1;
+  font-family:'Sora',sans-serif;
+  font-size:clamp(1.8rem,3.5vw,2.75rem);
+  font-weight:800;
+  color:#fff;
+  margin-bottom:10px;
+}
+
+.page-header p{
+  position:relative;
+  z-index:1;
+  color:#94a3b8;
+  font-size:.9rem;
+}
+
+
+/* CONTENT */
+
+.container{
+  max-width:850px;
+  width:100%;
+  margin:0 auto;
+  padding:20px 24px 60px;
+  flex:1;
+}
+
+.intro{
+  color:var(--muted);
+  line-height:1.8;
+  margin-bottom:20px;
+}
+
+.section{
+  border-top:1px solid var(--border);
+  padding-top:32px;
+  margin-top:32px;
+}
+
+.section:first-of-type{
+  border-top:none;
+  margin-top:0;
+  padding-top:0;
+}
+
+.section h2{
+  font-family:'Sora',sans-serif;
+  font-size:1.1rem;
+  font-weight:700;
+  margin-bottom:14px;
+}
+
+.section p{
+  color:var(--muted);
+  line-height:1.8;
+}
+
+.section ul{
+  margin-top:12px;
+  margin-left:20px;
+}
+
+.section li{
+  margin-bottom:8px;
+  color:var(--muted);
+  line-height:1.7;
+}
+
+/* CARDS */
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:24px;
+  margin-top:16px;
+}
+
+.card h4{
+  margin-bottom:10px;
+  font-family:'Sora',sans-serif;
+  font-size:.95rem;
+}
+
+/* FOOTER */
+
+.footer{
+  border-top:1px solid var(--border);
+  background:#fff;
+  padding:24px;
+  text-align:center;
+  color:var(--muted);
+  font-size:.9rem;
+}
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+.top-nav{
+  padding:0 20px;
+}
+
+.container{
+  padding:20px 20px 40px;
+}
+
+.page-header{
+  padding:40px 20px 10px;
+}
+
+.page-header h1{
+  font-size:2rem;
+}
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="top-nav">
+  <a href="/index.html" class="logo">
+    KPI<span>Pulse</span>
+  </a>
+
+  <a href="register.html" class="nav-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    Back
+  </a>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>Terms and Conditions</h1>
+  <p>Last Updated: June 2026</p>
+</div>
+
+<!-- CONTENT -->
+<main class="container">
+
+  <p class="intro">
+    Welcome to KPI Pulse. By creating an account and using our platform, you agree to the following Terms and Conditions.
+  </p>
+
+  <section class="section">
+    <h2>1. Acceptance of Terms</h2>
+    <p>
+      By registering for an account, accessing, or using KPI Pulse, you agree to comply with these Terms and Conditions.
+      If you do not agree, you should not use the platform.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>2. Purpose of the Platform</h2>
+    <p>KPI Pulse is a KPI management system designed to:</p>
+
+    <ul>
+      <li>Manage employee KPI assignments</li>
+      <li>Track KPI progress and performance</li>
+      <li>Submit KPI evidence and reports</li>
+      <li>Facilitate KPI review and approval processes</li>
+      <li>Maintain KPI audit and history records</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>3. User Accounts</h2>
+
+    <p>Users are responsible for:</p>
+
+    <ul>
+      <li>Providing accurate registration information</li>
+      <li>Maintaining the confidentiality of account credentials</li>
+      <li>Ensuring login information is not shared with unauthorized parties</li>
+      <li>Updating personal information when necessary</li>
+    </ul>
+
+    <p style="margin-top:12px;">
+      Users are responsible for all activities performed under their accounts.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>4. User Roles</h2>
+
+    <p>The platform operates using role-based access control:</p>
+
+    <div class="card">
+      <h4>Managers</h4>
+      <ul>
+        <li>Create and assign KPIs</li>
+        <li>Review KPI submissions</li>
+        <li>Approve or reject KPI records</li>
+        <li>Access KPI history and reports</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h4>Staff</h4>
+      <ul>
+        <li>View assigned KPIs</li>
+        <li>Submit KPI progress updates</li>
+        <li>Upload supporting evidence</li>
+        <li>Access their own KPI records</li>
+      </ul>
+    </div>
+
+    <p style="margin-top:16px;">
+      Users must not attempt to access information beyond their authorized permissions.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>5. Acceptable Use</h2>
+
+    <p>Users agree not to:</p>
+
+    <ul>
+      <li>Use the platform for unlawful purposes</li>
+      <li>Upload malicious software or harmful content</li>
+      <li>Attempt unauthorized access to accounts or databases</li>
+      <li>Modify or interfere with system functionality</li>
+      <li>Submit false, misleading, or fraudulent KPI information</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>6. Evidence Uploads</h2>
+
+    <p>Uploaded content must:</p>
+
+    <ul>
+      <li>Be relevant to assigned KPIs</li>
+      <li>Not violate intellectual property rights</li>
+      <li>Not contain malware or malicious code</li>
+      <li>Comply with organizational policies</li>
+    </ul>
+
+    <p style="margin-top:12px;">
+      The platform reserves the right to remove inappropriate content.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>7. Data Retention</h2>
+
+    <p>
+      KPI records, submissions, audit logs, and related information may be retained for administrative, reporting,
+      compliance, and system integrity purposes. Deleted records may be archived rather than permanently removed.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>8. System Availability</h2>
+
+    <p>
+      While we strive to maintain reliable service, KPI Pulse does not guarantee uninterrupted availability.
+    </p>
+
+    <ul>
+      <li>Perform maintenance</li>
+      <li>Update system features</li>
+      <li>Temporarily suspend access when necessary</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>9. Limitation of Liability</h2>
+
+    <p>KPI Pulse is provided on an "as is" basis.</p>
+
+    <ul>
+      <li>Data loss caused by user actions</li>
+      <li>Service interruptions</li>
+      <li>Unauthorized account access resulting from user negligence</li>
+      <li>Indirect or consequential damages arising from platform usage</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>10. Termination</h2>
+
+    <p>We reserve the right to suspend or terminate accounts that:</p>
+
+    <ul>
+      <li>Violate these Terms</li>
+      <li>Engage in unauthorized activities</li>
+      <li>Compromise system security</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>11. Changes to Terms</h2>
+
+    <p>
+      These Terms may be updated periodically. Continued use of KPI Pulse constitutes acceptance of any revised Terms.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>12. Contact</h2>
+
+    <p>
+      For questions regarding these Terms, please contact the system administrator or organization responsible for managing KPI Pulse.
+    </p>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  © 2026 KPI Pulse. All rights reserved.
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing — KPI Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ── CORE LANDING STYLES & RESET ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --navy: #0f172a;
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --border: #e2e8f0;
+      --muted: #64748b;
+      --radius: 14px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f8f9fb;
+      color: #1a1e2e;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--navy);
+      letter-spacing: -0.5px;
+      text-decoration: none;
+    }
+
+    .logo span {
+      color: var(--primary);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color .2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--navy);
+    }
+
+    .nav-cta {
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all .18s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: #f1f5f9;
+      color: var(--navy);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, .25);
+    }
+
+    .btn-primary:hover {
+      background: #4338ca;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, .35);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--navy);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: #a5b4fc;
+      background: #f5f3ff;
+    }
+
+    .btn-full {
+      display: flex;
+      width: 100%;
+      margin-top: 24px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 80px 20px 50px;
+      border-bottom: 1px solid var(--border);
+      background: #ffffff;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .4px;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+    }
+
+    .hero h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      margin-top: 20px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -1px;
+    }
+
+    .hero h1 em {
+      color: var(--primary);
+      font-style: normal;
+    }
+
+    .hero p {
+      max-width: 540px;
+      margin: 20px auto;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1.05rem;
+    }
+
+    /* ── TOGGLE SWITCH ── */
+    .toggle {
+      display: inline-flex;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px;
+      margin-top: 20px;
+    }
+
+    .toggle button {
+      border: none;
+      background: transparent;
+      padding: 10px 24px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .toggle button.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, .2);
+    }
+
+    .save-badge {
+      background: rgba(255, 255, 255, 0.25);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      margin-left: 6px;
+      font-weight: 800;
+    }
+
+    /* ── PRICING MATRIX ── */
+    .pricing {
+      padding: 70px 20px;
+    }
+
+    .pricing-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 32px;
+      transition: transform .2s, box-shadow .2s;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, .04);
+    }
+
+    .featured {
+      border-color: var(--primary);
+      box-shadow: 0 20px 40px rgba(79, 70, 229, .08);
+    }
+
+    .featured:hover {
+      box-shadow: 0 20px 40px rgba(79, 70, 229, .12);
+    }
+
+    .popular {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: white;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .card h3 {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px;
+      color: var(--navy);
+      font-weight: 700;
+    }
+
+    .tagline {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .price {
+      margin-top: 24px;
+      display: flex;
+      align-items: baseline;
+    }
+
+    .price-value {
+      font-family: 'Sora', sans-serif;
+      font-size: 44px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .price-label {
+      margin-left: 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .billing {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .features {
+      list-style: none;
+      margin-top: 30px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .features li {
+      display: flex;
+      gap: 10px;
+      font-size: 14px;
+      color: #334155;
+      align-items: flex-start;
+    }
+
+    .check {
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    /* ── FAQ ACCORDION ── */
+    .faq {
+      padding: 80px 20px;
+      background: white;
+      border-top: 1px solid var(--border);
+    }
+
+    .faq h2 {
+      font-family: 'Sora', sans-serif;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 1.8rem;
+      color: var(--navy);
+    }
+
+    .faq-box {
+      max-width: 760px;
+      margin: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    details {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+      background: #fff;
+    }
+
+    details:last-child {
+      border-bottom: none;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--navy);
+      font-size: 15px;
+      outline: none;
+    }
+
+    details p {
+      margin-top: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 28px 2rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      background: #fff;
+    }
+
+    footer p {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    /* ── RESPONSIVE RESPONSIVENESS ── */
+    @media (max-width: 640px) {
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <a href="/index.html" class="logo">KPI<span>Pro</span></a>
+    <ul class="nav-links">
+      <li><a href="/index.html#features">Features</a></li>
+      <li><a href="#" style="color: var(--navy); font-weight: 600;">Pricing</a></li>
+      <li><a href="/index.html#about">About</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="/pages/login.html" class="btn btn-ghost">Log in</a>
+      <a href="/pages/register.html" class="btn btn-primary">Start free trial</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <span class="badge">
+      <span class="badge-dot"></span>
+      Simple, transparent pricing
+    </span>
+
+    <h1>
+      Plans that scale with
+      <em>your team.</em>
+    </h1>
+
+    <p>
+      Start free, upgrade when you're ready. Every plan includes core KPI tracking and unlimited goals.
+    </p>
+
+    <div class="toggle">
+      <button id="monthlyBtn">Monthly</button>
+      <button id="yearlyBtn" class="active">
+        Yearly
+        <span class="save-badge">SAVE 20%</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="pricing">
+    <div class="container">
+      <div class="pricing-grid">
+
+        <div class="card">
+          <h3>Starter</h3>
+          <p class="tagline">For small teams getting started with KPIs.</p>
+
+          <div class="price">
+            <span class="price-value" data-monthly="0" data-yearly="0">$0</span>
+            <span class="price-label">/ user / mo</span>
+          </div>
+
+          <div class="billing">Free forever</div>
+
+          <a href="/pages/register.html" class="btn btn-outline btn-full">Start free</a>
+
+          <ul class="features">
+            <li><span class="check">✓</span> Up to 5 team members</li>
+            <li><span class="check">✓</span> Unlimited KPIs</li>
+            <li><span class="check">✓</span> Basic dashboards</li>
+            <li><span class="check">✓</span> Weekly check-ins</li>
+            <li><span class="check">✓</span> Email support</li>
+          </ul>
+        </div>
+
+        <div class="card featured">
+          <div class="popular">Most Popular</div>
+
+          <h3>Growth</h3>
+          <p class="tagline">For growing teams that need deeper insights.</p>
+
+          <div class="price">
+            <span class="price-value" data-monthly="19" data-yearly="15">$15</span>
+            <span class="price-label">/ user / mo</span>
+          </div>
+
+          <div class="billing yearly-only">Billed annually</div>
+
+          <a href="/pages/register.html" class="btn btn-primary btn-full">Start 14-day trial</a>
+
+          <ul class="features">
+            <li><span class="check">✓</span> Up to 50 team members</li>
+            <li><span class="check">✓</span> Advanced dashboards & filters</li>
+            <li><span class="check">✓</span> Performance review cycles</li>
+            <li><span class="check">✓</span> Manager workflows & approvals</li>
+            <li><span class="check">✓</span> Export to CSV / PDF</li>
+            <li><span class="check">✓</span> Priority email support</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Enterprise</h3>
+          <p class="tagline">For organizations that need security & scale.</p>
+
+          <div class="price">
+            <span class="price-value" data-monthly="49" data-yearly="39">$39</span>
+            <span class="price-label">/ user / mo</span>
+          </div>
+
+          <div class="billing yearly-only">Billed annually</div>
+
+          <a href="/pages/register.html" class="btn btn-outline btn-full">Contact sales</a>
+
+          <ul class="features">
+            <li><span class="check">✓</span> Unlimited team members</li>
+            <li><span class="check">✓</span> SSO & SCIM provisioning</li>
+            <li><span class="check">✓</span> Custom roles & permissions</li>
+            <li><span class="check">✓</span> Audit logs & data export</li>
+            <li><span class="check">✓</span> Dedicated success manager</li>
+            <li><span class="check">✓</span> 99.9% uptime SLA</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="faq">
+    <h2>Frequently Asked Questions</h2>
+
+    <div class="faq-box">
+      <details>
+        <summary>Can I change plans later?</summary>
+        <p>Yes — upgrade, downgrade, or cancel anytime from your billing settings. Changes are prorated automatically.</p>
+      </details>
+
+      <details>
+        <summary>Is there a free trial?</summary>
+        <p>Growth comes with a 14-day free trial. No credit card required to start.</p>
+      </details>
+
+      <details>
+        <summary>What payment methods do you accept?</summary>
+        <p>All major credit cards, plus invoicing for annual Enterprise contracts.</p>
+      </details>
+
+      <details>
+        <summary>Do you offer discounts for nonprofits?</summary>
+        <p>Yes — qualifying nonprofits and educational institutions get 30% off any paid plan.</p>
+      </details>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2026 KPI Pro Performance Systems. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const monthlyBtn = document.getElementById("monthlyBtn");
+    const yearlyBtn = document.getElementById("yearlyBtn");
+
+    function updatePrices(yearly) {
+      document.querySelectorAll(".price-value").forEach(el => {
+        const price = yearly ?
+          el.dataset.yearly :
+          el.dataset.monthly;
+
+        el.textContent = "$" + price;
+      });
+
+      document.querySelectorAll(".billing").forEach(el => {
+        if (el.textContent !== "Free forever") {
+          el.textContent = yearly ?
+            "Billed annually" :
+            "Billed monthly";
+        }
+      });
+    }
+
+    monthlyBtn.addEventListener("click", () => {
+      monthlyBtn.classList.add("active");
+      yearlyBtn.classList.remove("active");
+      updatePrices(false);
+    });
+
+    yearlyBtn.addEventListener("click", () => {
+      yearlyBtn.classList.add("active");
+      monthlyBtn.classList.remove("active");
+      updatePrices(true);
+    });
+  </script>
+
+</body>
+
+</html>
