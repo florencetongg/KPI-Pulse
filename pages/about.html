@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing — KPI Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ── CORE LANDING STYLES & RESET ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --navy: #0f172a;
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --border: #e2e8f0;
+      --muted: #64748b;
+      --radius: 14px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f8f9fb;
+      color: #1a1e2e;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--navy);
+      letter-spacing: -0.5px;
+      text-decoration: none;
+    }
+
+    .logo span {
+      color: var(--primary);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color .2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--navy);
+    }
+
+    .nav-cta {
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all .18s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: #f1f5f9;
+      color: var(--navy);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, .25);
+    }
+
+    .btn-primary:hover {
+      background: #4338ca;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, .35);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--navy);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: #a5b4fc;
+      background: #f5f3ff;
+    }
+
+    .btn-full {
+      display: flex;
+      width: 100%;
+      margin-top: 24px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 80px 20px 50px;
+      border-bottom: 1px solid var(--border);
+      background: #ffffff;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .4px;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+    }
+
+    .hero h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      margin-top: 20px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -1px;
+    }
+
+    .hero h1 em {
+      color: var(--primary);
+      font-style: normal;
+    }
+
+    .hero p {
+      max-width: 540px;
+      margin: 20px auto;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1.05rem;
+    }
+
+    /* ── TOGGLE SWITCH ── */
+    .toggle {
+      display: inline-flex;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px;
+      margin-top: 20px;
+    }
+
+    .toggle button {
+      border: none;
+      background: transparent;
+      padding: 10px 24px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .toggle button.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, .2);
+    }
+
+    .save-badge {
+      background: rgba(255, 255, 255, 0.25);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      margin-left: 6px;
+      font-weight: 800;
+    }
+
+    /* ── PRICING MATRIX ── */
+    .pricing {
+      padding: 70px 20px;
+    }
+
+    .pricing-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 32px;
+      transition: transform .2s, box-shadow .2s;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, .04);
+    }
+
+    .featured {
+      border-color: var(--primary);
+      box-shadow: 0 20px 40px rgba(79, 70, 229, .08);
+    }
+
+    .featured:hover {
+      box-shadow: 0 20px 40px rgba(79, 70, 229, .12);
+    }
+
+    .popular {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: white;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .card h3 {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px;
+      color: var(--navy);
+      font-weight: 700;
+    }
+
+    .tagline {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .price {
+      margin-top: 24px;
+      display: flex;
+      align-items: baseline;
+    }
+
+    .price-value {
+      font-family: 'Sora', sans-serif;
+      font-size: 44px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .price-label {
+      margin-left: 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .billing {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .features {
+      list-style: none;
+      margin-top: 30px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .features li {
+      display: flex;
+      gap: 10px;
+      font-size: 14px;
+      color: #334155;
+      align-items: flex-start;
+    }
+
+    .check {
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    /* ── FAQ ACCORDION ── */
+    .faq {
+      padding: 80px 20px;
+      background: white;
+      border-top: 1px solid var(--border);
+    }
+
+    .faq h2 {
+      font-family: 'Sora', sans-serif;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 1.8rem;
+      color: var(--navy);
+    }
+
+    .faq-box {
+      max-width: 760px;
+      margin: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    details {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+      background: #fff;
+    }
+
+    details:last-child {
+      border-bottom: none;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--navy);
+      font-size: 15px;
+      outline: none;
+    }
+
+    details p {
+      margin-top: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 28px 2rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      background: #fff;
+    }
+
+    footer p {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    /* ── RESPONSIVE RESPONSIVENESS ── */
+    @media (max-width: 640px) {
+      .nav-links {
+        display: none;
+      }
+    }
+
+    /* ── ABOUT PAGE STYLES ── */
+
+    header {
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    padding: 90px 20px;
+    }
+
+    header h1 {
+    margin-top: 20px;
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    color: var(--navy);
+    font-weight: 800;
+    line-height: 1.15;
+    }
+
+    header h1 em {
+    color: var(--primary);
+    font-style: normal;
+    }
+
+    header p {
+    max-width: 700px;
+    margin: 20px auto 0;
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.8;
+    }
+
+    section {
+    padding: 80px 0;
+    }
+
+    .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    }
+
+    .section-title {
+    color: var(--navy);
+    font-family: 'Sora', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    }
+
+    .underline {
+    width: 50px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--primary);
+    margin-bottom: 24px;
+    }
+
+    .objectives {
+    padding-left: 20px;
+    }
+
+    .objectives li {
+    margin-bottom: 14px;
+    color: #334155;
+    }
+
+    .objectives li::marker {
+    color: var(--primary);
+    }
+
+    .alt-bg {
+    background: #f8fafc;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    }
+
+    .center {
+    text-align: center;
+    }
+
+    .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+    }
+
+    .cards .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    }
+
+    .cards .card h3 {
+    color: var(--navy);
+    margin-bottom: 10px;
+    font-family: 'Sora', sans-serif;
+    }
+
+    .cards .card p {
+    color: var(--muted);
+    line-height: 1.7;
+    }
+
+    .step-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 10px;
+    }
+
+    .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+    }
+
+    .team-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    text-align: left;
+    }
+
+    .avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    margin-bottom: 14px;
+    }
+
+    .team-card h4 {
+    color: var(--navy);
+    margin-bottom: 4px;
+    }
+
+    .role {
+    color: var(--primary);
+    font-size: .9rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    }
+
+    .cta {
+    text-align: center;
+    padding: 90px 20px;
+    }
+
+    .cta h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 2rem;
+    color: var(--navy);
+    }
+
+    .cta p {
+    max-width: 600px;
+    margin: 15px auto;
+    color: var(--muted);
+    }
+
+    .buttons {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 25px;
+    }
+
+    footer {
+    background: #0f172a;
+    color: #cbd5e1;
+    text-align: center;
+    padding: 30px;
+    border-top: none;
+    }
+
+    footer p {
+    color: #cbd5e1;
+    }
+
+    @media (max-width: 768px) {
+    .two-col {
+        grid-template-columns: 1fr;
+    }
+
+    header h1 {
+        font-size: 2.3rem;
+    }
+
+    .nav-links {
+        display: none;
+    }
+    }
+
+  </style>
+</head>
+
+<body>
+
+
+<nav>
+    <a href="/index.html" class="logo">KPI<span>Pro</span></a>
+    <ul class="nav-links">
+
+    <li><a href="features.html">Features</a></li>
+    <li><a href="pricing.html">Pricing</a></li>
+    <li><a href="#" style="color: var(--navy); font-weight:600;">About</a></li>
+  </ul>
+
+    <div class="nav-cta">
+      <a href="/pages/login.html" class="btn btn-ghost">Log in</a>
+      <a href="/pages/register.html" class="btn btn-primary">Start free trial</a>
+    </div>
+  </nav>
+
+<header>
+    <div class="badge">
+        <span class="badge-dot"></span>
+        About KPI Pro
+    </div>
+
+    <h1>
+        Performance Management,
+        <em>Made Structured</em>
+    </h1>
+
+    <p>
+        KPI Pro is a web-based Key Performance Indicator management system built
+        to help organizations monitor, manage, and evaluate employee performance
+        without the chaos of manual spreadsheets.
+    </p>
+</header>
+
+<section>
+    <div class="container two-col">
+
+        <div>
+            <h2 class="section-title">Our Mission</h2>
+            <div class="underline"></div>
+
+            <p>
+                In many organizations, tracking KPI progress manually is inefficient,
+                error-prone, and difficult to manage. KPI Pro addresses this by
+                providing a centralized digital platform where every KPI-related
+                activity — from assignment to verification — happens in one
+                structured workflow.
+            </p>
+
+            <br>
+
+            <p>
+                We believe performance management should be transparent for staff,
+                effortless for managers, and trustworthy for the organization as a whole.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="section-title">Project Objectives</h2>
+            <div class="underline"></div>
+
+            <ul class="objectives">
+                <li>Design a web-based system for managing and tracking KPI performance</li>
+                <li>Provide managers a platform to assign, update, and verify KPIs efficiently</li>
+                <li>Enable staff to monitor assigned KPIs, update progress, and submit evidence</li>
+                <li>Visualize KPI achievements through an interactive dashboard</li>
+                <li>Implement secure user authentication and profile management</li>
+            </ul>
+        </div>
+
+    </div>
+</section>
+
+<section class="alt-bg">
+    <div class="container center">
+
+        <h2 class="section-title">What We Value</h2>
+
+        <div class="cards">
+
+            <div class="card">
+                <h3>Clarity</h3>
+                <p>
+                    Every goal, deadline, and metric is visible to the people
+                    who own it — no guessing, no shadow spreadsheets.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>Accountability</h3>
+                <p>
+                    Role-based workflows make it clear who assigns,
+                    who delivers, and who verifies each KPI.
+                </p>
+            </div>
+
+            <div class="card">
+                <h3>Evidence-Based</h3>
+                <p>
+                    Progress claims are backed by uploaded evidence
+                    and manager verification, not just self-reporting.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section>
+    <div class="container center">
+
+        <h2 class="section-title">How KPI Pro Works</h2>
+
+        <div class="cards">
+
+            <div class="card">
+                <div class="step-number">01</div>
+                <h3>Managers Assign KPIs</h3>
+                <p>Create KPIs with targets and deadlines and assign them to staff.</p>
+            </div>
+
+            <div class="card">
+                <div class="step-number">02</div>
+                <h3>Staff Update Progress</h3>
+                <p>Team members log progress and upload supporting evidence.</p>
+            </div>
+
+            <div class="card">
+                <div class="step-number">03</div>
+                <h3>Verification & Insights</h3>
+                <p>Managers verify submissions and monitor performance trends.</p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<section class="alt-bg">
+    <div class="container center">
+
+        <h2 class="section-title">The Team Behind KPI Pro</h2>
+
+        <p>
+            Built by OCC 2 Group 10 for WIF2003 Web Programming,
+            Session 2025/26 Semester 2 — University of Malaya.
+        </p>
+
+        <div class="team-grid">
+
+            <div class="team-card">
+                <div class="avatar">FT</div>
+                <h4>Florence Tong Xin Yee</h4>
+                <div class="role">Team Lead · Frontend & Backend</div>
+                <p>Session Management, Dashboard, UI Design</p>
+            </div>
+
+            <div class="team-card">
+                <div class="avatar">JK</div>
+                <h4>Jasmine Khoo Jia Chee</h4>
+                <div class="role">Developer</div>
+                <p>KPI Management Module</p>
+            </div>
+
+            <div class="team-card">
+                <div class="avatar">JL</div>
+                <h4>Janice Lieo Yi Tian</h4>
+                <div class="role">Developer</div>
+                <p>Profile & Account Management</p>
+            </div>
+
+            <div class="team-card">
+                <div class="avatar">WY</div>
+                <h4>Wong Yee Ming</h4>
+                <div class="role">Developer</div>
+                <p>Reporting & Verification</p>
+            </div>
+
+            <div class="team-card">
+                <div class="avatar">CH</div>
+                <h4>Chiang Cheng Han</h4>
+                <div class="role">Developer</div>
+                <p>Frontend & UI Components</p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<section class="cta">
+    <div class="container">
+        <h2>Start Tracking What Matters</h2>
+
+        <p>
+            Join teams using KPI Pro to align goals, verify progress,
+            and drive measurable results.
+        </p>
+
+        <div class="buttons">
+            <a href="/pages/register.html" class="btn btn-primary">Create Account</a>
+            <a href="/pages/features.html" class="btn btn-outline">Explore Features</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    © 2026 KPI Pro. All Rights Reserved.
+</footer>
+
+</body>
+</html>

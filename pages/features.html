@@ -422,189 +422,238 @@
 </head>
 
 <body>
+<body>
 
-  <nav>
+<nav>
     <a href="/index.html" class="logo">KPI<span>Pro</span></a>
     <ul class="nav-links">
 
-      <li><a href="features.html">Features</a></li>
-      <li><a href="#" style="color: var(--navy); font-weight: 600;">Pricing</a></li>
-      <li><a href="about.html">About</a></li>
-    </ul>
+    <li><a href="features.html" style="color: var(--navy); font-weight:600;">Features</a></li>
+    <li><a href="pricing.html">Pricing</a></li>
+    <li><a href="about.html">About</a></li>
+  </ul>
 
-    <div class="nav-cta">
-      <a href="/pages/login.html" class="btn btn-ghost">Log in</a>
-      <a href="/pages/register.html" class="btn btn-primary">Start free trial</a>
-    </div>
-  </nav>
+  <div class="nav-cta">
+    <a href="login.html" class="btn btn-ghost">Log in</a>
+    <a href="register.html" class="btn btn-primary">Start free trial</a>
+  </div>
+</nav>
 
-  <section class="hero">
-    <span class="badge">
-      <span class="badge-dot"></span>
-      Simple, transparent pricing
-    </span>
+<!-- HERO -->
+<section class="hero">
+  <span class="badge">
+    <span class="badge-dot"></span>
+    Built for Managers & Staff
+  </span>
 
-    <h1>
-      Plans that scale with
-      <em>your team.</em>
-    </h1>
+  <h1>
+    Everything you need to
+    <em>manage KPIs</em>
+  </h1>
 
-    <p>
-      Start free, upgrade when you're ready. Every plan includes core KPI tracking and unlimited goals.
-    </p>
+  <p>
+    KPI Pro replaces messy spreadsheets with a structured workflow —
+    assign, track, verify, and report on performance from a single platform.
+  </p>
 
-    <div class="toggle">
-      <button id="monthlyBtn">Monthly</button>
-      <button id="yearlyBtn" class="active">
-        Yearly
-        <span class="save-badge">SAVE 20%</span>
-      </button>
-    </div>
-  </section>
+  <div style="margin-top:30px;">
+    <a href="register.html" class="btn btn-primary">Start Free Trial</a>
+    <a href="pricing.html" class="btn btn-outline">See Pricing</a>
+  </div>
+</section>
 
-  <section class="pricing">
-    <div class="container">
-      <div class="pricing-grid">
+<!-- AUTH FEATURES -->
+<section class="pricing">
+  <div class="container">
 
-        <div class="card">
-          <h3>Starter</h3>
-          <p class="tagline">For small teams getting started with KPIs.</p>
+    <h2 style="font-family:Sora,sans-serif;color:var(--navy);margin-bottom:30px;">
+      Authentication & Account Management
+    </h2>
 
-          <div class="price">
-            <span class="price-value" data-monthly="0" data-yearly="0">$0</span>
-            <span class="price-label">/ user / mo</span>
-          </div>
+    <div class="pricing-grid">
 
-          <div class="billing">Free forever</div>
-
-          <a href="/pages/register.html" class="btn btn-outline btn-full">Start free</a>
-
-          <ul class="features">
-            <li><span class="check">✓</span> Up to 5 team members</li>
-            <li><span class="check">✓</span> Unlimited KPIs</li>
-            <li><span class="check">✓</span> Basic dashboards</li>
-            <li><span class="check">✓</span> Weekly check-ins</li>
-            <li><span class="check">✓</span> Email support</li>
-          </ul>
-        </div>
-
-        <div class="card featured">
-          <div class="popular">Most Popular</div>
-
-          <h3>Growth</h3>
-          <p class="tagline">For growing teams that need deeper insights.</p>
-
-          <div class="price">
-            <span class="price-value" data-monthly="19" data-yearly="15">$15</span>
-            <span class="price-label">/ user / mo</span>
-          </div>
-
-          <div class="billing yearly-only">Billed annually</div>
-
-          <a href="/pages/register.html" class="btn btn-primary btn-full">Start 14-day trial</a>
-
-          <ul class="features">
-            <li><span class="check">✓</span> Up to 50 team members</li>
-            <li><span class="check">✓</span> Advanced dashboards & filters</li>
-            <li><span class="check">✓</span> Performance review cycles</li>
-            <li><span class="check">✓</span> Manager workflows & approvals</li>
-            <li><span class="check">✓</span> Export to CSV / PDF</li>
-            <li><span class="check">✓</span> Priority email support</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>Enterprise</h3>
-          <p class="tagline">For organizations that need security & scale.</p>
-
-          <div class="price">
-            <span class="price-value" data-monthly="49" data-yearly="39">$39</span>
-            <span class="price-label">/ user / mo</span>
-          </div>
-
-          <div class="billing yearly-only">Billed annually</div>
-
-          <a href="/pages/register.html" class="btn btn-outline btn-full">Start 14-day trial</a>
-
-          <ul class="features">
-            <li><span class="check">✓</span> Unlimited team members</li>
-            <li><span class="check">✓</span> SSO & SCIM provisioning</li>
-            <li><span class="check">✓</span> Custom roles & permissions</li>
-            <li><span class="check">✓</span> Audit logs & data export</li>
-            <li><span class="check">✓</span> Dedicated success manager</li>
-            <li><span class="check">✓</span> 99.9% uptime SLA</li>
-          </ul>
-        </div>
-
+      <div class="card">
+        <h3>Account Registration</h3>
+        <p class="tagline">
+          Self-serve sign-up with role selection (Manager or Staff) and email verification.
+        </p>
       </div>
+
+      <div class="card">
+        <h3>Secure Login</h3>
+        <p class="tagline">
+          Authenticated sessions with encrypted credentials and protected routes.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Profile Management</h3>
+        <p class="tagline">
+          Update personal details, profile photo, and contact information anytime.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Password Update</h3>
+        <p class="tagline">
+          Change passwords securely with verification and strength checks.
+        </p>
+      </div>
+
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="faq">
-    <h2>Frequently Asked Questions</h2>
+<!-- MANAGER FEATURES -->
+<section class="pricing" style="background:white;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
 
-    <div class="faq-box">
-      <details>
-        <summary>Can I change plans later?</summary>
-        <p>Yes — upgrade, downgrade, or cancel anytime from your billing settings. Changes are prorated automatically.</p>
-      </details>
+    <h2 style="font-family:Sora,sans-serif;color:var(--navy);margin-bottom:30px;">
+      Manager Features
+    </h2>
 
-      <details>
-        <summary>Is there a free trial?</summary>
-        <p>Growth comes with a 14-day free trial. No credit card required to start.</p>
-      </details>
+    <div class="pricing-grid">
 
-      <details>
-        <summary>What payment methods do you accept?</summary>
-        <p>All major credit cards, plus invoicing for annual Enterprise contracts.</p>
-      </details>
+      <div class="card">
+        <h3>Create & Assign KPIs</h3>
+        <p class="tagline">
+          Define KPIs with targets, deadlines, and assign them to staff.
+        </p>
+      </div>
 
-      <details>
-        <summary>Do you offer discounts for nonprofits?</summary>
-        <p>Yes — qualifying nonprofits and educational institutions get 30% off any paid plan.</p>
-      </details>
+      <div class="card">
+        <h3>Update & Delete KPIs</h3>
+        <p class="tagline">
+          Modify KPI targets and remove outdated objectives.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Verify KPI Submissions</h3>
+        <p class="tagline">
+          Review evidence and approve progress updates.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Performance Insights</h3>
+        <p class="tagline">
+          View team completion rates and performance analytics.
+        </p>
+      </div>
+
     </div>
-  </section>
+  </div>
+</section>
 
-  <footer>
-    <p>&copy; 2026 KPI Pro Performance Systems. All rights reserved.</p>
-  </footer>
+<!-- STAFF FEATURES -->
+<section class="pricing">
+  <div class="container">
 
-  <script>
-    const monthlyBtn = document.getElementById("monthlyBtn");
-    const yearlyBtn = document.getElementById("yearlyBtn");
+    <h2 style="font-family:Sora,sans-serif;color:var(--navy);margin-bottom:30px;">
+      Staff Features
+    </h2>
 
-    function updatePrices(yearly) {
-      document.querySelectorAll(".price-value").forEach(el => {
-        const price = yearly ?
-          el.dataset.yearly :
-          el.dataset.monthly;
+    <div class="pricing-grid">
 
-        el.textContent = "$" + price;
-      });
+      <div class="card">
+        <h3>View Assigned KPIs</h3>
+        <p class="tagline">
+          Access KPI targets, deadlines, and progress.
+        </p>
+      </div>
 
-      document.querySelectorAll(".billing").forEach(el => {
-        if (el.textContent !== "Free forever") {
-          el.textContent = yearly ?
-            "Billed annually" :
-            "Billed monthly";
-        }
-      });
-    }
+      <div class="card">
+        <h3>Submit Progress Updates</h3>
+        <p class="tagline">
+          Log progress percentages and notes.
+        </p>
+      </div>
 
-    monthlyBtn.addEventListener("click", () => {
-      monthlyBtn.classList.add("active");
-      yearlyBtn.classList.remove("active");
-      updatePrices(false);
-    });
+      <div class="card">
+        <h3>Upload Evidence</h3>
+        <p class="tagline">
+          Attach supporting files and documentation.
+        </p>
+      </div>
 
-    yearlyBtn.addEventListener("click", () => {
-      yearlyBtn.classList.add("active");
-      monthlyBtn.classList.remove("active");
-      updatePrices(true);
-    });
-  </script>
+      <div class="card">
+        <h3>Track Personal Performance</h3>
+        <p class="tagline">
+          Monitor KPI achievements and milestones.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PLATFORM FEATURES -->
+<section class="pricing" style="background:white;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+
+    <h2 style="font-family:Sora,sans-serif;color:var(--navy);margin-bottom:30px;">
+      Platform & Experience
+    </h2>
+
+    <div class="pricing-grid">
+
+      <div class="card">
+        <h3>Interactive Dashboard</h3>
+        <p class="tagline">
+          KPI charts, milestones, and performance indicators.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Role-Based Access</h3>
+        <p class="tagline">
+          Separate Manager and Staff permissions.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Light & Dark Mode</h3>
+        <p class="tagline">
+          Fully accessible themes for any environment.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Responsive Design</h3>
+        <p class="tagline">
+          Works perfectly on desktop, tablet, and mobile.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="hero">
+  <h1 style="font-size:2.3rem;">
+    Ready to see KPI Pro in action?
+  </h1>
+
+  <p>
+    Create a free account and explore the full Manager and Staff workflows in minutes.
+  </p>
+
+  <div style="margin-top:30px;">
+    <a href="register.html" class="btn btn-primary">
+      Get Started Free
+    </a>
+
+    <a href="login.html" class="btn btn-ghost">
+      Log In
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 KPI Pro. All Rights Reserved.</p>
+</footer>
 
 </body>
-
-</html>
