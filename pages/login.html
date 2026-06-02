@@ -65,7 +65,7 @@
     .login-left-content {
       position: relative;
       z-index: 2;
-      max-width: 380px;
+      max-width: 460px;
     }
 
     .login-title {
@@ -94,7 +94,8 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 24px;
+      margin-top: 40px;
     }
 
     .login-feature {
@@ -104,44 +105,30 @@
     }
 
     .feature-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: var(--radius);
-      background: rgba(79, 70, 229, 0.2);
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(79,70,229,.2);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      color: var(--primary-mid);
-      font-size: 1.2rem;
+      color: #a5b4fc;
+      font-size: 1rem;
     }
 
     .feature-text strong {
       display: block;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       font-weight: 600;
-      color: #64748b;
-      margin-bottom: 2px;
+      color: white;
+      margin-bottom: 4px;
     }
 
     .feature-text span {
       font-size: 0.8rem;
-      color: #64748b;
+      color: #94a3b8;
       line-height: 1.5;
-    }
-
-    .login-divider {
-      border: none;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      margin: 40px 0 28px;
-    }
-
-    .login-trust {
-      font-size: 0.78rem;
-      color: #475569;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .login-right {
@@ -319,8 +306,14 @@
       <!-- Left Panel -->
       <div class="login-left">
         <div class="login-left-content">
-          <h1 class="login-title">Welcome <em>Back</em></h1>
-          <p class="login-subtitle">Sign in to continue to your KPI management dashboard and track your performance.</p>
+
+          <h1 class="login-title">
+            Welcome <em>Back</em>
+          </h1>
+
+          <p class="login-subtitle">
+            Sign in to continue to your KPI management dashboard and track your performance.
+          </p>
 
           <ul class="login-features">
             <li class="login-feature">
@@ -330,33 +323,35 @@
                 <span>Get instant notifications on KPI changes</span>
               </div>
             </li>
+
             <li class="login-feature">
-              <div class="feature-icon">📊</div>
+              <div class="feature-icon">📈</div>
               <div class="feature-text">
                 <strong>Performance Analytics</strong>
                 <span>Track your progress with detailed insights</span>
               </div>
             </li>
+
             <li class="login-feature">
-              <div class="feature-icon">🔒</div>
+              <div class="feature-icon" style="color:#fcd34d;">
+                🔒
+              </div>
               <div class="feature-text">
                 <strong>Secure & Encrypted</strong>
                 <span>Your data is protected with enterprise security</span>
               </div>
             </li>
           </ul>
-
-          <hr class="login-divider">
-          <p class="login-trust">✓ Trusted by 500+ Organizations</p>
         </div>
+
       </div>
 
       <!-- Right Panel - Form -->
       <div class="login-right">
         <form class="login-form" id="loginForm">
           <div class="login-header">
-            <h2>Welcome Back</h2>
-            <p>Please enter your credentials to sign in</p>
+            <h2>Sign in to KPI Pro</h2>
+            <p>Welcome back — enter your details to continue.</p>
           </div>
 
           <!-- Error Alert -->
@@ -397,7 +392,7 @@
 
           <!-- Sign Up Link -->
           <div class="login-footer">
-            <p>Don't have an account? <a href="/pages/register.html">Sign Up</a></p>
+            <p>Don't have an account? <a href="/pages/register.html">Start free trial</a></p>
           </div>
         </form>
 
