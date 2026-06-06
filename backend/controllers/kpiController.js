@@ -188,7 +188,12 @@ exports.submitProgress = async (req, res) => {
         kpi.submittedAt = statusValue === 'submitted' ? Date.now() : null;
 
         // Attach evidence by reference if provided (upload endpoint returns id)
-        if (evidenceRef) {
+        if (evidenceRef === null || evidenceRef === '' || evidenceRef === 'null') {
+            kpi.evidenceRef = null;
+            kpi.evidenceName = '';
+            kpi.evidenceMimeType = '';
+            kpi.evidenceSize = 0;
+        } else if (evidenceRef) {
             const ev = await Evidence.findById(evidenceRef).select('_id name mimeType size kpi uploadedBy');
             if (!ev) return res.status(400).json({ success: false, message: 'Invalid evidence reference provided.' });
             kpi.evidenceRef = ev._id;

@@ -486,13 +486,13 @@
         const draft = JSON.parse(raw);
         if (!draft || typeof draft !== 'object') return;
 
-        // restore values
-        if (draft.kpiId) {
-          const sel = document.getElementById('kpiSelect');
-          if (sel && [...sel.options].some(o => o.value === draft.kpiId)) {
-            sel.value = draft.kpiId;
-            await onKpiSelect();
-          }
+        const sel = document.getElementById('kpiSelect');
+        const currentSelection = sel?.value || '';
+
+        // restore selection only if there is no active KPI chosen yet
+        if (!currentSelection && draft.kpiId && sel && [...sel.options].some(o => o.value === draft.kpiId)) {
+          sel.value = draft.kpiId;
+          await onKpiSelect();
         }
 
         if (draft.progress !== '') {
@@ -507,8 +507,10 @@
           if (pn) pn.value = draft.notes;
         }
 
-        // restore uploaded evidence reference (file can't be reattached, but we can keep the ref)
-        if (draft.evidenceMeta && draft.evidenceMeta.id) {
+        const selectedKpiId = document.getElementById('kpiSelect')?.value || '';
+
+        // restore uploaded evidence reference only when it matches the selected KPI
+        if (draft.evidenceMeta && draft.evidenceMeta.id && draft.evidenceMeta.kpiId === selectedKpiId) {
           pendingEvidenceMeta = draft.evidenceMeta;
           evidenceUploadState = 'success';
           evidenceUploadError = '';

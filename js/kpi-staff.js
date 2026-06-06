@@ -27,8 +27,9 @@ async function apiJson(url, options = {}) {
   return data;
 }
 
-let pendingEvidenceFile = null;
-let pendingEvidenceMeta = null;
+// pendingEvidence* are now scoped to a KPI id to avoid cross-KPI leaks
+let pendingEvidenceFile = null; // { file, kpiId }
+let pendingEvidenceMeta = null; // { id, name, mimeType, size, kpiId }
 let evidenceUploadState = 'idle';
 let evidenceUploadError = '';
 
@@ -89,7 +90,8 @@ async function startEvidenceUpload(file, kpiId = '') {
 
   try {
     const uploaded = await uploadEvidenceFile(file, kpiId);
-    pendingEvidenceMeta = uploaded;
+    // record the uploaded meta along with the kpiId it belongs to
+    pendingEvidenceMeta = { ...uploaded, kpiId: kpiId || '' };
     evidenceUploadState = 'success';
     updateEvidenceUploadUI();
     return uploaded;
@@ -521,6 +523,15 @@ async function updateKpi(id, updates) {
     setEvidenceError('');
     if (fileSelected) fileSelected.style.display = 'none';
     if (fileInput) fileInput.value = '';
+    // show existing evidence (if any) in the modal preview
+    const fp = document.getElementById('filePreview');
+    const previewNameEl = document.getElementById('previewFileName');
+    const previewSizeEl = document.getElementById('previewFileSize');
+    if ((kpi.evidenceName || kpi.evidenceRef) && fp) {
+      if (previewNameEl) previewNameEl.textContent = kpi.evidenceName || 'Evidence file';
+      if (previewSizeEl) previewSizeEl.textContent = kpi.evidenceFileSize ? (kpi.evidenceFileSize / 1024).toFixed(1) + ' KB' : '';
+      fp.style.display = 'flex';
+    }
 
     document.getElementById('updateProgressModal').classList.add('open');
   }
@@ -551,12 +562,15 @@ async function updateKpi(id, updates) {
       updatedAt: now,
     };
 
-    if (fileInput && fileInput.files.length > 0 && !pendingEvidenceMeta) {
-      alert('Please upload the selected evidence file before submitting.');
-      return;
+    if (fileInput && fileInput.files.length > 0) {
+      // if an upload was started, ensure it belongs to this KPI
+      if (!pendingEvidenceMeta || pendingEvidenceMeta.kpiId !== id) {
+        alert('Please upload the selected evidence file for this KPI before submitting.');
+        return;
+      }
     }
 
-    if (pendingEvidenceMeta) {
+    if (pendingEvidenceMeta && pendingEvidenceMeta.kpiId === id) {
       payload.evidenceRef = pendingEvidenceMeta.id;
     }
 
@@ -564,6 +578,8 @@ async function updateKpi(id, updates) {
     closeModal('updateProgressModal');
     await renderStaffKpis();
     if (typeof loadStaffDashboard === 'function') await loadStaffDashboard();
+    // clear pending evidence only if it was attached to this KPI
+    if (pendingEvidenceMeta && pendingEvidenceMeta.kpiId === id) resetEvidenceUploadState();
   }
 
   // ── Progress Page (kpi-progress.html) ───────────────────────────────────────
@@ -632,6 +648,15 @@ async function updateKpi(id, updates) {
 
     setVal('currentValue', kpi.currentValue || '');
     setVal('progressNotes', kpi.comments || '');
+    // Show existing evidence preview if the KPI already has evidence
+    const fp = document.getElementById('filePreview');
+    const previewNameEl = document.getElementById('previewFileName');
+    const previewSizeEl = document.getElementById('previewFileSize');
+    if ((kpi.evidenceName || kpi.evidenceRef) && fp) {
+      if (previewNameEl) previewNameEl.textContent = kpi.evidenceName || 'Evidence file';
+      if (previewSizeEl) previewSizeEl.textContent = kpi.evidenceFileSize ? (kpi.evidenceFileSize / 1024).toFixed(1) + ' KB' : '';
+      fp.style.display = 'flex';
+    }
   }
 
   async function submitProgressPage() {
@@ -710,23 +735,27 @@ async function updateKpi(id, updates) {
       if (ic) ic.style.display = 'none';
       const pb = document.getElementById('progressBar');
       if (pb) pb.style.width = '0%';
-      const fp = document.getElementById('filePreview');
-      if (fp) fp.style.display = 'none';
-      resetEvidenceUploadState();
 
-      setTimeout(() => { initProgressPage(); }, 120);
+      // Refresh the progress page data and then clear upload state for this KPI
+      setTimeout(async () => {
+        await initProgressPage();
+        // only clear pending evidence state if it belonged to the KPI we just updated
+        if (pendingEvidenceMeta && pendingEvidenceMeta.kpiId === id) resetEvidenceUploadState();
+      }, 120);
     };
 
-    if (fileInput && fileInput.files.length > 0 && !pendingEvidenceMeta) {
-      if (evidErr) evidErr.textContent = 'Please upload the selected evidence file before submitting.';
-      if (errAlert) {
-        errAlert.style.display = 'flex';
-        setText('errorMsg', 'Please fix the errors above.');
+    if (fileInput && fileInput.files.length > 0) {
+      if (!pendingEvidenceMeta || pendingEvidenceMeta.kpiId !== id) {
+        if (evidErr) evidErr.textContent = 'Please upload the selected evidence file before submitting.';
+        if (errAlert) {
+          errAlert.style.display = 'flex';
+          setText('errorMsg', 'Please fix the errors above.');
+        }
+        return;
       }
-      return;
     }
 
-    if (pendingEvidenceMeta) {
+    if (pendingEvidenceMeta && pendingEvidenceMeta.kpiId === id) {
       payload.evidenceRef = pendingEvidenceMeta.id;
     }
 
