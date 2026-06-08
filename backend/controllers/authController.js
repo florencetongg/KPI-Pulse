@@ -2,6 +2,7 @@ const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const { isStrongPassword } = require('../utils/passwordValidation');
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -191,9 +192,7 @@ exports.resetPassword = async (req, res) => {
             return res.status(400).json({ success: false, message: "Email and password are required fields." });
         }
 
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-        
-        if (!passwordRegex.test(password)) {
+        if (!isStrongPassword(password)) {
             return res.status(400).json({ 
                 success: false, 
                 message: "Password must be at least 8 characters long, and contain uppercase, lowercase, a number, and a special character." 

@@ -1,7 +1,8 @@
 const NOT_DELETED = { isDeleted: { $ne: true } };
 
 function isActiveKpi(kpi) {
-    return kpi && kpi.isDeleted !== true;
+    if (!kpi) return false;
+    return kpi.isDeleted !== true;
 }
 
 async function getManagerHistoryKpiIds(KpiHistory, managerId) {
