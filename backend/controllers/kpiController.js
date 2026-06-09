@@ -70,7 +70,7 @@ const computeIsOverdue = (kpi) => {
 exports.createKpi = async (req, res) => {
     try {
         console.log('createKpi req.body:', req.body);
-        const { name, description, category, priority, weight, assignedTo, target, unit, dueDate } = req.body;
+        const { name, description, category, priority, weight, assignedTo, target, unit, dueDate, repeatCycle, cycleCount } = req.body;
         const missingMessage = validateRequired(['name', 'description', 'category', 'assignedTo', 'target', 'unit', 'dueDate'], req.body);
         if (missingMessage) return res.status(400).json({ success: false, message: missingMessage });
 

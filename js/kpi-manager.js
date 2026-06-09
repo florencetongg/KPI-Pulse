@@ -750,8 +750,42 @@ async function saveKpiForm() {
 
   show('successAlert');
   setText('successMsg', editId ? 'KPI updated successfully!' : 'KPI created and assigned successfully!');
-  setTimeout(() => { window.location.href = 'manager-kpi.html'; }, 1400);
+  
+  // For new KPI: clear form and show success message
+  if (!editId) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    setTimeout(() => {
+      // Clear all form inputs
+      document.getElementById('kpiForm')?.reset();
+      
+      // Reset status select to default
+      const statusSelect = document.getElementById('kpiStatus');
+      if (statusSelect) {
+        statusSelect.value = 'pending';
+        statusSelect.disabled = true;
+      }
+      
+      // Hide cycle count wrapper
+      const repeatChk = document.getElementById('kpiRepeatCycle');
+      const cycleCountWrapper = document.getElementById('cycleCountWrapper');
+      if (repeatChk && cycleCountWrapper) {
+        repeatChk.checked = false;
+        cycleCountWrapper.style.display = 'none';
+      }
+      
+      // Reload staff dropdown
+      initKpiForm();
+    }, 100);
+    
+    // Auto-dismiss success message after 3 seconds
+    setTimeout(() => hide('successAlert'), 3000);
+  } else {
+    // For edit: redirect after showing success message
+    setTimeout(() => { window.location.href = 'manager-kpi.html'; }, 1400);
+  }
 }
+
 
 // ── Verification Page ────────────────────────────────────────────────────────
 async function renderVerifyList() {

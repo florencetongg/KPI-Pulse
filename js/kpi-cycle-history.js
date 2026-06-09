@@ -412,16 +412,21 @@ function renderHistoryTable(cycles) {
   const tbody = document.getElementById('cycleHistoryBody');
   if (!tbody) return;
 
-  const rows = cycles.flatMap(cycle => cycle.entries.map(entry => `
+  const rows = cycles.flatMap(cycle => cycle.entries.map(entry => {
+    const evidenceCell = entry.evidenceName && entry.evidenceRef
+      ? `<a href="javascript:void(0);" onclick="previewCycleEvidence('${esc(entry.evidenceRef)}', '${esc(entry.evidenceName)}', '${esc(entry.evidenceMimeType || '')}')" style="cursor:pointer;color:var(--primary);text-decoration:underline;">${esc(entry.evidenceName)}</a>`
+      : esc(entry.evidenceName || '—');
+    return `
     <tr>
       <td style="font-weight:600;white-space:nowrap;">${esc(cycle.label)}</td>
       <td style="white-space:nowrap;">${esc(fmtHistoryDate(entry.recordedAt))}</td>
       <td>${historyActionBadge(entry.action)}</td>
       <td>${progressCell(entry.displayProgress)}</td>
       <td style="max-width:220px;white-space:normal;">${commentCell(entry)}</td>
-      <td>${esc(entry.evidenceName || '—')}</td>
+      <td>${evidenceCell}</td>
       <td>${esc(actorLabel(entry.actorRole))}</td>
-    </tr>`));
+    </tr>`;
+  }));
 
   tbody.innerHTML = rows.join('');
 }
@@ -720,6 +725,58 @@ async function loadCycleHistory() {
       errorEl.textContent = error.message || 'Unable to load cycle history.';
     }
     showEmptyState(error.message || 'Unable to load cycle history.');
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id)?.classList.remove('open');
+}
+
+async function previewCycleEvidence(evidenceRef, evidenceName, evidenceMimeType) {
+  const content = document.getElementById('evidencePreviewContent');
+  if (!content) return;
+
+  try {
+    const evidenceUrl = `${cycleApiUrl(`/evidence/${evidenceRef}/download`)}`;
+    const response = await authenticatedFetch(evidenceUrl);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch evidence');
+    }
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const isImage = /^image\//i.test(evidenceMimeType || '');
+    const isPdf = /\.pdf$/i.test(evidenceName || '') || /^application\/pdf$/i.test(evidenceMimeType || '');
+    
+    const downloadButton = `
+      <div style="margin-top:16px;">
+        <a href="${esc(blobUrl)}" download="${esc(evidenceName || 'evidence')}" class="btn btn-primary btn-sm">Download evidence</a>
+      </div>`;
+
+    if (isImage) {
+      content.innerHTML = `<div style="text-align:center;"><img src="${esc(blobUrl)}" alt="Evidence" style="max-width:100%;border-radius:8px;display:block;">${downloadButton}</div>`;
+    } else if (isPdf) {
+      content.innerHTML = `<div style="width:100%;height:520px;"><iframe src="${esc(blobUrl)}" style="width:100%;height:100%;border:none;border-radius:12px;" title="Evidence PDF preview"></iframe>${downloadButton}</div>`;
+    } else {
+      content.innerHTML = `
+        <div style="text-align:center;padding:24px;">
+          <svg viewBox="0 0 24 24" style="width:52px;height:52px;margin:0 auto 12px;display:block;stroke:var(--primary);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <p style="font-weight:700;color:var(--navy);margin:0 0 4px;">${esc(evidenceName || 'evidence file')}</p>
+          <p style="color:var(--muted);font-size:0.85rem;margin:0;">Evidence file attached to this entry.</p>
+          ${downloadButton}
+        </div>`;
+    }
+    document.getElementById('evidenceModal').classList.add('open');
+  } catch (error) {
+    console.error('Error loading evidence:', error);
+    content.innerHTML = `
+      <div style="text-align:center;padding:24px;">
+        <svg viewBox="0 0 24 24" style="width:52px;height:52px;margin:0 auto 12px;display:block;stroke:var(--danger);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p style="font-weight:700;color:var(--navy);margin:0 0 4px;">Unable to load evidence</p>
+        <p style="color:var(--muted);font-size:0.85rem;margin:0;">${esc(error.message)}</p>
+      </div>`;
+    document.getElementById('evidenceModal').classList.add('open');
   }
 }
 
