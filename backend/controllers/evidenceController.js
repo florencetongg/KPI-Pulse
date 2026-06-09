@@ -35,6 +35,12 @@ function canAccessEvidence(user, evidence) {
 // POST /api/evidence/upload
 exports.uploadEvidence = async (req, res) => {
   try {
+    console.log('uploadEvidence req.body:', req.body, 'req.file:', req.file ? {
+      fieldname: req.file.fieldname,
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    } : null);
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
 
     const kpiId = req.body.kpi || req.body.kpiId || null;

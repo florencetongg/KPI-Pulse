@@ -10,6 +10,7 @@ const generateToken = (id) => {
 
 exports.registerUser = async (req, res) => {
     try {
+        console.log('registerUser req.body:', { ...req.body, password: req.body.password ? '[REDACTED]' : undefined });
         const { fullName, name, email, password, role, department, bio } = req.body;
         const displayName = name || fullName;
 
@@ -46,6 +47,7 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
     try {
+        console.log('loginUser req.body:', { ...req.body, password: req.body.password ? '[REDACTED]' : undefined });
         const { email, password } = req.body;
         const user = await User.findOne({ email });
 
@@ -88,6 +90,7 @@ exports.getStaffUsers = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
     try {
+        console.log('updateProfile req.params:', req.params, 'req.body:', req.body);
         const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -123,6 +126,7 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     try {
+        console.log('forgotPassword req.body:', req.body);
         if (!email) {
             return res.status(400).json({ success: false, message: "Email is required." });
         }
@@ -188,6 +192,7 @@ exports.resetPassword = async (req, res) => {
     
 
     try {
+        console.log('resetPassword req.body:', { email, password: password ? '[REDACTED]' : undefined });
         if (!email || !password) {
             return res.status(400).json({ success: false, message: "Email and password are required fields." });
         }

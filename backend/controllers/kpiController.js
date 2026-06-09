@@ -69,7 +69,8 @@ const computeIsOverdue = (kpi) => {
 // Create KPI (Manager Only)
 exports.createKpi = async (req, res) => {
     try {
-        const { name, description, category, priority, weight, assignedTo, target, unit, dueDate, repeatCycle, cycleCount } = req.body;
+        console.log('createKpi req.body:', req.body);
+        const { name, description, category, priority, weight, assignedTo, target, unit, dueDate } = req.body;
         const missingMessage = validateRequired(['name', 'description', 'category', 'assignedTo', 'target', 'unit', 'dueDate'], req.body);
         if (missingMessage) return res.status(400).json({ success: false, message: missingMessage });
 
@@ -156,6 +157,7 @@ exports.getKpiById = async (req, res) => {
 // Staff Updates Incremental Progress + Evidential Links
 exports.submitProgress = async (req, res) => {
     try {
+        console.log('submitProgress req.params:', req.params, 'req.body:', req.body);
         const { currentValue, progress, status, evidenceRef, evidenceName, evidenceMimeType, evidenceSize, comments } = req.body;
         const evidenceMessage = validateEvidence({ evidenceRef, evidenceName, evidenceMimeType, evidenceSize });
         if (evidenceMessage) return res.status(400).json({ success: false, message: evidenceMessage });
@@ -231,6 +233,7 @@ exports.submitProgress = async (req, res) => {
 // Manager Review Processing
 exports.reviewKpi = async (req, res) => {
     try {
+        console.log('reviewKpi req.params:', req.params, 'req.body:', req.body);
         const { status, rejectionReason } = req.body;
         if (!['approved', 'rejected'].includes(status)) {
             return res.status(400).json({ message: 'Invalid review validation status' });
@@ -357,6 +360,7 @@ exports.reviewKpi = async (req, res) => {
 
 exports.updateKpi = async (req, res) => {
     try {
+        console.log('updateKpi req.params:', req.params, 'req.body:', req.body);
         const kpi = await Kpi.findOne({ _id: req.params.id, ...NOT_DELETED });
         if (!kpi) return res.status(404).json({ success: false, message: 'KPI not found' });
         if (!canManagerAccessKpi(req.user, kpi)) {
@@ -461,6 +465,7 @@ exports.getManagerHistoryFeed = async (req, res) => {
 // Soft Delete Implementation instead of permanent drops
 exports.deleteKpi = async (req, res) => {
     try {
+        console.log('deleteKpi req.params:', req.params, 'req.body:', req.body);
         const kpi = await Kpi.findOne({ _id: req.params.id, ...NOT_DELETED });
         if (!kpi) return res.status(404).json({ message: 'KPI record not found' });
         if (!canManagerAccessKpi(req.user, kpi)) {
