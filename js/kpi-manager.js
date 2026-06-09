@@ -659,7 +659,27 @@ async function initKpiForm() {
 
   const badge = document.getElementById('kpiStatusBadge');
   if (badge) badge.style.display = 'inline-flex';
+
+  // Restore cycle settings
+  const repeatChk = document.getElementById('kpiRepeatCycle');
+  const cycleCountWrapper = document.getElementById('cycleCountWrapper');
+  if (repeatChk) {
+    repeatChk.checked = Boolean(kpi.repeatCycle);
+    if (cycleCountWrapper) cycleCountWrapper.style.display = kpi.repeatCycle ? '' : 'none';
+  }
+  setVal('kpiCycleCount', kpi.cycleCount ?? 0);
 }
+
+// Toggle cycle count visibility when the checkbox changes
+document.addEventListener('DOMContentLoaded', () => {
+  const repeatChk = document.getElementById('kpiRepeatCycle');
+  const cycleCountWrapper = document.getElementById('cycleCountWrapper');
+  if (repeatChk && cycleCountWrapper) {
+    repeatChk.addEventListener('change', () => {
+      cycleCountWrapper.style.display = repeatChk.checked ? '' : 'none';
+    });
+  }
+});
 
 async function saveKpiForm() {
   clearFieldErrors();
@@ -674,6 +694,8 @@ async function saveKpiForm() {
   const weight = document.getElementById('kpiWeight')?.value || '0';
   const assignedTo = document.getElementById('kpiAssignedTo')?.value || '';
   const status = document.getElementById('kpiStatus')?.value || 'pending';
+  const repeatCycle = document.getElementById('kpiRepeatCycle')?.checked || false;
+  const cycleCount = Math.max(0, Number(document.getElementById('kpiCycleCount')?.value || 0));
 
   let valid = true;
   if (!name) { fieldErr('kpiNameError', 'KPI name is required.'); valid = false; }
@@ -718,6 +740,8 @@ async function saveKpiForm() {
     priority,
     weight: numericWeight,
     assignedTo,
+    repeatCycle,
+    cycleCount,
   };
 
   if (editId) payload.status = status;

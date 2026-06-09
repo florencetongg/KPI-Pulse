@@ -306,10 +306,21 @@ async function updateKpi(id, updates) {
   }
 
   // ── Staff Dashboard ──────────────────────────────────────────────────────────
+  async function getMyKpiRecords() {
+    try {
+      const result = await apiJson(`${KPI_API_BASE}/kpi-records/my`);
+      return Array.isArray(result.data) ? result.data : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   async function loadStaffDashboard() {
-    const kpis = await getMyKpis();
+    const [kpis, records] = await Promise.all([getMyKpis(), getMyKpiRecords()]);
     const assigned = kpis.length;
-    const completed = kpis.filter(k => k.status === 'approved').length;
+    // completed = permanently approved KPIs + all approved cycle records
+    const permanentlyApproved = kpis.filter(k => k.status === 'approved').length;
+    const completed = permanentlyApproved + records.length;
     const pending = kpis.filter(k => ['pending', 'in-progress'].includes(k.status)).length;
     const avgProg = assigned > 0
       ? Math.round(kpis.reduce((sum, k) => sum + (k.progress || 0), 0) / assigned)
@@ -330,31 +341,52 @@ async function updateKpi(id, updates) {
     }
     setText('progressRingText', avgProg + '%');
 
-    await renderMyKpiTable(kpis);
-    renderActivity(kpis);
+    await renderMyKpiTable(kpis, records);
+    renderActivity(kpis, records);
   }
 
   // ── My KPI Table (dashboard overview) ───────────────────────────────────────
-  async function renderMyKpiTable(kpis) {
+  async function renderMyKpiTable(kpis, records) {
     const tbody = document.getElementById('myKpiTableBody');
     if (!tbody) return;
 
-    let data = kpis || await getMyKpis();
+    let activeKpis = kpis || await getMyKpis();
+    let approvedRecords = records || await getMyKpiRecords();
     const search = (document.getElementById('dashSearch')?.value || '').toLowerCase();
     const statusF = document.getElementById('dashStatusFilter')?.value || '';
 
-    if (search) data = data.filter(k => (k.name || '').toLowerCase().includes(search) || (k.category || '').toLowerCase().includes(search));
-    if (statusF) data = data.filter(k => k.status === statusF);
-
-    const empty = document.getElementById('dashEmptyState');
-    if (!data.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted);">No KPIs match your search.</td></tr>';
-      if (empty) empty.style.display = 'none';
-      return;
+    if (search) {
+      activeKpis = activeKpis.filter(k => (k.name || '').toLowerCase().includes(search) || (k.category || '').toLowerCase().includes(search));
+      approvedRecords = approvedRecords.filter(r => (r.kpiTitle || '').toLowerCase().includes(search));
     }
-    if (empty) empty.style.display = 'none';
+    if (statusF && statusF !== 'approved') {
+      activeKpis = activeKpis.filter(k => k.status === statusF);
+      approvedRecords = [];
+    } else if (statusF === 'approved') {
+      // Show permanently-approved KPIs (non-cycling) + cycling records
+      activeKpis = activeKpis.filter(k => k.status === 'approved');
+    }
 
-    tbody.innerHTML = data.slice(0, 10).map(k => {
+    const approvedRows = approvedRecords.map(r => `<tr>
+      <td>
+        <div style="font-weight:600;color:var(--navy);">${esc(r.kpiTitle || '—')}</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">${esc(r.cycleLabel || '')} · Approved ${r.reviewedAt ? fmtDate(r.reviewedAt) : ''}</div>
+      </td>
+      <td style="font-size:0.85rem;">${esc(r.targetValue != null ? String(r.targetValue) : '—')}</td>
+      <td style="min-width:120px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;">
+            <div style="height:100%;width:100%;background:#16a34a;border-radius:3px;"></div>
+          </div>
+          <span style="font-size:0.72rem;font-weight:700;">100%</span>
+        </div>
+      </td>
+      <td style="font-size:0.82rem;">${r.deadline ? fmtDate(r.deadline) : '—'}</td>
+      <td>${sBadge('approved')}</td>
+      <td style="text-align:right;"><span style="font-size:0.8rem;font-weight:700;color:var(--success);">✓ Done</span></td>
+    </tr>`);
+
+    const activeRows = activeKpis.slice(0, 10 - approvedRows.length).map(k => {
       const overdue = k.dueDate && k.status !== 'approved' && new Date(k.dueDate) < new Date();
       return `<tr>
       <td>
@@ -373,12 +405,22 @@ async function updateKpi(id, updates) {
       <td style="font-size:0.82rem;">${k.dueDate ? fmtDate(k.dueDate) : '—'}</td>
       <td>${sBadge(k.status)}</td>
       <td style="text-align:right;">
-        ${k.status !== 'approved'
-          ? `<button onclick="goUpdateKpi('${k.id}')" style="background:var(--primary);color:#fff;font-size:0.72rem;padding:5px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:700;">Update</button>`
-          : '<span style="font-size:0.8rem;font-weight:700;color:var(--success);">✓ Done</span>'}
+        ${k.status === 'approved'
+          ? '<span style="font-size:0.8rem;font-weight:700;color:var(--success);">✓ Done</span>'
+          : `<button onclick="goUpdateKpi('${k.id}')" style="background:var(--primary);color:#fff;font-size:0.72rem;padding:5px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:700;">Update</button>`}
       </td>
     </tr>`;
-    }).join('');
+    });
+
+    const allRows = [...approvedRows, ...activeRows];
+    const empty = document.getElementById('dashEmptyState');
+    if (!allRows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted);">No KPIs match your search.</td></tr>';
+      if (empty) empty.style.display = 'none';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    tbody.innerHTML = allRows.join('');
   }
 
   function goUpdateKpi(id) {
@@ -386,26 +428,39 @@ async function updateKpi(id, updates) {
   }
 
   // ── Recent Activity Feed ─────────────────────────────────────────────────────
-  function renderActivity(kpis) {
+  function renderActivity(kpis, records) {
     const list = document.getElementById('activityList');
     if (!list) return;
 
-    const sorted = [...(kpis || [])]
-      .filter(k => k.updatedAt)
-      .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+    const kpiItems = (kpis || []).filter(k => k.updatedAt).map(k => ({
+      name: k.name,
+      status: k.status,
+      date: new Date(k.updatedAt),
+      rejectionReason: getReviewFeedback(k),
+    }));
+
+    const recordItems = (records || []).map(r => ({
+      name: r.kpiTitle || '—',
+      status: 'approved',
+      date: new Date(r.reviewedAt || 0),
+      cycleLabel: r.cycleLabel,
+    }));
+
+    const sorted = [...kpiItems, ...recordItems]
+      .sort((a, b) => b.date - a.date)
       .slice(0, 6);
 
     if (!sorted.length) return;
 
     const dotMap = { approved: 'success', rejected: 'danger', submitted: 'primary', 'in-progress': 'warning', pending: 'primary' };
 
-    list.innerHTML = sorted.map(k => `
+    list.innerHTML = sorted.map(item => `
     <div class="activity-item">
-      <div class="activity-dot ${dotMap[k.status] || 'primary'}"></div>
+      <div class="activity-dot ${dotMap[item.status] || 'primary'}"></div>
       <div>
-        <div class="activity-text" style="font-weight:500;">${esc(k.name)}</div>
-        <div class="activity-time">${sLabel(k.status)} · ${k.updatedAt ? timeAgo(k.updatedAt) : ''}</div>
-        ${k.status === 'rejected' && getReviewFeedback(k) ? `<div style="font-size:0.75rem;color:#991b1b;margin-top:4px;">Manager feedback: ${esc(getReviewFeedback(k))}</div>` : ''}
+        <div class="activity-text" style="font-weight:500;">${esc(item.name)}${item.cycleLabel ? ` <span style="font-size:0.72rem;color:var(--muted);">(${esc(item.cycleLabel)})</span>` : ''}</div>
+        <div class="activity-time">${sLabel(item.status)} · ${timeAgo(item.date)}</div>
+        ${item.status === 'rejected' && item.rejectionReason ? `<div style="font-size:0.75rem;color:#991b1b;margin-top:4px;">Manager feedback: ${esc(item.rejectionReason)}</div>` : ''}
       </div>
     </div>
   `).join('');

@@ -54,6 +54,12 @@ const kpiSchema = new mongoose.Schema({
     dueDate: { type: Date, required: true },
     submittedAt: { type: Date, default: null },
 
+    // Cycle / repeat configuration
+    // repeatCycle: if true, the KPI resets to pending after each approval (recurring KPI)
+    // cycleCount:  maximum number of cycles (0 = unlimited); ignored when repeatCycle is false
+    repeatCycle: { type: Boolean, default: false },
+    cycleCount: { type: Number, min: 0, default: 0 },
+
     isDeleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
     deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }

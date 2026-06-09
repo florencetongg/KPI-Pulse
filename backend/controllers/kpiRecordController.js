@@ -145,6 +145,17 @@ exports.getKpiHistoryCycles = async (req, res) => {
     }
 };
 
+exports.getStaffKpiRecords = async (req, res) => {
+    try {
+        const records = await KpiRecord.find({ assignedTo: req.user._id })
+            .sort({ reviewedAt: -1 })
+            .lean();
+        res.json({ success: true, data: records });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 exports.getKpiRecordsByKpiId = async (req, res) => {
     try {
         if (req.user.role !== 'manager') {

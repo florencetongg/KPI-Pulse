@@ -69,7 +69,7 @@ const computeIsOverdue = (kpi) => {
 // Create KPI (Manager Only)
 exports.createKpi = async (req, res) => {
     try {
-        const { name, description, category, priority, weight, assignedTo, target, unit, dueDate } = req.body;
+        const { name, description, category, priority, weight, assignedTo, target, unit, dueDate, repeatCycle, cycleCount } = req.body;
         const missingMessage = validateRequired(['name', 'description', 'category', 'assignedTo', 'target', 'unit', 'dueDate'], req.body);
         if (missingMessage) return res.status(400).json({ success: false, message: missingMessage });
 
@@ -80,9 +80,11 @@ exports.createKpi = async (req, res) => {
         if (req.user.department && staff.department && req.user.department !== staff.department) {
             return res.status(403).json({ success: false, message: 'Managers can only assign KPIs within their department.' });
         }
-        
+
         const kpi = await Kpi.create({
             name, description, category, priority, weight, assignedTo, target, unit, dueDate,
+            repeatCycle: Boolean(repeatCycle),
+            cycleCount: Math.max(0, Number(cycleCount) || 0),
             createdBy: req.user._id
         });
 
@@ -284,24 +286,41 @@ exports.reviewKpi = async (req, res) => {
                         reviewNote,
                     }], { session });
 
-                    await Kpi.updateOne(
-                        { _id: kpi._id },
-                        {
-                            $set: {
-                                status: 'pending',
-                                progress: 0,
-                                currentValue: 0,
-                                evidenceRef: null,
-                                evidenceName: '',
-                                evidenceMimeType: '',
-                                evidenceSize: 0,
-                                submittedAt: null,
-                                comments: '',
-                                rejectionReason: '',
+                    // Determine if the KPI should reset for the next cycle.
+                    // Only reset when repeatCycle is explicitly true AND the cycle
+                    // limit hasn't been reached (cycleCount 0 = unlimited).
+                    const completedCycles = existingCount + 1;
+                    const shouldReset = kpi.repeatCycle === true &&
+                        (kpi.cycleCount === 0 || completedCycles < kpi.cycleCount);
+
+                    if (shouldReset) {
+                        await Kpi.updateOne(
+                            { _id: kpi._id },
+                            {
+                                $set: {
+                                    status: 'pending',
+                                    progress: 0,
+                                    currentValue: 0,
+                                    evidenceRef: null,
+                                    evidenceName: '',
+                                    evidenceMimeType: '',
+                                    evidenceSize: 0,
+                                    submittedAt: null,
+                                    comments: '',
+                                    rejectionReason: '',
+                                },
                             },
-                        },
-                        { session }
-                    );
+                            { session }
+                        );
+                    } else {
+                        // KPI is fully completed — mark as approved and leave
+                        // progress/evidence intact so staff can see what was approved.
+                        await Kpi.updateOne(
+                            { _id: kpi._id },
+                            { $set: { status: 'approved', rejectionReason: '' } },
+                            { session }
+                        );
+                    }
                 });
             } finally {
                 session.endSession();
@@ -344,7 +363,7 @@ exports.updateKpi = async (req, res) => {
             return res.status(403).json({ success: false, message: 'You can only update KPIs you created.' });
         }
 
-        const allowedFields = ['name', 'description', 'category', 'priority', 'weight', 'assignedTo', 'target', 'unit', 'dueDate', 'status'];
+        const allowedFields = ['name', 'description', 'category', 'priority', 'weight', 'assignedTo', 'target', 'unit', 'dueDate', 'status', 'repeatCycle', 'cycleCount'];
         const updates = {};
         allowedFields.forEach(field => {
             if (req.body[field] !== undefined) updates[field] = req.body[field];
