@@ -317,7 +317,7 @@ async function updateKpi(id, updates) {
 
   async function loadStaffDashboard() {
     const [kpis, records] = await Promise.all([getMyKpis(), getMyKpiRecords()]);
-    const assigned = kpis.length;
+    const assigned = kpis.length + records.length;
     // completed = permanently approved KPIs + all approved cycle records
     const permanentlyApproved = kpis.filter(k => k.status === 'approved').length;
     const completed = permanentlyApproved + records.length;
